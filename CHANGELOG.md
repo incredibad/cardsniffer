@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.3.0] - 2026-07-04
+
+### Added
+- Grid/table view switcher on the search results — click to toggle between the existing card grid and a new compact table view
+
 ## [0.2.4] - 2026-07-04
 
 ### Fixed
