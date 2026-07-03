@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.11.0] - 2026-07-04
+
+### Added
+- Card Stars scraper (sixth store) — an Australian multi-seller MTG marketplace built as a client-rendered React SPA with no server-rendered HTML, so this calls its backing JSON API directly (found via its bundled JS) rather than scraping markup. Each result is one seller's live listing (price, condition, quantity) for one printing/finish; catalog entries with no active seller are excluded same as any other out-of-stock result. Already AUD, no GST (domestic store)
+
 ## [0.10.0] - 2026-07-04
 
 ### Added
