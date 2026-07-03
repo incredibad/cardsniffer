@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.2.1] - 2026-07-03
+
+### Fixed
+- Card Kingdom scraper now queries both the "Singles" and "Foils" tabs — foil listings were previously missing entirely for any card whose foil printing has no "Foil" text in its title (i.e. most regular foils, as opposed to foil-locked promos)
+
 ## [0.2.0] - 2026-07-03
 
 ### Changed
