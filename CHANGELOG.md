@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.7.0] - 2026-07-04
+
+### Added
+- MTGDude scraper (fourth store) — a personal tool that re-serves MTG Mate (an Australian store) results. Parses the embedded React component props (double-HTML-entity-escaped JSON, a known quirk of the source site) rather than following pagination, since the underlying API has a 1000 requests/month cap and this endpoint returns the full unpaginated result set in one call. Already AUD, no GST applied (domestic store)
+
 ## [0.6.0] - 2026-07-04
 
 ### Added
