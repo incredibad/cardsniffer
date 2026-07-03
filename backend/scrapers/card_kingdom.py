@@ -43,6 +43,7 @@ def _parse_qty(text: str) -> int | None:
 
 class CardKingdomScraper(BaseScraper):
     store_name = "Card Kingdom"
+    applies_gst = True
 
     async def search(self, query: str) -> list[SearchResult]:
         responses = await asyncio.gather(*(self._fetch_tab(query, tab) for tab in _TABS))

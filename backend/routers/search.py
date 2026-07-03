@@ -13,6 +13,9 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/search", tags=["search"])
 
+_GST_RATE = 1.10
+_GST_STORE_NAMES = {cls.store_name for cls in SCRAPERS.values() if cls.applies_gst}
+
 
 @router.get("")
 async def search(q: str = Query(..., min_length=1), db: Session = Depends(get_db)):
@@ -52,6 +55,8 @@ async def search(q: str = Query(..., min_length=1), db: Session = Depends(get_db
         if rate is not None:
             d["price"] = round(r.price * rate, 2)
             d["currency"] = "AUD"
+        if r.store_name in _GST_STORE_NAMES:
+            d["price"] = round(d["price"] * _GST_RATE, 2)
         results.append(d)
 
     db.add(SearchLog(query=q, result_count=len(results)))

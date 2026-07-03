@@ -33,6 +33,7 @@ def _parse_price(text: str) -> float | None:
 
 class MtgMintCardScraper(BaseScraper):
     store_name = "MTGMintCard"
+    applies_gst = True
 
     async def search(self, query: str) -> list[SearchResult]:
         response = await self.client.get(

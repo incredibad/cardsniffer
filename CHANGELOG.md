@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.6.0] - 2026-07-04
+
+### Added
+- Australian GST (10%) is now added to prices from US stores (Card Kingdom, MTGMintCard) after currency conversion, so displayed prices reflect the actual landed cost of importing from overseas. Marked per-scraper via a new `applies_gst` flag on `BaseScraper` so future stores opt in individually
+
 ## [0.5.0] - 2026-07-04
 
 ### Added

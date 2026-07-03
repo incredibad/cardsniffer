@@ -3,7 +3,9 @@
 To add a new store:
   1. Create backend/scrapers/<store>.py with a class subclassing BaseScraper.
   2. Set store_name and implement `async def search(self, query) -> list[SearchResult]`.
-  3. Register it in backend/scrapers/__init__.py's SCRAPERS dict.
+  3. Set applies_gst = True if it's an overseas store that doesn't already
+     include Australian GST on imports in its listed prices.
+  4. Register it in backend/scrapers/__init__.py's SCRAPERS dict.
 That's it — the search router, the Settings page's store toggles, and the
 enable/disable persistence all pick up new entries automatically via the
 registry; no other files need touching.
@@ -50,6 +52,10 @@ class BaseScraper(ABC):
     """Abstract base class for all store scrapers."""
 
     store_name: str = ""
+    # Australian GST (10%) on low-value imported goods — set True for stores
+    # that don't already fold it into their listed price. The search router
+    # applies it centrally after currency conversion.
+    applies_gst: bool = False
 
     def __init__(self, proxy_url: str = ""):
         self.client = httpx.AsyncClient(
