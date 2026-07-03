@@ -1,8 +1,10 @@
-import { useState } from "react";
-import { Search as SearchIcon, Loader2, X, LayoutGrid, Table as TableIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Search as SearchIcon, Loader2, X, LayoutGrid, Table as TableIcon, ArrowUp, ArrowDown } from "lucide-react";
 import { api } from "../api";
 import ResultCard from "../components/ResultCard";
 import ResultTable from "../components/ResultTable";
+
+const SORT_ORDER_KEY = "cardsniffer.sortOrder";
 
 export default function Search() {
   const [query, setQuery] = useState("");
@@ -13,6 +15,20 @@ export default function Search() {
   const [dismissedErrors, setDismissedErrors] = useState(false);
   const [lastQuery, setLastQuery] = useState("");
   const [viewMode, setViewMode] = useState("grid"); // grid | table
+  const [sortOrder, setSortOrder] = useState(
+    () => localStorage.getItem(SORT_ORDER_KEY) || "asc"
+  ); // asc | desc
+
+  function updateSortOrder(order) {
+    setSortOrder(order);
+    localStorage.setItem(SORT_ORDER_KEY, order);
+  }
+
+  const sortedResults = useMemo(() => {
+    const sorted = [...results];
+    sorted.sort((a, b) => (sortOrder === "asc" ? a.price - b.price : b.price - a.price));
+    return sorted;
+  }, [results, sortOrder]);
 
   async function runSearch(e) {
     e?.preventDefault();
@@ -96,42 +112,72 @@ export default function Search() {
             <p className="text-sm text-stone-500">
               {results.length} result{results.length === 1 ? "" : "s"}
             </p>
-            <div className="inline-flex rounded-lg border border-gold-700/40 overflow-hidden">
-              <button
-                onClick={() => setViewMode("grid")}
-                aria-label="Grid view"
-                aria-pressed={viewMode === "grid"}
-                className={`p-1.5 transition-colors ${
-                  viewMode === "grid"
-                    ? "bg-gold-600 text-ink-950"
-                    : "text-stone-400 hover:text-gold-300"
-                }`}
-              >
-                <LayoutGrid size={16} />
-              </button>
-              <button
-                onClick={() => setViewMode("table")}
-                aria-label="Table view"
-                aria-pressed={viewMode === "table"}
-                className={`p-1.5 transition-colors border-l border-gold-700/40 ${
-                  viewMode === "table"
-                    ? "bg-gold-600 text-ink-950"
-                    : "text-stone-400 hover:text-gold-300"
-                }`}
-              >
-                <TableIcon size={16} />
-              </button>
+            <div className="flex items-center gap-2">
+              <div className="inline-flex rounded-lg border border-gold-700/40 overflow-hidden">
+                <button
+                  onClick={() => updateSortOrder("asc")}
+                  aria-label="Sort by price, low to high"
+                  aria-pressed={sortOrder === "asc"}
+                  title="Price: low to high"
+                  className={`p-1.5 flex items-center gap-1 transition-colors ${
+                    sortOrder === "asc"
+                      ? "bg-gold-600 text-ink-950"
+                      : "text-stone-400 hover:text-gold-300"
+                  }`}
+                >
+                  <ArrowUp size={16} />
+                </button>
+                <button
+                  onClick={() => updateSortOrder("desc")}
+                  aria-label="Sort by price, high to low"
+                  aria-pressed={sortOrder === "desc"}
+                  title="Price: high to low"
+                  className={`p-1.5 flex items-center gap-1 transition-colors border-l border-gold-700/40 ${
+                    sortOrder === "desc"
+                      ? "bg-gold-600 text-ink-950"
+                      : "text-stone-400 hover:text-gold-300"
+                  }`}
+                >
+                  <ArrowDown size={16} />
+                </button>
+              </div>
+              <div className="inline-flex rounded-lg border border-gold-700/40 overflow-hidden">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  aria-label="Grid view"
+                  aria-pressed={viewMode === "grid"}
+                  className={`p-1.5 transition-colors ${
+                    viewMode === "grid"
+                      ? "bg-gold-600 text-ink-950"
+                      : "text-stone-400 hover:text-gold-300"
+                  }`}
+                >
+                  <LayoutGrid size={16} />
+                </button>
+                <button
+                  onClick={() => setViewMode("table")}
+                  aria-label="Table view"
+                  aria-pressed={viewMode === "table"}
+                  className={`p-1.5 transition-colors border-l border-gold-700/40 ${
+                    viewMode === "table"
+                      ? "bg-gold-600 text-ink-950"
+                      : "text-stone-400 hover:text-gold-300"
+                  }`}
+                >
+                  <TableIcon size={16} />
+                </button>
+              </div>
             </div>
           </div>
 
           {viewMode === "grid" ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
-              {results.map((r, i) => (
+              {sortedResults.map((r, i) => (
                 <ResultCard key={`${r.product_url}-${r.condition}-${i}`} result={r} />
               ))}
             </div>
           ) : (
-            <ResultTable results={results} />
+            <ResultTable results={sortedResults} />
           )}
         </>
       )}
