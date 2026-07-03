@@ -33,7 +33,12 @@ async def search(q: str = Query(..., min_length=1), db: Session = Depends(get_db
             return []
 
     per_store = await asyncio.gather(*(run_one(k) for k in enabled_keys))
-    results = [asdict(r) for store_results in per_store for r in store_results]
+    results = [
+        asdict(r)
+        for store_results in per_store
+        for r in store_results
+        if r.in_stock
+    ]
 
     db.add(SearchLog(query=q, result_count=len(results)))
     db.commit()

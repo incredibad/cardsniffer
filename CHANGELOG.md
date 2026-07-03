@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.2.0] - 2026-07-03
+
+### Changed
+- Search results no longer include out-of-stock listings
+
 ## [0.1.0] - 2026-07-03
 
 ### Added
