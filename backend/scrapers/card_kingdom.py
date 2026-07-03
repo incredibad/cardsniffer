@@ -1,3 +1,4 @@
+import asyncio
 import re
 from urllib.parse import urljoin
 
@@ -14,6 +15,16 @@ SEARCH_URL = f"{BASE_URL}/catalog/search"
 # which robots.txt disallows anyway. Plain httpx (no curl-cffi impersonation)
 # works fine here; the site is Cloudflare-fronted but doesn't challenge a
 # normal GET with a realistic User-Agent.
+#
+# Results are split across separate tabs (filter[tab]) rather than being one
+# combined listing: "mtg_card" (Singles/nonfoil) and "mtg_foil" (Foils). A
+# card with both finishes shows up as two entirely separate result sets, and
+# the Foils tab often has no "Foil" text in the title at all (e.g. plain
+# "Ragavan, Nimble Pilferer" is the foil listing on that tab) — so foil status
+# must come from which tab a block was fetched from, not just title text.
+# Title text still matters for foil-only promo prints (e.g. "Prerelease
+# Foil") that live on the Singles tab because they have no nonfoil version.
+_TABS = ["mtg_card", "mtg_foil"]
 
 _PRICE_RE = re.compile(r"([\d,]+\.\d{2})")
 _RARITY_SUFFIX_RE = re.compile(r"\s*\([A-Z]\)\s*$")
@@ -34,19 +45,25 @@ class CardKingdomScraper(BaseScraper):
     store_name = "Card Kingdom"
 
     async def search(self, query: str) -> list[SearchResult]:
-        response = await self.client.get(
-            SEARCH_URL,
-            params={"search": "header", "filter[name]": query},
-        )
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, "lxml")
+        responses = await asyncio.gather(*(self._fetch_tab(query, tab) for tab in _TABS))
 
         results: list[SearchResult] = []
-        for block in soup.select("div.productItemWrapper.productCardWrapper"):
-            results.extend(self._parse_product_block(block))
+        for tab, response in zip(_TABS, responses):
+            soup = BeautifulSoup(response.text, "lxml")
+            force_foil = tab == "mtg_foil"
+            for block in soup.select("div.productItemWrapper.productCardWrapper"):
+                results.extend(self._parse_product_block(block, force_foil=force_foil))
         return results
 
-    def _parse_product_block(self, block) -> list[SearchResult]:
+    async def _fetch_tab(self, query: str, tab: str):
+        response = await self.client.get(
+            SEARCH_URL,
+            params={"search": "header", "filter[name]": query, "filter[tab]": tab},
+        )
+        response.raise_for_status()
+        return response
+
+    def _parse_product_block(self, block, force_foil: bool = False) -> list[SearchResult]:
         title_el = block.select_one(".productDetailTitle a")
         if not title_el:
             return []
@@ -65,7 +82,7 @@ class CardKingdomScraper(BaseScraper):
         if collector_el:
             collector_number = collector_el.get_text(strip=True).replace("Collector #:", "").strip() or None
 
-        foil = "foil" in full_title.lower()
+        foil = force_foil or "foil" in full_title.lower()
 
         image_el = block.find("mtg-card-image")
         image_url = image_el.get("src") if image_el else None
