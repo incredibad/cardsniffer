@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.8.1] - 2026-07-04
+
+### Fixed
+- MTGMintCard was badly under-reporting foils by guessing from title text. The listing actually carries an explicit finish badge (Regular / Variants / Foil / Foil Variants / Prerelease) that reliably encodes it — confirmed against product URLs, which independently encode -reg-/-foil- and always agree. The scraper's selector for this badge was matching the wrong element (a same-classed language badge sitting right next to it), which is why an earlier version fell back to unreliable title-text guessing instead of fixing the selector
+
 ## [0.8.0] - 2026-07-04
 
 ### Added

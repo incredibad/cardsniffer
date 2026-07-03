@@ -14,13 +14,19 @@ SEARCH_URL = f"{BASE_URL}/mtg/singles/search"
 #
 # Each row is a single, standalone listing (one product ID, one price, one
 # stock count) — NOT an aggregation of multiple sub-listings, despite what
-# the "finish" badge (Regular / Foil / Variants) suggests. That badge is
-# unreliable for foil detection: premium treatments (Extended Art, Surge
-# Foil, Showcase, etc.) are often labeled "Variants" regardless of finish,
-# and a second class variant ("lv-spec-pre", used for prerelease rows) isn't
-# matched by the same selector at all. The reliable signal is the treatment
-# text in the card's title itself, e.g. "Tataru Taru (Surge Foil)" — same
-# pattern as Card Kingdom's promo-only-foil titles.
+# the "finish" badge (Regular / Variants / Foil / Foil Variants / Prerelease)
+# might suggest.
+#
+# That badge (span.label-primary, class lv-spec or lv-spec-pre on prerelease
+# rows) IS the authoritative foil signal — cross-checked against product
+# URLs, which independently encode -reg-/-foil- in the path and always
+# agree with it. Two rows can share an identical title differing only by
+# this badge (a plain "Ragavan, Nimble Pilferer" row can be either Regular
+# or Foil), so title text is NOT a reliable foil signal on its own — a
+# previous version of this scraper used it as one because of a selector
+# bug: the badge sits right next to a same-classed language badge
+# (span.label-success, "ENG"/"JP") and an unqualified `.lv-spec` selector
+# matched that one first instead.
 
 _PRICE_RE = re.compile(r"([\d,]+\.\d{2})")
 _BRACKET_RE = re.compile(r"\(([^()]*)\)")
@@ -59,8 +65,10 @@ class MtgMintCardScraper(BaseScraper):
         # printing descriptor, e.g. "(Extended Art)", "(Surge Foil)", "(466)".
         card_name = _BRACKET_RE.sub("", full_title).strip()
         treatment = " · ".join(_BRACKET_RE.findall(full_title))
-        foil = "foil" in full_title.lower()
         product_url = urljoin(BASE_URL, name_el.get("href", ""))
+
+        finish_badge = row.select_one(".label-primary.lv-spec, .label-primary.lv-spec-pre")
+        foil = "foil" in finish_badge.get_text(strip=True).lower() if finish_badge else False
 
         set_el = row.select_one('td[align="center"] img')
         edition = set_el.get("title", "").strip() or set_el.get("alt", "").strip() if set_el else None
