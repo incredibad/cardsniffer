@@ -1,0 +1,73 @@
+"""Scraper framework — one subclass per retailer.
+
+To add a new store:
+  1. Create backend/scrapers/<store>.py with a class subclassing BaseScraper.
+  2. Set store_name and implement `async def search(self, query) -> list[SearchResult]`.
+  3. Register it in backend/scrapers/__init__.py's SCRAPERS dict.
+That's it — the search router, the Settings page's store toggles, and the
+enable/disable persistence all pick up new entries automatically via the
+registry; no other files need touching.
+
+If a site requires TLS/JA3 fingerprint impersonation to avoid bot detection,
+override __init__/close to swap the httpx.AsyncClient for a
+curl_cffi.requests.AsyncSession(impersonate="chrome124") while keeping the
+same public search() signature — see card_kingdom.py for the plain-httpx
+baseline case.
+"""
+
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import Optional
+
+import httpx
+
+_DEFAULT_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
+
+@dataclass
+class SearchResult:
+    card_name: str
+    set_name: Optional[str]
+    collector_number: Optional[str]
+    foil: bool
+    condition: str  # free-text, normalized per-scraper — stores use different scales
+    price: float
+    currency: str
+    in_stock: bool
+    quantity_available: Optional[int]
+    image_url: Optional[str]
+    product_url: str
+    store_name: str
+
+
+class BaseScraper(ABC):
+    """Abstract base class for all store scrapers."""
+
+    store_name: str = ""
+
+    def __init__(self, proxy_url: str = ""):
+        self.client = httpx.AsyncClient(
+            timeout=15.0,
+            headers=_DEFAULT_HEADERS,
+            follow_redirects=True,
+            **({"proxy": proxy_url} if proxy_url else {}),
+        )
+
+    @abstractmethod
+    async def search(self, query: str) -> list[SearchResult]:
+        """Search the store for a card name and return all matching printings/conditions."""
+
+    async def close(self):
+        await self.client.aclose()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *args):
+        await self.close()

@@ -1,0 +1,25 @@
+services:
+  app:
+    container_name: cardsniffer
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    volumes:
+      - cardsniffer_data:/data
+    environment:
+      - PYTHONUNBUFFERED=1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "6870:6870"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6870/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  cardsniffer_data:
+    name: cardsniffer_data
