@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.2.2] - 2026-07-03
+
+### Fixed
+- Card Kingdom scraper's in-stock detection was backwards: a condition with no displayed quantity was previously treated as available by default. CK only renders a quantity for conditions it actually has in stock, so those are now correctly excluded — the out-of-stock filter added in 0.2.0 wasn't catching them because they were mislabelled as in-stock upstream
+
 ## [0.2.1] - 2026-07-03
 
 ### Fixed

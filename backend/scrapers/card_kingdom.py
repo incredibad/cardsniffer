@@ -112,9 +112,13 @@ class CardKingdomScraper(BaseScraper):
                 price = _parse_price((li.select_one(".stylePrice") or li).get_text())
                 if price is None:
                     continue
+                # A price is shown for every condition a printing has, even ones
+                # with zero current stock — CK only renders a .styleQty span for
+                # conditions that actually have inventory. A missing qty therefore
+                # means unavailable, not "in stock but uncounted".
                 qty_el = li.select_one(".styleQty")
                 qty = _parse_qty(qty_el.get_text()) if qty_el else None
-                in_stock = "disabled" not in classes and (qty is None or qty > 0)
+                in_stock = "disabled" not in classes and qty is not None and qty > 0
                 results.append(SearchResult(
                     condition=condition,
                     price=price,
