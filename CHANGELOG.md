@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.9.1] - 2026-07-04
+
+### Fixed
+- Card Kingdom searches were failing with 403 Forbidden on every request — Cloudflare now issues a full Managed Challenge to plain httpx where it previously let realistic-looking requests through. Switched to curl_cffi with Chrome impersonation, the same fix already applied to MTGMate
+
 ## [0.9.0] - 2026-07-04
 
 ### Added
