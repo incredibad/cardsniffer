@@ -12,14 +12,18 @@ SEARCH_URL = f"{BASE_URL}/mtg/singles/search"
 # (plain Apache/CloudFront, no Cloudflare challenge), robots.txt doesn't
 # disallow the search path. Plain httpx is fine here.
 #
-# Each result row's "finish" label is one of Regular / Foil / Variants.
-# "Variants" means the row folds multiple foil/nonfoil sub-listings behind
-# one link, with no price/stock/foil breakdown on the search page itself —
-# resolving it would mean an extra request per Variants row (an N+1 pattern
-# that doesn't scale well for a live search). Those rows are skipped for now;
-# only rows with an unambiguous Regular/Foil label are returned.
+# Each row is a single, standalone listing (one product ID, one price, one
+# stock count) — NOT an aggregation of multiple sub-listings, despite what
+# the "finish" badge (Regular / Foil / Variants) suggests. That badge is
+# unreliable for foil detection: premium treatments (Extended Art, Surge
+# Foil, Showcase, etc.) are often labeled "Variants" regardless of finish,
+# and a second class variant ("lv-spec-pre", used for prerelease rows) isn't
+# matched by the same selector at all. The reliable signal is the treatment
+# text in the card's title itself, e.g. "Tataru Taru (Surge Foil)" — same
+# pattern as Card Kingdom's promo-only-foil titles.
 
 _PRICE_RE = re.compile(r"([\d,]+\.\d{2})")
+_BRACKET_RE = re.compile(r"\(([^()]*)\)")
 
 
 def _parse_price(text: str) -> float | None:
@@ -46,20 +50,20 @@ class MtgMintCardScraper(BaseScraper):
         return results
 
     def _parse_row(self, row) -> SearchResult | None:
-        finish_el = row.select_one(".label-primary.lv-spec")
-        finish = finish_el.get_text(strip=True) if finish_el else None
-        if finish not in ("Regular", "Foil"):
-            return None  # skip "Variants" rows and anything unrecognized
-
         name_el = row.select_one(".card-name a")
         if not name_el:
             return None
         full_title = name_el.get_text(strip=True)
-        card_name = full_title.split(" (", 1)[0].strip()
+        # card_name is the base name; each "(...)" group is a treatment/
+        # printing descriptor, e.g. "(Extended Art)", "(Surge Foil)", "(466)".
+        card_name = _BRACKET_RE.sub("", full_title).strip()
+        treatment = " · ".join(_BRACKET_RE.findall(full_title))
+        foil = "foil" in full_title.lower()
         product_url = urljoin(BASE_URL, name_el.get("href", ""))
 
         set_el = row.select_one('td[align="center"] img')
-        set_name = set_el.get("title", "").strip() or set_el.get("alt", "").strip() if set_el else None
+        edition = set_el.get("title", "").strip() or set_el.get("alt", "").strip() if set_el else None
+        set_name = f"{edition} — {treatment}" if edition and treatment else (edition or treatment or None)
 
         image_el = row.select_one(".lv-image img")
         image_url = urljoin(BASE_URL, image_el.get("src", "")) if image_el else None
@@ -89,9 +93,9 @@ class MtgMintCardScraper(BaseScraper):
 
         return SearchResult(
             card_name=card_name,
-            set_name=set_name or None,
+            set_name=set_name,
             collector_number=None,
-            foil=finish == "Foil",
+            foil=foil,
             condition=condition,
             price=price,
             currency="USD",

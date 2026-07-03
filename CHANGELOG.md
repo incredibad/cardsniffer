@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.4.1] - 2026-07-04
+
+### Fixed
+- MTGMintCard scraper was under-reporting results: each row is actually a single, standalone listing rather than an aggregation, and the "Variants" finish badge is unreliable — a card's foil status is now read from its title text (e.g. "Surge Foil", "Chocobo Track Foil") instead, and no rows are skipped anymore. Also fixed a second class-name variant ("lv-spec-pre", used on prerelease rows) that the old selector didn't match at all
+- Treatment/printing descriptors (Extended Art, Surge Foil, etc.) are now folded into the displayed set name instead of being silently discarded
+
 ## [0.4.0] - 2026-07-04
 
 ### Added
