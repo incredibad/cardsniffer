@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.7.2] - 2026-07-04
+
+### Changed
+- Renamed the fourth store from "MTGDude" to "MTGMate" in Settings and search results — MTGDude is the personal tool that fetches the data, but MTG Mate is the actual store it's sourced from, which is the more useful label to compare against the other stores
+
 ## [0.7.1] - 2026-07-04
 
 ### Fixed

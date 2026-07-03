@@ -1,14 +1,14 @@
 from .base import BaseScraper, SearchResult
 from .card_kingdom import CardKingdomScraper
 from .hareruya import HareruyaScraper
-from .mtgdude import MtgDudeScraper
+from .mtgmate import MtgMateScraper
 from .mtgmintcard import MtgMintCardScraper
 
 SCRAPERS: dict[str, type[BaseScraper]] = {
     "card_kingdom": CardKingdomScraper,
     "mtgmintcard": MtgMintCardScraper,
     "hareruya": HareruyaScraper,
-    "mtgdude": MtgDudeScraper,
+    "mtgmate": MtgMateScraper,
 }
 
 
