@@ -1,10 +1,12 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Search as SearchIcon, Loader2, X, LayoutGrid, Table as TableIcon, ArrowUp, ArrowDown } from "lucide-react";
 import { api } from "../api";
 import ResultCard from "../components/ResultCard";
 import ResultTable from "../components/ResultTable";
 
 const SORT_ORDER_KEY = "cardsniffer.sortOrder";
+const SUGGEST_DEBOUNCE_MS = 150;
+const SUGGEST_MIN_LENGTH = 2;
 
 export default function Search() {
   const [query, setQuery] = useState("");
@@ -19,6 +21,12 @@ export default function Search() {
     () => localStorage.getItem(SORT_ORDER_KEY) || "asc"
   ); // asc | desc
 
+  const [suggestions, setSuggestions] = useState([]);
+  const [suggestOpen, setSuggestOpen] = useState(false);
+  const [activeSuggestion, setActiveSuggestion] = useState(-1);
+  const debounceRef = useRef(null);
+  const suggestRequestId = useRef(0);
+
   function updateSortOrder(order) {
     setSortOrder(order);
     localStorage.setItem(SORT_ORDER_KEY, order);
@@ -30,13 +38,10 @@ export default function Search() {
     return sorted;
   }, [results, sortOrder]);
 
-  async function runSearch(e) {
-    e?.preventDefault();
-    const q = query.trim();
-    if (!q) return;
-
+  async function performSearch(q) {
     setStatus("loading");
     setDismissedErrors(false);
+    setSuggestOpen(false);
     try {
       const data = await api.search(q);
       setResults(data.results);
@@ -46,6 +51,67 @@ export default function Search() {
     } catch (err) {
       setErrorMessage(err.message || "Search failed");
       setStatus("error");
+    }
+  }
+
+  function runSearch(e) {
+    e?.preventDefault();
+    const q = query.trim();
+    if (!q) return;
+    performSearch(q);
+  }
+
+  function selectSuggestion(name) {
+    setQuery(name);
+    setSuggestions([]);
+    setSuggestOpen(false);
+    setActiveSuggestion(-1);
+    performSearch(name);
+  }
+
+  function handleQueryChange(value) {
+    setQuery(value);
+    setActiveSuggestion(-1);
+    clearTimeout(debounceRef.current);
+
+    const q = value.trim();
+    if (q.length < SUGGEST_MIN_LENGTH) {
+      setSuggestions([]);
+      setSuggestOpen(false);
+      return;
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      const requestId = ++suggestRequestId.current;
+      try {
+        const res = await fetch(
+          `https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(q)}`
+        );
+        const data = await res.json();
+        if (requestId !== suggestRequestId.current) return; // a newer request already landed
+        setSuggestions(data.data || []);
+        setSuggestOpen((data.data || []).length > 0);
+      } catch {
+        // Autocomplete is a nicety — silently drop failures, the search box still works.
+      }
+    }, SUGGEST_DEBOUNCE_MS);
+  }
+
+  function handleQueryKeyDown(e) {
+    if (!suggestOpen || suggestions.length === 0) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveSuggestion((i) => (i + 1) % suggestions.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveSuggestion((i) => (i - 1 + suggestions.length) % suggestions.length);
+    } else if (e.key === "Enter" && activeSuggestion >= 0) {
+      e.preventDefault();
+      selectSuggestion(suggestions[activeSuggestion]);
+    } else if (e.key === "Escape") {
+      setSuggestOpen(false);
+      setActiveSuggestion(-1);
     }
   }
 
@@ -64,10 +130,37 @@ export default function Search() {
           <input
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => handleQueryChange(e.target.value)}
+            onKeyDown={handleQueryKeyDown}
+            onFocus={() => suggestions.length > 0 && setSuggestOpen(true)}
+            onBlur={() => setTimeout(() => setSuggestOpen(false), 100)}
             placeholder="e.g. Lightning Bolt"
+            autoComplete="off"
+            role="combobox"
+            aria-expanded={suggestOpen}
+            aria-autocomplete="list"
             className="w-full pl-10 pr-3 py-2.5 rounded-lg bg-ink-900 border border-gold-700/40 text-stone-100 placeholder:text-stone-500 focus:outline-none focus:border-gold-500"
           />
+          {suggestOpen && suggestions.length > 0 && (
+            <ul className="card-frame absolute top-full left-0 right-0 mt-1 z-10 max-h-72 overflow-y-auto py-1">
+              {suggestions.map((name, i) => (
+                <li key={name}>
+                  <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => selectSuggestion(name)}
+                    className={`w-full text-left px-3 py-1.5 text-sm transition-colors ${
+                      i === activeSuggestion
+                        ? "bg-gold-600 text-ink-950"
+                        : "text-stone-200 hover:bg-ink-900"
+                    }`}
+                  >
+                    {name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         <button
           type="submit"
