@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.10.0] - 2026-07-04
+
+### Added
+- GUF scraper (fifth store) — an Australian Shopify store with branches in Bendigo, Geelong, Ballarat, Werribee and a Warehouse. Per-branch variants are collapsed into one in-stock/foil result per printing (branch location isn't tracked). Shopify's native search does fuzzy/approximate matching with no exact-only toggle and this store also carries non-MTG merch, so results are kept only when the query is a literal substring of the listing title — otherwise unrelated matches (a same-named enchantment, a Warhammer magazine, a board game) leak in purely from incidental word overlap. Already AUD, no GST (domestic store)
+
 ## [0.9.1] - 2026-07-04
 
 ### Fixed
