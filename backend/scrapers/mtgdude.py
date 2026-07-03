@@ -2,6 +2,8 @@ import html
 import json
 from urllib.parse import urljoin
 
+from curl_cffi.requests import AsyncSession
+
 from .base import BaseScraper, SearchResult
 
 BASE_URL = "https://mtgdb.timhedley.com"
@@ -12,6 +14,12 @@ STORE_URL = "https://www.mtgmate.com.au"
 # 1000 requests/month on their end — one search here is one request there,
 # so don't add retries, pagination follow-up requests, or anything else that
 # multiplies calls per search.
+#
+# It's Cloudflare-fronted and plain httpx connections to it fail outright
+# (not an HTTP error — the connection itself is refused/dropped) on roughly
+# a quarter of requests, apparently on TLS fingerprint rather than rate —
+# manual browser refreshes don't see this. Chrome impersonation via
+# curl_cffi clears it up almost entirely.
 #
 # The page embeds its data as a React component's props: a `data-react-props`
 # attribute holding JSON, HTML-entity-escaped. That JSON is itself
@@ -41,6 +49,17 @@ def _extract_props(html_text: str) -> dict:
 
 class MtgDudeScraper(BaseScraper):
     store_name = "MTGDude"
+
+    def __init__(self, proxy_url: str = ""):
+        self.client = AsyncSession(
+            impersonate="chrome124",
+            timeout=15.0,
+            allow_redirects=True,
+            **({"proxy": proxy_url} if proxy_url else {}),
+        )
+
+    async def close(self):
+        await self.client.close()
 
     async def search(self, query: str) -> list[SearchResult]:
         response = await self.client.get(BASE_URL, params={"q": query})
