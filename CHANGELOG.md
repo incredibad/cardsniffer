@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.12.0] - 2026-07-04
+
+### Added
+- Good Games TCG scraper (seventh store) — an Australian Shopify store. Its theme replaces native search results with a third-party client-rendered widget whose API needs an auth token we couldn't recover, but Shopify's own built-in predictive-search endpoint is still live underneath it and untouched by the theme swap, so that's what this uses instead (capped at 10 matched printings, a platform limit on that endpoint — each printing then needs a follow-up request for per-condition/foil price and stock, since predictive search only gives a price range). Full condition grading (NM/LP/MP/HP/DMG), not just NM. Already AUD, no GST (domestic store)
+
 ## [0.11.0] - 2026-07-04
 
 ### Added
