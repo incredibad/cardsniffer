@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.2.3] - 2026-07-04
+
+### Changed
+- Cleaned up result card visual design: single thinner outer border instead of a stacked border/divider/badge-border look, borderless tinted "chip" badges for condition and foil, a distinct violet accent for foil instead of a near-identical shade of gold, better card/page background contrast, and more breathing room in the grid (capped at 4 columns, wider gaps)
+- Removed the out-of-stock badge from result cards — dead UI now that the search endpoint filters those out server-side
+
 ## [0.2.2] - 2026-07-03
 
 ### Fixed

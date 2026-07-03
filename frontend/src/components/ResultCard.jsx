@@ -1,4 +1,4 @@
-import { Sparkles, ExternalLink, PackageX } from "lucide-react";
+import { Sparkles, ExternalLink } from "lucide-react";
 
 function formatPrice(price, currency) {
   const symbol = currency === "USD" ? "$" : `${currency} `;
@@ -14,7 +14,6 @@ export default function ResultCard({ result }) {
     condition,
     price,
     currency,
-    in_stock,
     quantity_available,
     image_url,
     product_url,
@@ -23,7 +22,7 @@ export default function ResultCard({ result }) {
 
   return (
     <div className="card-frame overflow-hidden flex flex-col">
-      <div className="aspect-[5/7] bg-ink-950 flex items-center justify-center overflow-hidden">
+      <div className="aspect-[5/7] bg-ink-950">
         {image_url ? (
           <img
             src={image_url}
@@ -32,52 +31,52 @@ export default function ResultCard({ result }) {
             className="w-full h-full object-cover"
           />
         ) : (
-          <span className="text-stone-600 text-sm">No image</span>
+          <div className="w-full h-full flex items-center justify-center text-stone-600 text-sm">
+            No image
+          </div>
         )}
       </div>
 
-      <div className="p-3 flex flex-col gap-2 flex-1">
-        <div className="border-b border-gold-700/40 pb-2">
-          <h3 className="font-display font-semibold text-gold-200 text-sm leading-tight truncate" title={card_name}>
+      <div className="p-3.5 flex flex-col gap-2.5 flex-1">
+        <div>
+          <h3
+            className="font-display font-semibold text-gold-200 text-sm leading-snug truncate"
+            title={card_name}
+          >
             {card_name}
           </h3>
           {set_name && (
-            <p className="text-xs text-stone-400 truncate">
+            <p className="text-xs text-stone-500 truncate mt-0.5">
               {set_name}
               {collector_number && ` · #${collector_number}`}
             </p>
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 flex-wrap text-xs">
-          <span className="px-1.5 py-0.5 rounded border border-gold-600/60 text-gold-300 uppercase tracking-wide">
-            {condition}
-          </span>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="chip bg-gold-500/15 text-gold-300 uppercase">{condition}</span>
           {foil && (
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-amber-400/60 text-amber-300">
-              <Sparkles size={12} /> Foil
-            </span>
-          )}
-          {!in_stock && (
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-red-500/50 text-red-400">
-              <PackageX size={12} /> Out of stock
+            <span className="chip bg-violet-500/15 text-violet-300 inline-flex items-center gap-1">
+              <Sparkles size={11} /> Foil
             </span>
           )}
         </div>
 
-        <div className="mt-auto flex items-end justify-between pt-1">
-          <div>
-            <div className="text-lg font-semibold text-stone-100">{formatPrice(price, currency)}</div>
-            <div className="text-xs text-stone-500">
+        <div className="mt-auto flex items-end justify-between gap-2 pt-1">
+          <div className="min-w-0">
+            <div className="text-lg font-semibold text-stone-100 leading-tight">
+              {formatPrice(price, currency)}
+            </div>
+            <div className="text-xs text-stone-500 truncate">
               {store_name}
-              {quantity_available != null && ` · ${quantity_available} available`}
+              {quantity_available != null && ` · ${quantity_available} in stock`}
             </div>
           </div>
           <a
             href={product_url}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-gold-600/90 hover:bg-gold-500 text-ink-950 font-semibold transition-colors"
+            className="shrink-0 inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-gold-600 hover:bg-gold-500 text-ink-950 font-semibold transition-colors"
           >
             Buy <ExternalLink size={12} />
           </a>

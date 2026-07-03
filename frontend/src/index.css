@@ -26,6 +26,10 @@
   }
   /* Card-frame border used on ResultCard and similar panels. */
   .card-frame {
-    @apply rounded-lg border-2 border-gold-600/60 bg-ink-900 shadow-lg shadow-black/40;
+    @apply rounded-xl border border-gold-700/50 bg-ink-800 shadow-lg shadow-black/30;
+  }
+  /* Borderless tinted "chip" badge — condition, foil, etc. */
+  .chip {
+    @apply px-2 py-0.5 rounded-full text-[11px] font-medium tracking-wide;
   }
 }
