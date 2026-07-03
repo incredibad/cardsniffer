@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.7.1] - 2026-07-04
+
+### Fixed
+- MTGDude requests were failing outright (connection-level, not an HTTP error) on roughly a quarter of attempts — its Cloudflare front-end appears to be reacting to plain httpx's TLS fingerprint, since manual browser refreshes don't see this. Switched to curl_cffi with Chrome impersonation, matching the pattern already documented for exactly this case in `scrapers/base.py`
+
 ## [0.7.0] - 2026-07-04
 
 ### Added
