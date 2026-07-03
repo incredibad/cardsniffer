@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.9.0] - 2026-07-04
+
+### Added
+- Scryfall autocomplete on the search box — suggestions appear as you type (debounced, 2+ characters), navigable with arrow keys/Enter, selecting one runs the search immediately. Calls Scryfall's public autocomplete endpoint directly from the browser (no backend involved), matching how Scryfall's own API is meant to be used for this
+
 ## [0.8.1] - 2026-07-04
 
 ### Fixed
