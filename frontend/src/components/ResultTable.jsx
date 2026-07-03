@@ -1,8 +1,7 @@
 import { Sparkles, ExternalLink } from "lucide-react";
 
 function formatPrice(price, currency) {
-  const symbol = currency === "USD" ? "$" : `${currency} `;
-  return `${symbol}${price.toFixed(2)}`;
+  return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(price);
 }
 
 export default function ResultTable({ results }) {

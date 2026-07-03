@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented here.
 
+## [0.5.0] - 2026-07-04
+
+### Added
+- Hareruya scraper (third store) — queries its Solr-backed search JSON directly. Japanese-language prints and non-playable "Art Card" listings are excluded, keeping only English/other-language playable singles
+- All search results are now converted to AUD before being returned, using live exchange rates (cached for 6 hours) — previously each store's results kept their native currency (USD, and now JPY) with no conversion, which made cross-store price comparison meaningless
+
+### Fixed
+- Result card/table price formatting used a hardcoded "$" for USD and a raw currency-code prefix otherwise, with two forced decimal places even for zero-decimal currencies like JPY — now uses locale-aware `Intl.NumberFormat` formatting
+- Hareruya's search index reports a "stock" count that's inflated by an inconsistent multiplier (varies 6x-24x versus the real per-listing count shown on its own product page) — quantity is no longer surfaced from this store since it can't be trusted, though in-stock/out-of-stock status itself checked out accurate
+
 ## [0.4.1] - 2026-07-04
 
 ### Fixed

@@ -5,6 +5,7 @@ from dataclasses import asdict
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from currency import get_rate_to_aud
 from database import SearchLog, get_db, get_setting
 from scrapers import SCRAPERS, get_scraper
 
@@ -33,12 +34,25 @@ async def search(q: str = Query(..., min_length=1), db: Session = Depends(get_db
             return []
 
     per_store = await asyncio.gather(*(run_one(k) for k in enabled_keys))
-    results = [
-        asdict(r)
-        for store_results in per_store
-        for r in store_results
-        if r.in_stock
-    ]
+    in_stock = [r for store_results in per_store for r in store_results if r.in_stock]
+
+    currencies = {r.currency for r in in_stock}
+    rates = dict(zip(currencies, await asyncio.gather(*(get_rate_to_aud(c) for c in currencies))))
+    for currency, rate in rates.items():
+        if rate is None:
+            errors.append({
+                "store": f"currency:{currency}",
+                "error": f"Exchange rate unavailable for {currency}; affected prices shown unconverted",
+            })
+
+    results = []
+    for r in in_stock:
+        d = asdict(r)
+        rate = rates.get(r.currency)
+        if rate is not None:
+            d["price"] = round(r.price * rate, 2)
+            d["currency"] = "AUD"
+        results.append(d)
 
     db.add(SearchLog(query=q, result_count=len(results)))
     db.commit()
