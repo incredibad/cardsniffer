@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.8.0] - 2026-07-04
+
+### Added
+- Price sort control (low-to-high / high-to-low) above the results grid/table. The selection persists across sessions via localStorage, defaulting to low-to-high
+
 ## [0.7.2] - 2026-07-04
 
 ### Changed
