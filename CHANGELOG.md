@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.2.4] - 2026-07-04
+
+### Fixed
+- Card border color changed from a dark muddy gold that read as reddish to a cleaner, lighter gold tone
+- Card images now sit in their own inset, fully-rounded frame instead of bleeding edge-to-edge with only the top corners rounded
+
 ## [0.2.3] - 2026-07-04
 
 ### Changed

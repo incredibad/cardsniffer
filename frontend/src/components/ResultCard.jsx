@@ -21,20 +21,22 @@ export default function ResultCard({ result }) {
   } = result;
 
   return (
-    <div className="card-frame overflow-hidden flex flex-col">
-      <div className="aspect-[5/7] bg-ink-950">
-        {image_url ? (
-          <img
-            src={image_url}
-            alt={card_name}
-            loading="lazy"
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-stone-600 text-sm">
-            No image
-          </div>
-        )}
+    <div className="card-frame flex flex-col">
+      <div className="p-2.5 pb-0">
+        <div className="aspect-[5/7] rounded-lg overflow-hidden bg-ink-950">
+          {image_url ? (
+            <img
+              src={image_url}
+              alt={card_name}
+              loading="lazy"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-stone-600 text-sm">
+              No image
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="p-3.5 flex flex-col gap-2.5 flex-1">
