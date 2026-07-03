@@ -47,8 +47,8 @@ def _extract_props(html_text: str) -> dict:
     return data
 
 
-class MtgDudeScraper(BaseScraper):
-    store_name = "MTGDude"
+class MtgMateScraper(BaseScraper):
+    store_name = "MTGMate"
 
     def __init__(self, proxy_url: str = ""):
         self.client = AsyncSession(
