@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Search as SearchIcon, Loader2, X } from "lucide-react";
+import { Search as SearchIcon, Loader2, X, LayoutGrid, Table as TableIcon } from "lucide-react";
 import { api } from "../api";
 import ResultCard from "../components/ResultCard";
+import ResultTable from "../components/ResultTable";
 
 export default function Search() {
   const [query, setQuery] = useState("");
@@ -11,6 +12,7 @@ export default function Search() {
   const [errorMessage, setErrorMessage] = useState("");
   const [dismissedErrors, setDismissedErrors] = useState(false);
   const [lastQuery, setLastQuery] = useState("");
+  const [viewMode, setViewMode] = useState("grid"); // grid | table
 
   async function runSearch(e) {
     e?.preventDefault();
@@ -89,11 +91,49 @@ export default function Search() {
       )}
 
       {results.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
-          {results.map((r, i) => (
-            <ResultCard key={`${r.product_url}-${r.condition}-${i}`} result={r} />
-          ))}
-        </div>
+        <>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-stone-500">
+              {results.length} result{results.length === 1 ? "" : "s"}
+            </p>
+            <div className="inline-flex rounded-lg border border-gold-700/40 overflow-hidden">
+              <button
+                onClick={() => setViewMode("grid")}
+                aria-label="Grid view"
+                aria-pressed={viewMode === "grid"}
+                className={`p-1.5 transition-colors ${
+                  viewMode === "grid"
+                    ? "bg-gold-600 text-ink-950"
+                    : "text-stone-400 hover:text-gold-300"
+                }`}
+              >
+                <LayoutGrid size={16} />
+              </button>
+              <button
+                onClick={() => setViewMode("table")}
+                aria-label="Table view"
+                aria-pressed={viewMode === "table"}
+                className={`p-1.5 transition-colors border-l border-gold-700/40 ${
+                  viewMode === "table"
+                    ? "bg-gold-600 text-ink-950"
+                    : "text-stone-400 hover:text-gold-300"
+                }`}
+              >
+                <TableIcon size={16} />
+              </button>
+            </div>
+          </div>
+
+          {viewMode === "grid" ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+              {results.map((r, i) => (
+                <ResultCard key={`${r.product_url}-${r.condition}-${i}`} result={r} />
+              ))}
+            </div>
+          ) : (
+            <ResultTable results={results} />
+          )}
+        </>
       )}
     </div>
   );
