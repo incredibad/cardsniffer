@@ -1,8 +1,10 @@
 from .base import BaseScraper, SearchResult
 from .card_kingdom import CardKingdomScraper
+from .mtgmintcard import MtgMintCardScraper
 
 SCRAPERS: dict[str, type[BaseScraper]] = {
     "card_kingdom": CardKingdomScraper,
+    "mtgmintcard": MtgMintCardScraper,
 }
 
 
