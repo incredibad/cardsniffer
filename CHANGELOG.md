@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.4.0] - 2026-07-04
+
+### Added
+- MTGMintCard scraper (second store) — results now aggregate across Card Kingdom and MTGMintCard. "Variants" listings (rows folding multiple foil/nonfoil sub-printings behind one link) are skipped for now since resolving them needs a follow-up request per row
+
 ## [0.3.0] - 2026-07-04
 
 ### Added
