@@ -89,7 +89,7 @@ export default function Search() {
       )}
 
       {results.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
           {results.map((r, i) => (
             <ResultCard key={`${r.product_url}-${r.condition}-${i}`} result={r} />
           ))}
