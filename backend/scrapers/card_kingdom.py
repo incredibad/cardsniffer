@@ -3,6 +3,7 @@ import re
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
+from curl_cffi.requests import AsyncSession
 
 from .base import BaseScraper, SearchResult
 
@@ -12,9 +13,14 @@ SEARCH_URL = f"{BASE_URL}/catalog/search"
 # Card Kingdom's search results page embeds full listing data (name, set,
 # collector number, and a price/qty per condition) directly in server-rendered
 # HTML — no need to follow through to individual /catalog/item/ product pages,
-# which robots.txt disallows anyway. Plain httpx (no curl-cffi impersonation)
-# works fine here; the site is Cloudflare-fronted but doesn't challenge a
-# normal GET with a realistic User-Agent.
+# which robots.txt disallows anyway.
+#
+# It's Cloudflare-fronted and now issues a full Managed Challenge
+# (cf-mitigated: challenge) to plain httpx on every request — this used to
+# not be the case (a plain GET with a realistic User-Agent used to sail
+# through), so this is presumably a tightening on Cloudflare's/Card
+# Kingdom's end rather than anything we did. Chrome impersonation via
+# curl_cffi clears it, same fix as MTGMate needed.
 #
 # Results are split across separate tabs (filter[tab]) rather than being one
 # combined listing: "mtg_card" (Singles/nonfoil) and "mtg_foil" (Foils). A
@@ -44,6 +50,17 @@ def _parse_qty(text: str) -> int | None:
 class CardKingdomScraper(BaseScraper):
     store_name = "Card Kingdom"
     applies_gst = True
+
+    def __init__(self, proxy_url: str = ""):
+        self.client = AsyncSession(
+            impersonate="chrome124",
+            timeout=15.0,
+            allow_redirects=True,
+            **({"proxy": proxy_url} if proxy_url else {}),
+        )
+
+    async def close(self):
+        await self.client.close()
 
     async def search(self, query: str) -> list[SearchResult]:
         responses = await asyncio.gather(*(self._fetch_tab(query, tab) for tab in _TABS))
