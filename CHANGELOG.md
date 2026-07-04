@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.53.0] - 2026-07-05
+
+### Added
+- Lazy-render results in batches of 60 instead of mounting the entire filtered/sorted set at once — a large search (e.g. "Sol Ring" at 550+ results) was mounting hundreds of image-heavy cards simultaneously, which is what actually stresses a mobile device, not the fetch itself. More results reveal automatically as you scroll near the bottom (IntersectionObserver). Filters and sort still operate over the full result set as before; this only limits how much gets mounted to the DOM at a time, and resets back to the first batch whenever filters/sort/query change
+
 ## [0.52.3] - 2026-07-05
 
 ### Changed

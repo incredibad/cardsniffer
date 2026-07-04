@@ -25,6 +25,12 @@ const STORE_OPTIONS = Object.keys(STORE_META).sort();
 // other store uses one or the other, never both.
 const CONDITION_OPTIONS = ["NM", "SP", "LP", "MP", "HP", "DMG"];
 
+// Lazy-rendering batch size — mounting hundreds of image-heavy cards at once
+// is what actually stresses a mobile device, not the fetch itself (one JSON
+// response either way). Filters/sort still run over the full result set;
+// this only limits how much of that gets mounted to the DOM at a time.
+const RESULTS_BATCH_SIZE = 60;
+
 // Date sort only really applies to eBay (the only store with a per-listing
 // "when posted" date) — everything else falls back to a price sort within
 // its own group, but the eBay group always sits above it regardless.
@@ -211,6 +217,34 @@ export default function Search() {
     undated.sort((a, b) => dir * (a.price - b.price));
     return [...dated, ...undated];
   }, [filteredResults, sortMode]);
+
+  // How many of sortedResults are actually mounted to the DOM right now —
+  // reset back to the initial batch whenever the underlying filtered/sorted
+  // set changes, so a filter change never leaves a stale, too-deep window
+  // (or tries to mount everything at once if a filter is loosened).
+  const [visibleCount, setVisibleCount] = useState(RESULTS_BATCH_SIZE);
+  const loadMoreRef = useRef(null);
+
+  useEffect(() => {
+    setVisibleCount(RESULTS_BATCH_SIZE);
+  }, [sortedResults]);
+
+  useEffect(() => {
+    const sentinel = loadMoreRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + RESULTS_BATCH_SIZE, sortedResults.length));
+        }
+      },
+      { rootMargin: "600px" }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [sortedResults]);
+
+  const visibleResults = sortedResults.slice(0, visibleCount);
 
   async function runSearchRequest(apiCall, q, { onSuccess } = {}) {
     setStatus("loading");
@@ -723,14 +757,22 @@ export default function Search() {
               Reset filters
             </button>
           </div>
-        ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-5">
-            {sortedResults.map((r, i) => (
-              <ResultCard key={`${r.product_url}-${r.condition}-${i}`} result={r} pricingMode={pricingMode} />
-            ))}
-          </div>
         ) : (
-          <ResultTable results={sortedResults} pricingMode={pricingMode} />
+          <>
+            {viewMode === "grid" ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-5">
+                {visibleResults.map((r, i) => (
+                  <ResultCard key={`${r.product_url}-${r.condition}-${i}`} result={r} pricingMode={pricingMode} />
+                ))}
+              </div>
+            ) : (
+              <ResultTable results={visibleResults} pricingMode={pricingMode} />
+            )}
+            {/* Sentinel that grows visibleCount as it scrolls into view —
+                rootMargin means the next batch loads shortly before it's
+                actually reached, not right at the last pixel. */}
+            <div ref={loadMoreRef} />
+          </>
         )
       )}
     </div>
