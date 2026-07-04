@@ -62,7 +62,7 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
                 the second column's full width, with condition and price/store/buy as
                 two columns underneath. */}
             <div className="flex sm:hidden gap-3 p-3">
-              <div className="aspect-[5/7] rounded-lg overflow-hidden bg-slate-100 dark:bg-zinc-800 shrink-0">
+              <div className="w-20 rounded-lg overflow-hidden bg-slate-100 dark:bg-zinc-800 shrink-0">
                 {r.image_url && (
                   <img
                     src={r.image_url}

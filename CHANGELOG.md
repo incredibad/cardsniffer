@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.20.3] - 2026-07-04
+
+### Fixed
+- Mobile table view thumbnail was ballooning to take up the full row width — deriving its width from `aspect-ratio` off a stretched height turned out unreliable in practice. Given a fixed width instead, with height still stretching to match the row and `object-cover` cropping it cleanly
+
 ## [0.20.2] - 2026-07-04
 
 ### Changed
