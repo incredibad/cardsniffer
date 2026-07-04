@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.32.0] - 2026-07-04
+
+### Added
+- "Exact match only" option under the Show menu — stores' own search matches on more than the exact card name (e.g. "Ponder" also pulling in "Pondering Mage"), so this filters results down to just the card name that was actually searched for, case-insensitive. Persisted per-browser like the other Show toggles
+
 ## [0.31.2] - 2026-07-04
 
 ### Changed
