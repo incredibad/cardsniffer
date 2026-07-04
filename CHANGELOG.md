@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.48.0] - 2026-07-04
+
+### Added
+- eBay badge tooltip now also shows seller username + feedback score/percentage, postage type (Fixed/Calculated), and estimated delivery-by date, alongside the listing date already there. New `SearchResult` fields: `seller_username`, `seller_feedback_score`, `seller_feedback_percentage`, `shipping_type`, `delivery_by` — all eBay-only
+- Tooltip content extracted into `EbayListingTooltipContent.jsx`, shared between grid and table views
+
 ## [0.47.0] - 2026-07-04
 
 ### Added

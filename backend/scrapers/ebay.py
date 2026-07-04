@@ -149,10 +149,15 @@ class EbayScraper(BaseScraper):
 
         seller = item.get("seller") or {}
         seller_username = seller.get("username")
+        seller_feedback_score = seller.get("feedbackScore")
+        seller_feedback_percentage = seller.get("feedbackPercentage")
 
         shipping_options = item.get("shippingOptions") or []
-        shipping_cost = (shipping_options[0].get("shippingCost") or {}) if shipping_options else {}
+        shipping_option = shipping_options[0] if shipping_options else {}
+        shipping_cost = shipping_option.get("shippingCost") or {}
         shipping_price = shipping_cost.get("value")
+        shipping_type = shipping_option.get("shippingCostType")
+        delivery_by = shipping_option.get("maxEstimatedDeliveryDate")
 
         return SearchResult(
             card_name=query.strip(),
@@ -175,4 +180,9 @@ class EbayScraper(BaseScraper):
             store_name=self.store_name,
             shipping_price=float(shipping_price) if shipping_price is not None else None,
             listed_at=item.get("itemCreationDate"),
+            seller_username=seller_username,
+            seller_feedback_score=int(seller_feedback_score) if seller_feedback_score is not None else None,
+            seller_feedback_percentage=float(seller_feedback_percentage) if seller_feedback_percentage is not None else None,
+            shipping_type=shipping_type,
+            delivery_by=delivery_by,
         )

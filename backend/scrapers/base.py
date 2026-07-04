@@ -74,6 +74,18 @@ class SearchResult:
     # stores just show current catalog inventory, not individual dated
     # listings, so this is only ever set by eBay for now.
     listed_at: Optional[str] = None
+    # Marketplace-listing-specific extras, shown in the frontend's store-badge
+    # tooltip — only ever set by eBay (a per-listing marketplace seller), not
+    # applicable to storefront-style stores which sell under their own name.
+    seller_username: Optional[str] = None
+    seller_feedback_score: Optional[int] = None
+    seller_feedback_percentage: Optional[float] = None
+    # "FIXED" or "CALCULATED" (eBay's own shippingCostType) — whether the
+    # postage shown is a firm price or an estimate that varies by buyer.
+    shipping_type: Optional[str] = None
+    # ISO 8601 string — the store's own estimated-delivery-by date, not
+    # something we compute ourselves.
+    delivery_by: Optional[str] = None
 
 
 class BaseScraper(ABC):
