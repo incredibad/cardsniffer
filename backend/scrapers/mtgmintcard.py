@@ -4,6 +4,7 @@ from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 
 from .base import BaseScraper, SearchResult
+from .foil_treatment import extract_foil_treatment
 
 BASE_URL = "https://www.mtgmintcard.com"
 SEARCH_URL = f"{BASE_URL}/mtg/singles/search"
@@ -66,11 +67,13 @@ class MtgMintCardScraper(BaseScraper):
         # card_name is the base name; each "(...)" group is a treatment/
         # printing descriptor, e.g. "(Extended Art)", "(Surge Foil)", "(466)".
         card_name = _BRACKET_RE.sub("", full_title).strip()
-        treatment = " · ".join(_BRACKET_RE.findall(full_title))
+        bracket_texts = _BRACKET_RE.findall(full_title)
+        treatment = " · ".join(bracket_texts)
         product_url = urljoin(BASE_URL, name_el.get("href", ""))
 
         finish_badge = row.select_one(".label-primary.lv-spec, .label-primary.lv-spec-pre")
         foil = "foil" in finish_badge.get_text(strip=True).lower() if finish_badge else False
+        foil_treatment = extract_foil_treatment(*bracket_texts) if foil else None
 
         lang_badge = row.select_one(".label-success")
         foreign = bool(lang_badge) and lang_badge.get_text(strip=True).upper() not in ("", "ENG")
@@ -110,6 +113,7 @@ class MtgMintCardScraper(BaseScraper):
             set_name=set_name,
             collector_number=None,
             foil=foil,
+            foil_treatment=foil_treatment,
             condition=condition,
             price=price,
             currency="USD",

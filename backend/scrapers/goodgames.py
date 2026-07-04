@@ -5,6 +5,7 @@ from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 
 from .base import BaseScraper, SearchResult
+from .foil_treatment import extract_foil_treatment
 
 BASE_URL = "https://tcg.goodgames.com.au"
 SUGGEST_URL = f"{BASE_URL}/search/suggest.json"
@@ -93,6 +94,7 @@ class GoodGamesScraper(BaseScraper):
 
         card_name = _SET_BRACKET_RE.sub("", title)
         treatment_match = _TREATMENT_RE.search(card_name)
+        foil_treatment = extract_foil_treatment(treatment_match.group(1)) if treatment_match else None
         card_name = _TREATMENT_RE.sub("", card_name).strip()
         if set_name and treatment_match:
             set_name = f"{set_name} — {treatment_match.group(1)}"
@@ -113,6 +115,7 @@ class GoodGamesScraper(BaseScraper):
                 set_name=set_name,
                 collector_number=None,
                 foil=foil,
+                foil_treatment=foil_treatment if foil else None,
                 condition=condition,
                 price=round(price / 100, 2),
                 currency="AUD",

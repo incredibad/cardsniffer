@@ -86,11 +86,16 @@ class MtgMateScraper(BaseScraper):
         quantity = int(card.get("quantity") or 0)
         price_cents = detail.get("price") or 0
 
+        # "Etched" is the only one of the three finish values that names a
+        # specific treatment rather than a plain foil/nonfoil marker.
+        foil_treatment = "Foil Etched" if detail.get("finish") == "Etched" else None
+
         return SearchResult(
             card_name=detail.get("name", ""),
             set_name=card.get("set") or detail.get("set_name"),
             collector_number=collector_number,
             foil=detail.get("finish") != "Nonfoil",
+            foil_treatment=foil_treatment,
             condition=_CONDITIONS.get(detail.get("condition", ""), "NM"),
             price=round(price_cents / 100, 2),
             currency="AUD",
