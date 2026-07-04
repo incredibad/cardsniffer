@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.29.0] - 2026-07-04
+
+### Added
+- `foilOverlay` per-store flag in `storeMeta.js` — the rainbow foil sheen re-enabled, but only for stores whose own photography doesn't already show it (Card Kingdom, Good Games TCG, Hareruya, GUF, Card Stars). Left off for MTGMate and MTGMintCard, whose product photos already show genuine foil shine
+
 ## [0.28.1] - 2026-07-04
 
 ### Changed
