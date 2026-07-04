@@ -405,6 +405,8 @@ export default function Search() {
                     ? barStoreOptions.length - barHiddenStores.size
                     : null
                 }
+                onSelectAll={() => setBarHiddenStores(new Set())}
+                onSelectNone={() => setBarHiddenStores(new Set(barStoreOptions))}
               >
                 {barStoreOptions.map((option) => (
                   <FilterDropdownOption
@@ -426,6 +428,8 @@ export default function Search() {
                     ? barConditionOptions.length - barHiddenConditions.size
                     : null
                 }
+                onSelectAll={() => setBarHiddenConditions(new Set())}
+                onSelectNone={() => setBarHiddenConditions(new Set(barConditionOptions))}
               >
                 {barConditionOptions.map((option) => (
                   <FilterDropdownOption
@@ -438,29 +442,31 @@ export default function Search() {
               </FilterDropdown>
             );
 
+            // Data-driven so a future "show X" toggle only needs an entry
+            // here — Select All/None then covers it automatically instead
+            // of needing its own case added by hand.
+            const showToggles = [
+              { key: "art", label: "Art cards", checked: showArtCards, onChange: updateShowArtCards },
+              { key: "foreign", label: "Foreign cards", checked: showForeignCards, onChange: updateShowForeignCards },
+              { key: "exact", label: "Exact match only", checked: exactMatchOnly, onChange: updateExactMatchOnly },
+            ];
+
             const showDropdown = (stretch) => (
               <FilterDropdown
                 label="Show"
                 className={stretch ? "flex-1" : ""}
-                badgeCount={
-                  (showArtCards ? 1 : 0) + (showForeignCards ? 1 : 0) + (exactMatchOnly ? 1 : 0) || null
-                }
+                badgeCount={showToggles.filter((t) => t.checked).length || null}
+                onSelectAll={() => showToggles.forEach((t) => t.onChange(true))}
+                onSelectNone={() => showToggles.forEach((t) => t.onChange(false))}
               >
-                <FilterDropdownOption
-                  label="Art cards"
-                  checked={showArtCards}
-                  onChange={(e) => updateShowArtCards(e.target.checked)}
-                />
-                <FilterDropdownOption
-                  label="Foreign cards"
-                  checked={showForeignCards}
-                  onChange={(e) => updateShowForeignCards(e.target.checked)}
-                />
-                <FilterDropdownOption
-                  label="Exact match only"
-                  checked={exactMatchOnly}
-                  onChange={(e) => updateExactMatchOnly(e.target.checked)}
-                />
+                {showToggles.map((t) => (
+                  <FilterDropdownOption
+                    key={t.key}
+                    label={t.label}
+                    checked={t.checked}
+                    onChange={(e) => t.onChange(e.target.checked)}
+                  />
+                ))}
               </FilterDropdown>
             );
 
