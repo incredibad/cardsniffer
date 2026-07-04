@@ -7,31 +7,20 @@ import {
   Table as TableIcon,
   ArrowUp,
   ArrowDown,
-  ChevronDown,
 } from "lucide-react";
 import { api } from "../api";
 import ResultCard from "../components/ResultCard";
 import ResultTable from "../components/ResultTable";
 import InfoTooltip from "../components/InfoTooltip";
-import FilterDropdown from "../components/FilterDropdown";
+import FilterDropdown, { FilterDropdownOption } from "../components/FilterDropdown";
 
 const SORT_ORDER_KEY = "cardsniffer.sortOrder";
 const VIEW_MODE_KEY = "cardsniffer.viewMode";
 const SHOW_ART_KEY = "cardsniffer.showArtCards";
 const SHOW_FOREIGN_KEY = "cardsniffer.showForeignCards";
 const PRICING_MODE_KEY = "cardsniffer.pricingMode";
-const OPTIONS_OPEN_KEY = "cardsniffer.searchOptionsOpen";
-const HIDDEN_STORES_KEY = "cardsniffer.hiddenStores";
 const SUGGEST_DEBOUNCE_MS = 150;
 const SUGGEST_MIN_LENGTH = 2;
-
-function loadHiddenStores() {
-  try {
-    return new Set(JSON.parse(localStorage.getItem(HIDDEN_STORES_KEY)) || []);
-  } catch {
-    return new Set();
-  }
-}
 
 export default function Search() {
   const [query, setQuery] = useState("");
@@ -56,16 +45,9 @@ export default function Search() {
   const [pricingMode, setPricingMode] = useState(
     () => localStorage.getItem(PRICING_MODE_KEY) || "aud"
   ); // aud | original
-  const [optionsOpen, setOptionsOpen] = useState(
-    () => localStorage.getItem(OPTIONS_OPEN_KEY) !== "false"
-  );
-  const [enabledStores, setEnabledStores] = useState([]);
-  const [hiddenStores, setHiddenStores] = useState(loadHiddenStores);
 
   // Live filter bar (results row) — ephemeral, not browser-persisted, reset
-  // on every new search. Independent of Search Options' own (persisted)
-  // store checklist above, by design — one's a lasting preference, the
-  // other's a quick one-off tweak to the current result set.
+  // on every new search.
   const [barHiddenStores, setBarHiddenStores] = useState(() => new Set());
   const [barHiddenConditions, setBarHiddenConditions] = useState(() => new Set());
   const [foilFilter, setFoilFilter] = useState("all"); // all | foil | nonfoil
@@ -79,10 +61,6 @@ export default function Search() {
 
   useEffect(() => {
     inputRef.current?.focus();
-  }, []);
-
-  useEffect(() => {
-    api.listStores().then(setEnabledStores).catch(() => {});
   }, []);
 
   function updateSortOrder(order) {
@@ -110,24 +88,6 @@ export default function Search() {
     localStorage.setItem(VIEW_MODE_KEY, mode);
   }
 
-  function toggleOptionsOpen() {
-    setOptionsOpen((o) => {
-      const next = !o;
-      localStorage.setItem(OPTIONS_OPEN_KEY, String(next));
-      return next;
-    });
-  }
-
-  function toggleStoreHidden(storeName, visible) {
-    setHiddenStores((prev) => {
-      const next = new Set(prev);
-      if (visible) next.delete(storeName);
-      else next.add(storeName);
-      localStorage.setItem(HIDDEN_STORES_KEY, JSON.stringify([...next]));
-      return next;
-    });
-  }
-
   function toggleSetMember(setter, value) {
     setter((prev) => {
       const next = new Set(prev);
@@ -151,20 +111,11 @@ export default function Search() {
       (r) =>
         (showArtCards || !r.is_art) &&
         (showForeignCards || !r.foreign) &&
-        !hiddenStores.has(r.store_name) &&
         !barHiddenStores.has(r.store_name) &&
         !barHiddenConditions.has(r.condition) &&
         (foilFilter === "all" || (foilFilter === "foil" ? r.foil : !r.foil))
     );
-  }, [
-    results,
-    showArtCards,
-    showForeignCards,
-    hiddenStores,
-    barHiddenStores,
-    barHiddenConditions,
-    foilFilter,
-  ]);
+  }, [results, showArtCards, showForeignCards, barHiddenStores, barHiddenConditions, foilFilter]);
 
   const sortedResults = useMemo(() => {
     const sorted = [...filteredResults];
@@ -257,7 +208,7 @@ export default function Search() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4 sm:gap-6">
       <div className="card-frame">
         <form onSubmit={runSearch} className="flex gap-2 p-2">
           <div className="relative flex-1">
@@ -312,59 +263,6 @@ export default function Search() {
             <span className="hidden sm:inline">Search</span>
           </button>
         </form>
-
-        <div className="border-t border-slate-200 dark:border-zinc-800">
-          <button
-            type="button"
-            onClick={toggleOptionsOpen}
-            aria-expanded={optionsOpen}
-            className={`w-full flex items-center justify-between gap-2 px-3 py-1.5 text-sm text-slate-500 dark:text-zinc-400 bg-slate-50 dark:bg-zinc-800/40 hover:bg-slate-100 dark:hover:bg-zinc-800/70 transition-colors ${
-              optionsOpen ? "" : "rounded-b-2xl"
-            }`}
-          >
-            <span className="section-header">Search Options</span>
-            <ChevronDown size={16} className={`transition-transform ${optionsOpen ? "rotate-180" : ""}`} />
-          </button>
-
-          {optionsOpen && (
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-2 text-sm text-slate-600 dark:text-zinc-400 bg-slate-100/60 dark:bg-zinc-800/20 border-t border-slate-200 dark:border-zinc-800 rounded-b-2xl">
-              <label className="inline-flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showArtCards}
-                  onChange={(e) => updateShowArtCards(e.target.checked)}
-                  className="accent-indigo-600 w-4 h-4"
-                />
-                Show art cards
-              </label>
-              <label className="inline-flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showForeignCards}
-                  onChange={(e) => updateShowForeignCards(e.target.checked)}
-                  className="accent-indigo-600 w-4 h-4"
-                />
-                Show foreign cards
-              </label>
-
-              {enabledStores.length > 0 && (
-                <div className="w-full flex flex-wrap items-center gap-x-3 gap-y-1.5 pt-1.5 mt-1 border-t border-slate-200 dark:border-zinc-800">
-                  {enabledStores.map((s) => (
-                    <label key={s.key} className="inline-flex items-center gap-1.5 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={!hiddenStores.has(s.store_name)}
-                        onChange={(e) => toggleStoreHidden(s.store_name, e.target.checked)}
-                        className="accent-indigo-600 w-4 h-4"
-                      />
-                      {s.store_name}
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
       </div>
 
       {status === "error" && (
@@ -399,17 +297,19 @@ export default function Search() {
             <>
               <p>
                 All {results.length} result{results.length === 1 ? "" : "s"} for &ldquo;{lastQuery}&rdquo; are
-                hidden by Search Options or the results filters.
+                hidden by the filters above.
               </p>
               <button
                 onClick={() => {
                   setBarHiddenStores(new Set());
                   setBarHiddenConditions(new Set());
                   setFoilFilter("all");
+                  updateShowArtCards(true);
+                  updateShowForeignCards(true);
                 }}
                 className="mt-2 text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium"
               >
-                Reset results filters
+                Reset filters
               </button>
             </>
           )}
@@ -418,20 +318,57 @@ export default function Search() {
 
       {filteredResults.length > 0 && (
         <>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               <FilterDropdown
                 label="Store"
-                options={barStoreOptions}
-                hiddenSet={barHiddenStores}
-                onToggle={(v) => toggleSetMember(setBarHiddenStores, v)}
-              />
+                badgeCount={
+                  barStoreOptions.length - barHiddenStores.size < barStoreOptions.length
+                    ? barStoreOptions.length - barHiddenStores.size
+                    : null
+                }
+              >
+                {barStoreOptions.map((option) => (
+                  <FilterDropdownOption
+                    key={option}
+                    label={option}
+                    checked={!barHiddenStores.has(option)}
+                    onChange={() => toggleSetMember(setBarHiddenStores, option)}
+                  />
+                ))}
+              </FilterDropdown>
               <FilterDropdown
                 label="Condition"
-                options={barConditionOptions}
-                hiddenSet={barHiddenConditions}
-                onToggle={(v) => toggleSetMember(setBarHiddenConditions, v)}
-              />
+                badgeCount={
+                  barConditionOptions.length - barHiddenConditions.size < barConditionOptions.length
+                    ? barConditionOptions.length - barHiddenConditions.size
+                    : null
+                }
+              >
+                {barConditionOptions.map((option) => (
+                  <FilterDropdownOption
+                    key={option}
+                    label={option}
+                    checked={!barHiddenConditions.has(option)}
+                    onChange={() => toggleSetMember(setBarHiddenConditions, option)}
+                  />
+                ))}
+              </FilterDropdown>
+              <FilterDropdown
+                label="Show"
+                badgeCount={(showArtCards ? 1 : 0) + (showForeignCards ? 1 : 0) || null}
+              >
+                <FilterDropdownOption
+                  label="Art cards"
+                  checked={showArtCards}
+                  onChange={(e) => updateShowArtCards(e.target.checked)}
+                />
+                <FilterDropdownOption
+                  label="Foreign cards"
+                  checked={showForeignCards}
+                  onChange={(e) => updateShowForeignCards(e.target.checked)}
+                />
+              </FilterDropdown>
               <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
                 {[
                   ["all", "All"],
@@ -443,9 +380,9 @@ export default function Search() {
                     type="button"
                     onClick={() => setFoilFilter(value)}
                     aria-pressed={foilFilter === value}
-                    className={`segmented-btn px-3 py-1.5 text-sm ${i > 0 ? "border-l border-slate-200 dark:border-zinc-800" : ""} ${
-                      foilFilter === value ? "is-active" : ""
-                    }`}
+                    className={`segmented-btn px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm ${
+                      i > 0 ? "border-l border-slate-200 dark:border-zinc-800" : ""
+                    } ${foilFilter === value ? "is-active" : ""}`}
                   >
                     {text}
                   </button>
@@ -457,7 +394,9 @@ export default function Search() {
                     type="button"
                     onClick={() => updatePricingMode("aud")}
                     aria-pressed={pricingMode === "aud"}
-                    className={`segmented-btn px-3 py-1.5 text-sm ${pricingMode === "aud" ? "is-active" : ""}`}
+                    className={`segmented-btn px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm ${
+                      pricingMode === "aud" ? "is-active" : ""
+                    }`}
                   >
                     AUD
                   </button>
@@ -465,7 +404,7 @@ export default function Search() {
                     type="button"
                     onClick={() => updatePricingMode("original")}
                     aria-pressed={pricingMode === "original"}
-                    className={`segmented-btn px-3 py-1.5 text-sm border-l border-slate-200 dark:border-zinc-800 ${
+                    className={`segmented-btn px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm border-l border-slate-200 dark:border-zinc-800 ${
                       pricingMode === "original" ? "is-active" : ""
                     }`}
                   >
@@ -479,8 +418,8 @@ export default function Search() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <p className="text-sm text-slate-500 dark:text-zinc-500 whitespace-nowrap">
+            <div className="flex flex-nowrap shrink-0 items-center gap-2">
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-500 whitespace-nowrap">
                 {filteredResults.length === results.length
                   ? `${results.length} result${results.length === 1 ? "" : "s"}`
                   : `${filteredResults.length}/${results.length} results`}
@@ -531,7 +470,7 @@ export default function Search() {
           </div>
 
           {viewMode === "grid" ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-5">
               {sortedResults.map((r, i) => (
                 <ResultCard key={`${r.product_url}-${r.condition}-${i}`} result={r} pricingMode={pricingMode} />
               ))}
