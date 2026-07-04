@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.50.2] - 2026-07-05
+
+### Changed
+- eBay results: the subtitle line under the card name (where set code normally goes) now shows the listing's creation date/time instead of the seller username — more useful there, especially for eBay Snipe. Seller info is still available via the store-badge tooltip
+
 ## [0.50.1] - 2026-07-05
 
 ### Fixed
