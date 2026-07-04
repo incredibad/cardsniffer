@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.41.1] - 2026-07-04
+
+### Changed
+- eBay postage indicator: dropped the word "postage" (now just "+A$1.99"/"Free") and stopped it wrapping to its own line — sits inline right next to the price
+
 ## [0.41.0] - 2026-07-04
 
 ### Added

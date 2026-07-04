@@ -93,7 +93,7 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
           >
             {storeMeta.code}
           </span>
-          <div className="flex items-baseline gap-1.5 flex-wrap">
+          <div className="flex items-baseline gap-1.5 min-w-0">
             <div
               className={`text-base sm:text-xl font-semibold leading-tight ${
                 displayCurrency === "AUD"
@@ -104,9 +104,9 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
               {formatPrice(displayPrice, displayCurrency)}
             </div>
             {shipping_price != null && (
-              <span className="inline-flex items-center gap-0.5 text-[10px] sm:text-[11px] text-slate-400 dark:text-zinc-500">
+              <span className="inline-flex items-center gap-0.5 text-[10px] sm:text-[11px] text-slate-400 dark:text-zinc-500 whitespace-nowrap">
                 <Mail size={10} />
-                {shipping_price === 0 ? "Free postage" : `+${formatPrice(shipping_price, "AUD")} postage`}
+                {shipping_price === 0 ? "Free" : `+${formatPrice(shipping_price, "AUD")}`}
               </span>
             )}
           </div>
