@@ -2,10 +2,10 @@ import { Sparkles, ExternalLink } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import { formatPrice } from "../formatPrice";
-import { formatDateTime } from "../formatDate";
 import TruncatedTooltip from "./TruncatedTooltip";
 import FoilOverlay from "./FoilOverlay";
 import Tooltip from "./Tooltip";
+import EbayListingTooltipContent from "./EbayListingTooltipContent";
 
 export default function ResultCard({ result, pricingMode = "aud" }) {
   const {
@@ -97,12 +97,7 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
           {listed_at ? (
             <Tooltip
               className="justify-self-end"
-              content={
-                <>
-                  <div className="font-semibold">{store_name}</div>
-                  <div>Listed {formatDateTime(listed_at)}</div>
-                </>
-              }
+              content={<EbayListingTooltipContent result={result} />}
             >
               <span
                 className="chip shrink-0 font-semibold text-white w-fit cursor-help"
