@@ -5,7 +5,7 @@ function formatPrice(price, currency) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(price);
 }
 
-export default function ResultTable({ results }) {
+export default function ResultTable({ results, pricingMode = "aud" }) {
   return (
     <div className="card-frame overflow-hidden">
       <table className="w-full text-sm">
@@ -22,6 +22,8 @@ export default function ResultTable({ results }) {
         <tbody>
           {results.map((r, i) => {
             const storeMeta = getStoreMeta(r.store_name);
+            const displayPrice = pricingMode === "original" ? r.price_original : r.price;
+            const displayCurrency = pricingMode === "original" ? r.currency_original : r.currency;
             return (
             <tr
               key={`${r.product_url}-${r.condition}-${i}`}
@@ -64,7 +66,7 @@ export default function ResultTable({ results }) {
               </td>
               <td className="p-3 text-right">
                 <div className="text-slate-900 dark:text-zinc-50 font-semibold">
-                  {formatPrice(r.price, r.currency)}
+                  {formatPrice(displayPrice, displayCurrency)}
                 </div>
                 {r.quantity_available != null && (
                   <div className="text-xs text-slate-500 dark:text-zinc-500">
