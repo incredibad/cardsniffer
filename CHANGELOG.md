@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.53.1] - 2026-07-05
+
+### Changed
+- Search button's mode (Search vs eBay Snipe) now persists across page reloads instead of always resetting to "Search" — same localStorage pattern as the other filter-bar settings
+
 ## [0.53.0] - 2026-07-05
 
 ### Added

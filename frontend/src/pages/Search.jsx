@@ -51,6 +51,7 @@ const PRICING_MODE_KEY = "cardsniffer.pricingMode";
 const HIDDEN_STORES_KEY = "cardsniffer.hiddenStores";
 const HIDDEN_CONDITIONS_KEY = "cardsniffer.hiddenConditions";
 const FOIL_FILTER_KEY = "cardsniffer.foilFilter";
+const SEARCH_MODE_KEY = "cardsniffer.searchMode";
 const SUGGEST_DEBOUNCE_MS = 150;
 const SUGGEST_MIN_LENGTH = 2;
 
@@ -121,9 +122,10 @@ export default function Search() {
 
   // Sticky search-button mode: "search" (normal, all enabled stores) or
   // "ebay_snipe" (eBay only, exact query, force-sorted newest-first).
-  // Deliberately not persisted to localStorage — resets to "search" on
-  // page reload.
-  const [searchMode, setSearchMode] = useState("search");
+  // Persisted like the other filter-bar settings, so it survives a reload.
+  const [searchMode, setSearchMode] = useState(
+    () => localStorage.getItem(SEARCH_MODE_KEY) || "search"
+  );
   const [searchMenuOpen, setSearchMenuOpen] = useState(false);
   const searchMenuRef = useRef(null);
 
@@ -158,6 +160,11 @@ export default function Search() {
   function updateExactMatchOnly(value) {
     setExactMatchOnly(value);
     localStorage.setItem(EXACT_MATCH_KEY, String(value));
+  }
+
+  function updateSearchMode(mode) {
+    setSearchMode(mode);
+    localStorage.setItem(SEARCH_MODE_KEY, mode);
   }
 
   function updatePricingMode(mode) {
@@ -294,10 +301,10 @@ export default function Search() {
     runCurrentMode(q);
   }
 
-  // Selecting a mode from the dropdown both switches it (sticky until
-  // changed again or the page reloads) and runs it immediately.
+  // Selecting a mode from the dropdown both switches it (sticky across
+  // searches and page reloads, until changed again) and runs it immediately.
   function chooseSearchMode(mode) {
-    setSearchMode(mode);
+    updateSearchMode(mode);
     setSearchMenuOpen(false);
     const q = query.trim();
     if (!q) return;
