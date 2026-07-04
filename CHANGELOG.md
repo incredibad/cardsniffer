@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.47.0] - 2026-07-04
+
+### Added
+- Hovering/tapping the store badge on an eBay result now shows a tooltip with the listing's creation date/time (`SearchResult.listed_at`), in both grid and table views. Other stores keep the plain store-name tooltip, since none of them expose a listing date
+- New `Tooltip.jsx` component: a generic hover/tap popover for wrapping arbitrary trigger content, portal-rendered so it isn't clipped by a card's `overflow-hidden`
+
 ## [0.46.0] - 2026-07-04
 
 ### Added

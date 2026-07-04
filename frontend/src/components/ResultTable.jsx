@@ -2,8 +2,10 @@ import { Sparkles, ExternalLink } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import { formatPrice } from "../formatPrice";
+import { formatDateTime } from "../formatDate";
 import TruncatedTooltip from "./TruncatedTooltip";
 import FoilOverlay from "./FoilOverlay";
+import Tooltip from "./Tooltip";
 
 function Thumbnail({ src, alt, href, foil, className }) {
   return (
@@ -54,7 +56,23 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
           </div>
         );
 
-        const storeBadge = (
+        const storeBadge = r.listed_at ? (
+          <Tooltip
+            content={
+              <>
+                <div className="font-semibold">{r.store_name}</div>
+                <div>Listed {formatDateTime(r.listed_at)}</div>
+              </>
+            }
+          >
+            <span
+              className="chip shrink-0 font-semibold text-white cursor-help"
+              style={{ backgroundColor: storeMeta.color }}
+            >
+              {storeMeta.code}
+            </span>
+          </Tooltip>
+        ) : (
           <span
             className="chip shrink-0 font-semibold text-white"
             style={{ backgroundColor: storeMeta.color }}

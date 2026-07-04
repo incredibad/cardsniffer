@@ -2,8 +2,10 @@ import { Sparkles, ExternalLink } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import { formatPrice } from "../formatPrice";
+import { formatDateTime } from "../formatDate";
 import TruncatedTooltip from "./TruncatedTooltip";
 import FoilOverlay from "./FoilOverlay";
+import Tooltip from "./Tooltip";
 
 export default function ResultCard({ result, pricingMode = "aud" }) {
   const {
@@ -22,6 +24,7 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
     product_url,
     store_name,
     shipping_price,
+    listed_at,
   } = result;
   const storeMeta = getStoreMeta(store_name);
   const displayPrice = pricingMode === "original" ? price_original : price;
@@ -91,13 +94,32 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
             <span className="font-semibold text-slate-700 dark:text-zinc-300 uppercase">{condition}</span>
             {" · "}Qty: {formatQty(quantity_available)}
           </span>
-          <span
-            className="chip shrink-0 font-semibold text-white w-fit justify-self-end"
-            style={{ backgroundColor: storeMeta.color }}
-            title={store_name}
-          >
-            {storeMeta.code}
-          </span>
+          {listed_at ? (
+            <Tooltip
+              className="justify-self-end"
+              content={
+                <>
+                  <div className="font-semibold">{store_name}</div>
+                  <div>Listed {formatDateTime(listed_at)}</div>
+                </>
+              }
+            >
+              <span
+                className="chip shrink-0 font-semibold text-white w-fit cursor-help"
+                style={{ backgroundColor: storeMeta.color }}
+              >
+                {storeMeta.code}
+              </span>
+            </Tooltip>
+          ) : (
+            <span
+              className="chip shrink-0 font-semibold text-white w-fit justify-self-end"
+              style={{ backgroundColor: storeMeta.color }}
+              title={store_name}
+            >
+              {storeMeta.code}
+            </span>
+          )}
           <div className="flex items-center gap-1.5 min-w-0">
             <div
               className={`text-base sm:text-xl font-semibold leading-tight ${
