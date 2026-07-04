@@ -2,6 +2,7 @@ import { Sparkles, ExternalLink } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import TruncatedTooltip from "./TruncatedTooltip";
+import FoilOverlay from "./FoilOverlay";
 
 function formatPrice(price, currency) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(price);
@@ -29,7 +30,7 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
 
   return (
     <div className="card-frame flex flex-col overflow-hidden">
-      <div className="aspect-[5/7] rounded-2xl overflow-hidden bg-slate-100 dark:bg-zinc-800">
+      <div className="relative aspect-[5/7] rounded-2xl overflow-hidden bg-slate-100 dark:bg-zinc-800">
         {image_url ? (
           <img
             src={image_url}
@@ -42,6 +43,7 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
             No image
           </div>
         )}
+        {foil && <FoilOverlay />}
       </div>
 
       <div className="p-3.5 flex flex-col gap-2.5 flex-1 rounded-2xl overflow-hidden bg-white dark:bg-zinc-900">
