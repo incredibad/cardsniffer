@@ -116,12 +116,15 @@ class GufScraper(BaseScraper):
         set_match = _SET_RE.search(desc_el.get_text(" ", strip=True)) if desc_el else None
         set_name = set_match.group(1).strip() if set_match else None
 
+        # A title can carry multiple parenthetical descriptors at once (set
+        # frame, treatment, language, ...), so keep all of them for display
+        # rather than just the first.
         card_name = _SET_BRACKET_RE.sub("", title)
-        treatment_match = _TREATMENT_RE.search(card_name)
-        foil_treatment = extract_foil_treatment(treatment_match.group(1)) if treatment_match else None
+        treatment_groups = _TREATMENT_RE.findall(card_name)
+        foil_treatment = extract_foil_treatment(title)
         card_name = _TREATMENT_RE.sub("", card_name).strip()
-        if set_name and treatment_match:
-            set_name = f"{set_name} — {treatment_match.group(1)}"
+        if set_name and treatment_groups:
+            set_name = " — ".join([set_name, *treatment_groups])
 
         # Group per-branch variants by finish; branch itself doesn't matter to us.
         groups: dict[bool, list[tuple[str, bool]]] = {False: [], True: []}

@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented here.
 
+## [0.34.0] - 2026-07-04
+
+### Changed
+- Foil treatment detection switched from generically parsing title text ("whichever parenthetical mentions foil") to cross-referencing a maintained list of known treatment names against the full raw title. The generic approach kept breaking on real-world title shapes — multiple parenthetical groups in one title (e.g. Good Games' "Traveling Chocobo (Borderless) (Chocobo Track Foil)" only ever checked the first group), frame descriptors glued onto the treatment name, etc. Trade-off: a treatment not yet in the list shows as a plain "Foil" badge until it's added, rather than auto-detecting anything containing "foil"
+
+### Fixed
+- Good Games TCG (and GUF, same underlying bug) only checked the first parenthetical group in a title for both the foil treatment and the set name — treatments in a later group ("Mana Foil", "Chocobo Track Foil") were silently missed, and titles with multiple descriptors (e.g. "(Showcase) (Japanese)") collapsed indistinguishably in the results list. Now considers every group
+
 ## [0.33.1] - 2026-07-04
 
 ### Fixed
