@@ -1,5 +1,7 @@
 import { Sparkles, ExternalLink } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
+import TruncatedTooltip from "./TruncatedTooltip";
+import ImageHoverPreview from "./ImageHoverPreview";
 
 function formatPrice(price, currency) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(price);
@@ -18,6 +20,9 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
         const storeMeta = getStoreMeta(r.store_name);
         const displayPrice = pricingMode === "original" ? r.price_original : r.price;
         const displayCurrency = pricingMode === "original" ? r.currency_original : r.currency;
+        const setText = r.set_name
+          ? `${r.set_name}${r.collector_number ? ` · #${r.collector_number}` : ""}`
+          : null;
 
         const conditionChips = (
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -59,44 +64,41 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
             className="hover:bg-slate-50 dark:hover:bg-zinc-800/40 transition-colors"
           >
             {/* Mobile: column A is the image alone; column B is 3 stacked rows —
-                name/set (full width), condition+store, then price+buy. */}
+                name/set (full width), condition + store (right-aligned), then
+                price + qty + buy. */}
             <div className="flex sm:hidden gap-3 p-3">
-              <div className="w-20 aspect-[5/7] rounded-lg overflow-hidden bg-slate-100 dark:bg-zinc-800 shrink-0">
-                {r.image_url && (
-                  <img
-                    src={r.image_url}
-                    alt={r.card_name}
-                    loading="lazy"
-                    className="w-full h-full object-cover"
-                  />
-                )}
-              </div>
+              <ImageHoverPreview
+                src={r.image_url}
+                alt={r.card_name}
+                className="w-20 aspect-[5/7] rounded-lg overflow-hidden bg-slate-100 dark:bg-zinc-800 shrink-0 object-cover"
+              />
               <div className="flex-1 min-w-0 flex flex-col gap-1.5">
                 <div className="min-w-0">
-                  <div className="font-semibold text-slate-900 dark:text-zinc-50 leading-snug truncate">
-                    {r.card_name}
-                  </div>
-                  {r.set_name && (
-                    <div className="text-xs text-slate-500 dark:text-zinc-500 truncate">
-                      {r.set_name}
-                      {r.collector_number && ` · #${r.collector_number}`}
-                    </div>
+                  <TruncatedTooltip
+                    text={r.card_name}
+                    className="font-semibold text-slate-900 dark:text-zinc-50 leading-snug"
+                  />
+                  {setText && (
+                    <TruncatedTooltip
+                      text={setText}
+                      className="text-xs text-slate-500 dark:text-zinc-500"
+                    />
                   )}
                 </div>
-                <div className="flex items-center gap-1.5 flex-wrap">
+                <div className="flex items-center justify-between gap-2">
                   {conditionChips}
-                  {r.quantity_available != null && (
-                    <span className="text-xs text-slate-500 dark:text-zinc-500">
-                      Qty: {r.quantity_available}
-                    </span>
-                  )}
+                  {storeBadge}
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <div className="text-lg text-slate-900 dark:text-zinc-50 font-semibold">
                     {formatPrice(displayPrice, displayCurrency)}
                   </div>
                   <div className="flex items-center gap-2">
-                    {storeBadge}
+                    {r.quantity_available != null && (
+                      <span className="text-xs text-slate-500 dark:text-zinc-500">
+                        Qty: {r.quantity_available}
+                      </span>
+                    )}
                     {buyButton}
                   </div>
                 </div>
@@ -105,25 +107,21 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
 
             {/* Desktop: single-line table-like row */}
             <div className="hidden sm:flex items-center gap-3 p-3">
-              <div className="w-10 aspect-[5/7] rounded-lg overflow-hidden bg-slate-100 dark:bg-zinc-800 shrink-0">
-                {r.image_url && (
-                  <img
-                    src={r.image_url}
-                    alt={r.card_name}
-                    loading="lazy"
-                    className="w-full h-full object-cover"
-                  />
-                )}
-              </div>
+              <ImageHoverPreview
+                src={r.image_url}
+                alt={r.card_name}
+                className="w-10 aspect-[5/7] rounded-lg overflow-hidden bg-slate-100 dark:bg-zinc-800 shrink-0 object-cover"
+              />
               <div className="flex-1 min-w-0">
-                <div className="font-semibold text-slate-900 dark:text-zinc-50 leading-snug truncate">
-                  {r.card_name}
-                </div>
-                {r.set_name && (
-                  <div className="text-xs text-slate-500 dark:text-zinc-500 truncate">
-                    {r.set_name}
-                    {r.collector_number && ` · #${r.collector_number}`}
-                  </div>
+                <TruncatedTooltip
+                  text={r.card_name}
+                  className="font-semibold text-slate-900 dark:text-zinc-50 leading-snug"
+                />
+                {setText && (
+                  <TruncatedTooltip
+                    text={setText}
+                    className="text-xs text-slate-500 dark:text-zinc-500"
+                  />
                 )}
               </div>
               <div className="w-32 shrink-0">{conditionChips}</div>

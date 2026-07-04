@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented here.
 
+## [0.21.0] - 2026-07-04
+
+### Added
+- Truncated card name/set fields (grid and table view) now reveal a styled tooltip with the full value on tap or hover, instead of relying on the browser's native title tooltip — only appears when the text is actually overflowing, measured per-field
+- Tapping/hovering a thumbnail in table/list view shows a much larger preview of the same image in a styled popover above it; tapping elsewhere closes it
+
+### Changed
+- Mobile table view: store pill moved back to row 2, right-aligned (sitting above the Buy button); Qty moved to row 3 in the spot the store pill vacated, next to the Buy button
+
 ## [0.20.6] - 2026-07-04
 
 ### Changed
