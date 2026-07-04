@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented here.
 
+## [0.30.0] - 2026-07-04
+
+### Removed
+- Search Options panel entirely — its persisted store checklist was doing the same job as the live filter bar's Store filter, and everything else in it had somewhere better to go
+
+### Added
+- New "Show" menu in the live filter bar (Art cards / Foreign cards) — same persisted toggles as before, just relocated now that Search Options is gone
+
+### Changed
+- Filter bar and result-row controls tightened up for mobile (smaller padding/text on the filter/segmented buttons, tighter gaps, smaller grid gap)
+- Results count + sort + view controls no longer risk breaking apart when wrapping on narrow screens — that cluster is now a single non-shrinking unit that wraps as a whole instead of internally fragmenting
+- "Reset filters" (shown when everything's hidden) now also resets the Show menu's toggles, not just the ephemeral store/condition/foil filters
+
 ## [0.29.0] - 2026-07-04
 
 ### Added
