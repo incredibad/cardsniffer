@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.36.0] - 2026-07-04
+
+### Changed
+- Grid view: condition (NM/EX/etc) now shows next to Qty instead of its own badge row above it
+- Grid view: foil badge moved from that now-removed row to a small ribbon pinned to the top-right corner of the card art, showing the specific treatment name where known
+
 ## [0.35.1] - 2026-07-04
 
 ### Changed
