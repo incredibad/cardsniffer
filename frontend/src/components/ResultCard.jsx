@@ -54,7 +54,7 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
             className="absolute top-4 -right-10 sm:top-5 sm:-right-12 w-40 sm:w-48 h-6 sm:h-7 rotate-45 flex items-center justify-center bg-violet-600 text-white pointer-events-none"
             title={foil_treatment || "Foil"}
           >
-            <span className="line-clamp-2 text-center text-[8px] sm:text-[9px] font-semibold uppercase leading-tight px-1">
+            <span className="line-clamp-2 w-full text-center text-[8px] sm:text-[9px] font-semibold uppercase leading-tight px-1">
               {foil_treatment || "Foil"}
             </span>
           </div>

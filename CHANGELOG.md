@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.36.10] - 2026-07-04
+
+### Fixed
+- Grid view's foil ribbon text wasn't centering properly — the `line-clamp-2` span was shrink-wrapping to its content width instead of filling the ribbon, so `text-center` had nothing to center against. Added `w-full`
+
 ## [0.36.9] - 2026-07-04
 
 ### Changed
