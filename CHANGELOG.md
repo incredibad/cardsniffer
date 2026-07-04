@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.20.6] - 2026-07-04
+
+### Changed
+- Mobile table view: bigger price font, "X in stock" shortened to "Qty: X" to save space, and the store pill moved to sit between the price and Buy button
+
 ## [0.20.5] - 2026-07-04
 
 ### Changed

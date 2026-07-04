@@ -85,18 +85,20 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
                 </div>
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {conditionChips}
-                  {storeBadge}
                   {r.quantity_available != null && (
                     <span className="text-xs text-slate-500 dark:text-zinc-500">
-                      {r.quantity_available} in stock
+                      Qty: {r.quantity_available}
                     </span>
                   )}
                 </div>
                 <div className="flex items-center justify-between gap-2">
-                  <div className="text-slate-900 dark:text-zinc-50 font-semibold">
+                  <div className="text-lg text-slate-900 dark:text-zinc-50 font-semibold">
                     {formatPrice(displayPrice, displayCurrency)}
                   </div>
-                  {buyButton}
+                  <div className="flex items-center gap-2">
+                    {storeBadge}
+                    {buyButton}
+                  </div>
                 </div>
               </div>
             </div>
