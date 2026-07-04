@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.26.1] - 2026-07-04
+
+### Changed
+- Toned down the foil rainbow overlay slightly (gradient opacity 0.5 -> 0.38)
+
 ## [0.26.0] - 2026-07-04
 
 ### Added
