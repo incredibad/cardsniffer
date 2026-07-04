@@ -1,4 +1,4 @@
-import { Sparkles, ExternalLink } from "lucide-react";
+import { Sparkles, ExternalLink, Mail } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import { formatPrice } from "../formatPrice";
@@ -25,6 +25,13 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
         const setText = r.set_name
           ? `${r.set_name}${r.collector_number ? ` · #${r.collector_number}` : ""}`
           : null;
+
+        const postageEl = r.shipping_price != null && (
+          <span className="inline-flex items-center gap-0.5 text-[11px] text-slate-400 dark:text-zinc-500 whitespace-nowrap">
+            <Mail size={10} />
+            {r.shipping_price === 0 ? "Free postage" : `+${formatPrice(r.shipping_price, "AUD")} postage`}
+          </span>
+        );
 
         const conditionChips = (
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -93,8 +100,11 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
                   {storeBadge}
                 </div>
                 <div className="flex items-center justify-between gap-2">
-                  <div className={`text-lg font-semibold ${priceColorClass}`}>
-                    {formatPrice(displayPrice, displayCurrency)}
+                  <div className="flex items-baseline gap-1.5 flex-wrap">
+                    <div className={`text-lg font-semibold ${priceColorClass}`}>
+                      {formatPrice(displayPrice, displayCurrency)}
+                    </div>
+                    {postageEl}
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-slate-500 dark:text-zinc-500">
@@ -128,8 +138,11 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
               </div>
               <div className="w-32 shrink-0">{conditionChips}</div>
               <div className="w-24 shrink-0 text-right">
-                <div className={`font-semibold whitespace-nowrap ${priceColorClass}`}>
-                  {formatPrice(displayPrice, displayCurrency)}
+                <div className="flex items-baseline justify-end gap-1.5 flex-wrap">
+                  <div className={`font-semibold whitespace-nowrap ${priceColorClass}`}>
+                    {formatPrice(displayPrice, displayCurrency)}
+                  </div>
+                  {postageEl}
                 </div>
                 <div className="text-xs text-slate-500 dark:text-zinc-500 whitespace-nowrap">
                   {formatQty(r.quantity_available)} in stock

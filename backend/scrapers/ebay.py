@@ -150,6 +150,10 @@ class EbayScraper(BaseScraper):
         seller = item.get("seller") or {}
         seller_username = seller.get("username")
 
+        shipping_options = item.get("shippingOptions") or []
+        shipping_cost = (shipping_options[0].get("shippingCost") or {}) if shipping_options else {}
+        shipping_price = shipping_cost.get("value")
+
         return SearchResult(
             card_name=query.strip(),
             # eBay listing titles are free text with no reliable name/set
@@ -169,4 +173,5 @@ class EbayScraper(BaseScraper):
             image_url=(item.get("image") or {}).get("imageUrl"),
             product_url=item.get("itemWebUrl", ""),
             store_name=self.store_name,
+            shipping_price=float(shipping_price) if shipping_price is not None else None,
         )
