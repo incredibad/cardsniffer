@@ -138,12 +138,12 @@ class EbayScraper(BaseScraper):
             category_ids = {c.get("categoryId") for c in item.get("categories", [])}
             if _SINGLE_CARD_CATEGORY_ID not in category_ids:
                 continue
-            result = self._parse_item(query, item)
+            result = self._parse_item(item)
             if result is not None:
                 results.append(result)
         return results
 
-    def _parse_item(self, query: str, item: dict) -> SearchResult | None:
+    def _parse_item(self, item: dict) -> SearchResult | None:
         price_info = item.get("price") or {}
         price = price_info.get("value")
         if price is None:
@@ -170,13 +170,18 @@ class EbayScraper(BaseScraper):
         delivery_by = shipping_option.get("maxEstimatedDeliveryDate")
 
         return SearchResult(
-            card_name=query.strip(),
             # eBay listing titles are free text with no reliable name/set
             # split (unlike Card Kingdom's consistent "Name (Descriptor)"
-            # pattern) — the full title is carried in set_name instead so
-            # none of that context (set, promo, seller's own condition note)
-            # is lost, even though it isn't a clean set name.
-            set_name=f"{title} · {seller_username}" if seller_username else title,
+            # pattern), so there's no clean way to extract "just the card
+            # name" — doing that properly would mean cross-referencing every
+            # title against a full card-name database (e.g. Scryfall's
+            # ~30k names), well beyond what this scraper does. The raw title
+            # is shown as card_name instead: accurate and unique per listing,
+            # unlike defaulting to the search query (which is actively wrong
+            # in eBay Snipe mode, where the query is a free-text term like
+            # "Marvel Foil" rather than any one card's name).
+            card_name=title,
+            set_name=seller_username,
             collector_number=None,
             foil=foil,
             foil_treatment=foil_treatment if foil else None,

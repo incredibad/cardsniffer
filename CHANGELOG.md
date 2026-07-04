@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.50.1] - 2026-07-05
+
+### Fixed
+- eBay results all showed the search query as the card name (e.g. every result from an "eBay Snipe" search for "Marvel Foil" was labeled "Marvel Foil", regardless of which card it actually was). `card_name` now shows the actual listing title instead, with the seller username moved to the subtitle line. Note: "Exact match only" will now always hide eBay results when enabled, since a listing title is never literally equal to the plain query — that toggle doesn't really apply to freeform marketplace listings
+
 ## [0.50.0] - 2026-07-05
 
 ### Added
