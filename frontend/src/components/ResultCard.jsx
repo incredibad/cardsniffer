@@ -1,4 +1,5 @@
 import { Sparkles, ExternalLink } from "lucide-react";
+import { getStoreMeta } from "../storeMeta";
 
 function formatPrice(price, currency) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(price);
@@ -18,6 +19,7 @@ export default function ResultCard({ result }) {
     product_url,
     store_name,
   } = result;
+  const storeMeta = getStoreMeta(store_name);
 
   return (
     <div className="card-frame flex flex-col">
@@ -68,9 +70,15 @@ export default function ResultCard({ result }) {
             <div className="text-lg font-semibold text-stone-100 leading-tight">
               {formatPrice(price, currency)}
             </div>
-            <div className="text-xs text-stone-500 truncate">
-              {store_name}
-              {quantity_available != null && ` · ${quantity_available} in stock`}
+            <div className="text-xs text-stone-500 truncate flex items-center gap-1.5">
+              <span
+                className="chip shrink-0 font-semibold text-white"
+                style={{ backgroundColor: storeMeta.color }}
+                title={store_name}
+              >
+                {storeMeta.code}
+              </span>
+              {quantity_available != null && <span>{quantity_available} in stock</span>}
             </div>
           </div>
           <a

@@ -1,4 +1,5 @@
 import { Sparkles, ExternalLink } from "lucide-react";
+import { getStoreMeta } from "../storeMeta";
 
 function formatPrice(price, currency) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(price);
@@ -19,7 +20,9 @@ export default function ResultTable({ results }) {
           </tr>
         </thead>
         <tbody>
-          {results.map((r, i) => (
+          {results.map((r, i) => {
+            const storeMeta = getStoreMeta(r.store_name);
+            return (
             <tr
               key={`${r.product_url}-${r.condition}-${i}`}
               className="border-b border-gold-700/10 last:border-0 hover:bg-ink-900/60 transition-colors"
@@ -63,7 +66,15 @@ export default function ResultTable({ results }) {
                   <div className="text-xs text-stone-500">{r.quantity_available} in stock</div>
                 )}
               </td>
-              <td className="p-3 text-stone-400">{r.store_name}</td>
+              <td className="p-3">
+                <span
+                  className="chip font-semibold text-white"
+                  style={{ backgroundColor: storeMeta.color }}
+                  title={r.store_name}
+                >
+                  {storeMeta.code}
+                </span>
+              </td>
               <td className="p-3">
                 <a
                   href={r.product_url}
@@ -75,7 +86,8 @@ export default function ResultTable({ results }) {
                 </a>
               </td>
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </table>
     </div>

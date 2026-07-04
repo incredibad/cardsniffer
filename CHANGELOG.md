@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.13.0] - 2026-07-04
+
+### Added
+- Each store now gets a short code and brand colour (e.g. Card Kingdom → "CK" in dark teal, Good Games TCG → "GG" in navy) shown as a compact badge on results, in place of the plain store name — makes it much faster to scan a crowded grid/table for a specific store
+
 ## [0.12.0] - 2026-07-04
 
 ### Added
