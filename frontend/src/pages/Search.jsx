@@ -5,6 +5,7 @@ import {
   X,
   LayoutGrid,
   Table as TableIcon,
+  ChevronDown,
 } from "lucide-react";
 import { api } from "../api";
 import ResultCard from "../components/ResultCard";
@@ -112,9 +113,26 @@ export default function Search() {
   const suggestRequestId = useRef(0);
   const inputRef = useRef(null);
 
+  // Sticky search-button mode: "search" (normal, all enabled stores) or
+  // "ebay_snipe" (eBay only, exact query, force-sorted newest-first).
+  // Deliberately not persisted to localStorage — resets to "search" on
+  // page reload.
+  const [searchMode, setSearchMode] = useState("search");
+  const [searchMenuOpen, setSearchMenuOpen] = useState(false);
+  const searchMenuRef = useRef(null);
+
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  useEffect(() => {
+    if (!searchMenuOpen) return;
+    function handleOutside(e) {
+      if (searchMenuRef.current && !searchMenuRef.current.contains(e.target)) setSearchMenuOpen(false);
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [searchMenuOpen]);
 
   function updateSortMode(mode) {
     setSortMode(mode);
@@ -194,7 +212,7 @@ export default function Search() {
     return [...dated, ...undated];
   }, [filteredResults, sortMode]);
 
-  async function performSearch(q) {
+  async function runSearchRequest(apiCall, q, { onSuccess } = {}) {
     setStatus("loading");
     setDismissedErrors(false);
     setSuggestOpen(false);
@@ -203,22 +221,49 @@ export default function Search() {
     suggestRequestId.current++; // invalidate any pending autocomplete fetch still in flight
     inputRef.current?.blur();
     try {
-      const data = await api.search(q);
+      const data = await apiCall(q);
       setResults(data.results);
       setErrors(data.errors || []);
       setLastQuery(q);
       setStatus("success");
+      onSuccess?.();
     } catch (err) {
       setErrorMessage(err.message || "Search failed");
       setStatus("error");
     }
   }
 
+  function performSearch(q) {
+    return runSearchRequest(api.search, q);
+  }
+
+  // "eBay Snipe": exact query (no "MTG" appended), eBay only, force-sorted
+  // newest-first so a fresh listing is never buried under price sort order.
+  function performEbaySnipe(q) {
+    return runSearchRequest(api.searchEbaySnipe, q, { onSuccess: () => updateSortMode("date_desc") });
+  }
+
+  function runCurrentMode(q) {
+    if (searchMode === "ebay_snipe") performEbaySnipe(q);
+    else performSearch(q);
+  }
+
   function runSearch(e) {
     e?.preventDefault();
     const q = query.trim();
     if (!q) return;
-    performSearch(q);
+    runCurrentMode(q);
+  }
+
+  // Selecting a mode from the dropdown both switches it (sticky until
+  // changed again or the page reloads) and runs it immediately.
+  function chooseSearchMode(mode) {
+    setSearchMode(mode);
+    setSearchMenuOpen(false);
+    const q = query.trim();
+    if (!q) return;
+    if (mode === "ebay_snipe") performEbaySnipe(q);
+    else performSearch(q);
   }
 
   function selectSuggestion(name) {
@@ -226,7 +271,7 @@ export default function Search() {
     setSuggestions([]);
     setSuggestOpen(false);
     setActiveSuggestion(-1);
-    performSearch(name);
+    runCurrentMode(name);
   }
 
   function handleQueryChange(value) {
@@ -317,19 +362,64 @@ export default function Search() {
               </ul>
             )}
           </div>
-          <button
-            type="submit"
-            disabled={status === "loading" || !query.trim()}
-            aria-label="Search"
-            className="btn-primary px-3 sm:px-5"
-          >
-            {status === "loading" ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <SearchIcon size={16} className="sm:hidden" />
+          <div ref={searchMenuRef} className="relative flex">
+            <button
+              type="submit"
+              disabled={status === "loading" || !query.trim()}
+              aria-label={searchMode === "ebay_snipe" ? "eBay Snipe" : "Search"}
+              className={`inline-flex items-center justify-center gap-2 rounded-l-xl px-3 sm:px-5 py-2.5 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                searchMode === "ebay_snipe"
+                  ? "bg-[#FFBD14] text-slate-900 hover:bg-[#e6a913]"
+                  : "bg-indigo-600 text-white hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+              }`}
+            >
+              {status === "loading" ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <SearchIcon size={16} className="sm:hidden" />
+              )}
+              <span className="hidden sm:inline">{searchMode === "ebay_snipe" ? "eBay Snipe" : "Search"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSearchMenuOpen((o) => !o)}
+              aria-label="Search options"
+              aria-expanded={searchMenuOpen}
+              className={`inline-flex items-center justify-center rounded-r-xl border-l px-2 transition-colors ${
+                searchMode === "ebay_snipe"
+                  ? "bg-[#FFBD14] text-slate-900 hover:bg-[#e6a913] border-black/10"
+                  : "bg-indigo-600 text-white hover:bg-indigo-500 border-white/20 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+              }`}
+            >
+              <ChevronDown size={14} className={`transition-transform ${searchMenuOpen ? "rotate-180" : ""}`} />
+            </button>
+            {searchMenuOpen && (
+              <div className="card-frame absolute top-full right-0 mt-1 z-20 min-w-[9rem] py-1.5 px-1">
+                <button
+                  type="button"
+                  onClick={() => chooseSearchMode("search")}
+                  className={`flex w-full items-center gap-2 px-2 py-1.5 text-sm rounded-lg transition-colors ${
+                    searchMode === "search"
+                      ? "text-indigo-600 dark:text-indigo-400 font-medium"
+                      : "text-slate-700 hover:bg-slate-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  }`}
+                >
+                  Search
+                </button>
+                <button
+                  type="button"
+                  onClick={() => chooseSearchMode("ebay_snipe")}
+                  className={`flex w-full items-center gap-2 px-2 py-1.5 text-sm rounded-lg transition-colors ${
+                    searchMode === "ebay_snipe"
+                      ? "text-indigo-600 dark:text-indigo-400 font-medium"
+                      : "text-slate-700 hover:bg-slate-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  }`}
+                >
+                  eBay Snipe
+                </button>
+              </div>
             )}
-            <span className="hidden sm:inline">Search</span>
-          </button>
+          </div>
         </form>
       </div>
 
