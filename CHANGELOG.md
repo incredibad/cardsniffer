@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.49.0] - 2026-07-04
+
+### Changed
+- Store/Condition/Show/Sort/View filter bar is now always visible — before the first search, while one's in flight, and after — instead of only appearing once results exist, so filters can be set up ahead of time. The results count only shows once a search actually completes
+
 ## [0.48.0] - 2026-07-04
 
 ### Added
