@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.15.0] - 2026-07-04
+
+### Added
+- Art Series listings (non-playable card-sized art prints, no rules text) are now filtered out of results from every store, not just Hareruya — detected by "Art Series" appearing in the set field, checked centrally in the search endpoint so new scrapers get this for free
+
 ## [0.14.5] - 2026-07-04
 
 ### Fixed
