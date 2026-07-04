@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.35.0] - 2026-07-04
+
+### Fixed
+- Card Kingdom's search matched the entire displayed title, descriptor included — not just the card name — so a query that's also a common treatment word (e.g. "Foil") pulled in thousands of unrelated results. Now filtered client-side to keep only results whose actual card name contains the query, same pattern GUF/Good Games already use
+
 ## [0.34.3] - 2026-07-04
 
 ### Fixed

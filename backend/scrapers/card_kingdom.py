@@ -38,6 +38,10 @@ _RARITY_SUFFIX_RE = re.compile(r"\s*\([A-Z]\)\s*$")
 _NON_CONDITION_CLASSES = {"itemAddToCart", "active", "disabled", ""}
 
 
+def _normalize(text: str) -> str:
+    return re.sub(r"\s+", " ", text or "").strip().lower()
+
+
 def _parse_price(text: str) -> float | None:
     m = _PRICE_RE.search(text or "")
     return float(m.group(1).replace(",", "")) if m else None
@@ -66,13 +70,21 @@ class CardKingdomScraper(BaseScraper):
     async def search(self, query: str) -> list[SearchResult]:
         responses = await asyncio.gather(*(self._fetch_tab(query, tab) for tab in _TABS))
 
+        # CK's own filter[name] matches the *entire displayed title*,
+        # descriptor included — not just the card name — so a generic
+        # treatment word (e.g. "Foil") pulls in thousands of unrelated
+        # cards that merely happen to carry that treatment. No real card
+        # name contains parentheses, so card_name (everything before the
+        # first "(") is always the actual name to match against.
+        needle = _normalize(query)
+
         results: list[SearchResult] = []
         for tab, response in zip(_TABS, responses):
             soup = BeautifulSoup(response.text, "lxml")
             force_foil = tab == "mtg_foil"
             for block in soup.select("div.productItemWrapper.productCardWrapper"):
                 results.extend(self._parse_product_block(block, force_foil=force_foil))
-        return results
+        return [r for r in results if needle in _normalize(r.card_name)]
 
     async def _fetch_tab(self, query: str, tab: str):
         response = await self.client.get(
