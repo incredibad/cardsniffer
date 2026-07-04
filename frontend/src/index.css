@@ -31,9 +31,9 @@
   .chip {
     @apply px-2 py-0.5 rounded-full text-[11px] font-medium tracking-wide;
   }
-  /* Primary filled action button (Material-style). */
+  /* Primary filled action button (Material-style). Rounded to match .input-field. */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-indigo-600 px-5 py-2.5 font-medium text-white transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-indigo-500 dark:hover:bg-indigo-400;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 font-medium text-white transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-indigo-500 dark:hover:bg-indigo-400;
   }
   /* Text input field. */
   .input-field {

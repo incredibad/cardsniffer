@@ -1,5 +1,14 @@
 import { useMemo, useRef, useState } from "react";
-import { Search as SearchIcon, Loader2, X, LayoutGrid, Table as TableIcon, ArrowUp, ArrowDown } from "lucide-react";
+import {
+  Search as SearchIcon,
+  Loader2,
+  X,
+  LayoutGrid,
+  Table as TableIcon,
+  ArrowUp,
+  ArrowDown,
+  ChevronDown,
+} from "lucide-react";
 import { api } from "../api";
 import ResultCard from "../components/ResultCard";
 import ResultTable from "../components/ResultTable";
@@ -9,6 +18,7 @@ const SORT_ORDER_KEY = "cardsniffer.sortOrder";
 const SHOW_ART_KEY = "cardsniffer.showArtCards";
 const SHOW_FOREIGN_KEY = "cardsniffer.showForeignCards";
 const PRICING_MODE_KEY = "cardsniffer.pricingMode";
+const OPTIONS_OPEN_KEY = "cardsniffer.searchOptionsOpen";
 const SUGGEST_DEBOUNCE_MS = 150;
 const SUGGEST_MIN_LENGTH = 2;
 
@@ -33,6 +43,9 @@ export default function Search() {
   const [pricingMode, setPricingMode] = useState(
     () => localStorage.getItem(PRICING_MODE_KEY) || "aud"
   ); // aud | original
+  const [optionsOpen, setOptionsOpen] = useState(
+    () => localStorage.getItem(OPTIONS_OPEN_KEY) !== "false"
+  );
 
   const [suggestions, setSuggestions] = useState([]);
   const [suggestOpen, setSuggestOpen] = useState(false);
@@ -58,6 +71,14 @@ export default function Search() {
   function updatePricingMode(mode) {
     setPricingMode(mode);
     localStorage.setItem(PRICING_MODE_KEY, mode);
+  }
+
+  function toggleOptionsOpen() {
+    setOptionsOpen((o) => {
+      const next = !o;
+      localStorage.setItem(OPTIONS_OPEN_KEY, String(next));
+      return next;
+    });
   }
 
   const filteredResults = useMemo(() => {
@@ -158,95 +179,110 @@ export default function Search() {
         </p>
       </div>
 
-      <form onSubmit={runSearch} className="flex gap-2">
-        <div className="relative flex-1">
-          <SearchIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => handleQueryChange(e.target.value)}
-            onKeyDown={handleQueryKeyDown}
-            onFocus={() => suggestions.length > 0 && setSuggestOpen(true)}
-            onBlur={() => setTimeout(() => setSuggestOpen(false), 100)}
-            placeholder="e.g. Lightning Bolt"
-            autoComplete="off"
-            role="combobox"
-            aria-expanded={suggestOpen}
-            aria-autocomplete="list"
-            className="input-field pl-10 pr-3 py-2.5"
-          />
-          {suggestOpen && suggestions.length > 0 && (
-            <ul className="card-frame absolute top-full left-0 right-0 mt-1 z-10 max-h-72 overflow-y-auto py-1">
-              {suggestions.map((name, i) => (
-                <li key={name}>
+      <div className="card-frame overflow-hidden">
+        <form onSubmit={runSearch} className="flex gap-2 p-2">
+          <div className="relative flex-1">
+            <SearchIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => handleQueryChange(e.target.value)}
+              onKeyDown={handleQueryKeyDown}
+              onFocus={() => suggestions.length > 0 && setSuggestOpen(true)}
+              onBlur={() => setTimeout(() => setSuggestOpen(false), 100)}
+              placeholder="e.g. Lightning Bolt"
+              autoComplete="off"
+              role="combobox"
+              aria-expanded={suggestOpen}
+              aria-autocomplete="list"
+              className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-transparent text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+            />
+            {suggestOpen && suggestions.length > 0 && (
+              <ul className="card-frame absolute top-full left-0 right-0 mt-1 z-10 max-h-72 overflow-y-auto py-1">
+                {suggestions.map((name, i) => (
+                  <li key={name}>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => selectSuggestion(name)}
+                      className={`w-full text-left px-3 py-1.5 text-sm transition-colors ${
+                        i === activeSuggestion
+                          ? "bg-indigo-600 text-white"
+                          : "text-slate-700 hover:bg-slate-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                      }`}
+                    >
+                      {name}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <button type="submit" disabled={status === "loading" || !query.trim()} className="btn-primary">
+            {status === "loading" && <Loader2 size={16} className="animate-spin" />}
+            Search
+          </button>
+        </form>
+
+        <div className="border-t border-slate-200 dark:border-zinc-800">
+          <button
+            type="button"
+            onClick={toggleOptionsOpen}
+            aria-expanded={optionsOpen}
+            className="w-full flex items-center justify-between gap-2 px-4 py-2 text-sm text-slate-500 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800/40 transition-colors"
+          >
+            <span className="section-header">Search Options</span>
+            <ChevronDown size={16} className={`transition-transform ${optionsOpen ? "rotate-180" : ""}`} />
+          </button>
+
+          {optionsOpen && (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 pb-3 text-sm text-slate-600 dark:text-zinc-400">
+              <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showArtCards}
+                  onChange={(e) => updateShowArtCards(e.target.checked)}
+                  className="accent-indigo-600 w-4 h-4"
+                />
+                Show art cards
+              </label>
+              <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showForeignCards}
+                  onChange={(e) => updateShowForeignCards(e.target.checked)}
+                  className="accent-indigo-600 w-4 h-4"
+                />
+                Show foreign cards
+              </label>
+              <div className="inline-flex items-center gap-1.5">
+                <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
                   <button
                     type="button"
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => selectSuggestion(name)}
-                    className={`w-full text-left px-3 py-1.5 text-sm transition-colors ${
-                      i === activeSuggestion
-                        ? "bg-indigo-600 text-white"
-                        : "text-slate-700 hover:bg-slate-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                    onClick={() => updatePricingMode("aud")}
+                    aria-pressed={pricingMode === "aud"}
+                    className={`segmented-btn px-3 py-1 text-sm ${pricingMode === "aud" ? "is-active" : ""}`}
+                  >
+                    AUD
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updatePricingMode("original")}
+                    aria-pressed={pricingMode === "original"}
+                    className={`segmented-btn px-3 py-1 text-sm border-l border-slate-200 dark:border-zinc-800 ${
+                      pricingMode === "original" ? "is-active" : ""
                     }`}
                   >
-                    {name}
+                    Original
                   </button>
-                </li>
-              ))}
-            </ul>
+                </div>
+                <InfoTooltip>
+                  When shown in AUD, Australian GST is applied for stores where it isn't already included
+                  in the listed price.
+                </InfoTooltip>
+              </div>
+            </div>
           )}
-        </div>
-        <button type="submit" disabled={status === "loading" || !query.trim()} className="btn-primary">
-          {status === "loading" && <Loader2 size={16} className="animate-spin" />}
-          Search
-        </button>
-      </form>
-
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-600 dark:text-zinc-400">
-        <span className="section-header">Search Options</span>
-        <label className="inline-flex items-center gap-1.5 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showArtCards}
-            onChange={(e) => updateShowArtCards(e.target.checked)}
-            className="accent-indigo-600 w-4 h-4"
-          />
-          Show art cards
-        </label>
-        <label className="inline-flex items-center gap-1.5 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showForeignCards}
-            onChange={(e) => updateShowForeignCards(e.target.checked)}
-            className="accent-indigo-600 w-4 h-4"
-          />
-          Show foreign cards
-        </label>
-        <div className="inline-flex items-center gap-1.5">
-          <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
-            <button
-              type="button"
-              onClick={() => updatePricingMode("aud")}
-              aria-pressed={pricingMode === "aud"}
-              className={`segmented-btn px-3 py-1 text-sm ${pricingMode === "aud" ? "is-active" : ""}`}
-            >
-              AUD
-            </button>
-            <button
-              type="button"
-              onClick={() => updatePricingMode("original")}
-              aria-pressed={pricingMode === "original"}
-              className={`segmented-btn px-3 py-1 text-sm border-l border-slate-200 dark:border-zinc-800 ${
-                pricingMode === "original" ? "is-active" : ""
-              }`}
-            >
-              Original
-            </button>
-          </div>
-          <InfoTooltip>
-            When shown in AUD, Australian GST is applied for stores where it isn't already included in
-            the listed price.
-          </InfoTooltip>
         </div>
       </div>
 

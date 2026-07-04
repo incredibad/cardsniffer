@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.18.0] - 2026-07-04
+
+### Changed
+- Search Options is now a collapsible bar adjoined directly to the bottom of the search box, forming one bordered element instead of two separate pieces — click the header to expand/collapse it (remembered per-browser)
+- Search button now shares the same rounded corners as the search input
+
 ## [0.17.0] - 2026-07-04
 
 ### Added
