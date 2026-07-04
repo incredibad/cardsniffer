@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { computePopoverPosition } from "../popoverPosition";
+import FoilOverlay from "./FoilOverlay";
 
 const MAX_WIDTH = 448; // px, matches the w-[min(85vw,28rem)] cap below
 
@@ -9,7 +10,7 @@ const MAX_WIDTH = 448; // px, matches the w-[min(85vw,28rem)] cap below
 // bounding rect) so it isn't clipped by an ancestor's overflow-hidden and can
 // be sized well past the thumbnail itself. Flips above/below depending on
 // available space so it never renders off-screen. Tapping outside closes it.
-export default function ImageHoverPreview({ src, alt, className = "" }) {
+export default function ImageHoverPreview({ src, alt, className = "", foil = false }) {
   const rootRef = useRef(null);
   const popupRef = useRef(null);
   const [open, setOpen] = useState(false);
@@ -45,7 +46,7 @@ export default function ImageHoverPreview({ src, alt, className = "" }) {
   }
 
   return (
-    <span ref={rootRef} className="relative inline-block">
+    <span ref={rootRef} className={`relative block ${className}`}>
       <img
         src={src}
         alt={alt}
@@ -53,8 +54,9 @@ export default function ImageHoverPreview({ src, alt, className = "" }) {
         onClick={() => (open ? setOpen(false) : show())}
         onMouseEnter={show}
         onMouseLeave={() => setOpen(false)}
-        className={`${className} cursor-zoom-in`}
+        className="w-full h-full object-cover cursor-zoom-in"
       />
+      {foil && <FoilOverlay />}
       {open &&
         pos &&
         createPortal(
@@ -69,12 +71,15 @@ export default function ImageHoverPreview({ src, alt, className = "" }) {
             }}
             className="z-50 p-1.5 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-xl overflow-hidden"
           >
-            <img
-              src={src}
-              alt={alt}
-              style={{ maxHeight: pos.maxHeight - 12 }}
-              className="w-[min(85vw,28rem)] max-w-full rounded-xl object-contain"
-            />
+            <div className="relative rounded-xl overflow-hidden">
+              <img
+                src={src}
+                alt={alt}
+                style={{ maxHeight: pos.maxHeight - 12 }}
+                className="w-[min(85vw,28rem)] max-w-full rounded-xl object-contain"
+              />
+              {foil && <FoilOverlay />}
+            </div>
           </div>,
           document.body
         )}

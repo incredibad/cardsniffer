@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.26.0] - 2026-07-04
+
+### Added
+- Foil results now get a diagonal rainbow sheen over the card image (grid view, table view thumbnails, and the enlarged table-view preview) — the standard CSS holo-card trick (rainbow gradient + `color-dodge` blend), since not every store's own photography actually shows foil shine. Applied uniformly regardless of whether the source photo already looks foil
+
 ## [0.25.0] - 2026-07-04
 
 ### Added
