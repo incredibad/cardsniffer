@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.14.3] - 2026-07-04
+
+### Fixed
+- Grid card bottom corners were still square — the content area was relying on the outer card's clip instead of rounding itself, unlike the image area above it. Gave it its own background + `overflow-hidden` so it clips its own bottom corners independently, the same fix already applied to the image on top
+
 ## [0.14.2] - 2026-07-04
 
 ### Fixed
