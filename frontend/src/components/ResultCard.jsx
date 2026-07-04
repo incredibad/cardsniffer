@@ -1,4 +1,4 @@
-import { Sparkles, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import { formatPrice } from "../formatPrice";
@@ -43,12 +43,14 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
         )}
         {foil && storeMeta.foilOverlay && <FoilOverlay />}
         {foil && (
-          <span
-            className="chip absolute top-1.5 right-1.5 max-w-[calc(100%-0.75rem)] truncate bg-violet-600/90 text-white inline-flex items-center gap-1 shadow-sm backdrop-blur-sm"
+          <div
+            className="absolute top-[10px] -right-[30px] w-[120px] rotate-45 overflow-hidden text-center"
             title={foil_treatment || "Foil"}
           >
-            <Sparkles size={11} className="shrink-0" /> <span className="truncate">{foil_treatment || "Foil"}</span>
-          </span>
+            <span className="block truncate bg-violet-600 text-white text-[9px] font-semibold uppercase tracking-wide py-0.5 shadow-sm">
+              {foil_treatment || "Foil"}
+            </span>
+          </div>
         )}
       </div>
 
