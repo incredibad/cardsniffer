@@ -61,6 +61,14 @@ class CardKingdomScraper(BaseScraper):
             impersonate="chrome124",
             timeout=15.0,
             allow_redirects=True,
+            # The site's "Show: X per page"/"Sort By" controls aren't URL
+            # params at all — its own JS (catalogView.js) sets them as
+            # cookies ("limit", "sortBy") and reloads. "limit" maxes out at
+            # 100 (the site's own ceiling, confirmed via its <select>
+            # options); default is 25. Sorting by name instead of the
+            # default "popularity" also means results are alphabetical,
+            # which matters if pagination is ever added on top of this.
+            cookies={"limit": "100", "sortBy": "name_asc"},
             **({"proxy": proxy_url} if proxy_url else {}),
         )
 
