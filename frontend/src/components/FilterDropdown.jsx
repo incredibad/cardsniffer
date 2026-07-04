@@ -3,8 +3,10 @@ import { ChevronDown } from "lucide-react";
 
 // Compact "Label (N)" button that opens a popover — used for the live
 // results-row filter bar (store, condition, show). Not a portal: only used
-// where its ancestor doesn't clip with overflow-hidden.
-export default function FilterDropdown({ label, badgeCount, children }) {
+// where its ancestor doesn't clip with overflow-hidden. Pass className="flex-1"
+// to stretch it to fill a flex row (mobile); left as an ordinary content-sized
+// flex item otherwise (desktop).
+export default function FilterDropdown({ label, badgeCount, children, className = "" }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
 
@@ -18,18 +20,20 @@ export default function FilterDropdown({ label, badgeCount, children }) {
   }, [open]);
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className={`relative ${className}`}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="inline-flex items-center gap-1 rounded-full border border-slate-200 dark:border-zinc-800 px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
+        className="flex w-full items-center justify-between gap-1 rounded-full border border-slate-200 dark:border-zinc-800 px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
       >
-        {label}
-        {badgeCount != null && (
-          <span className="text-indigo-600 dark:text-indigo-400 font-medium">({badgeCount})</span>
-        )}
-        <ChevronDown size={14} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+        <span className="flex items-center gap-1">
+          {label}
+          {badgeCount != null && (
+            <span className="text-indigo-600 dark:text-indigo-400 font-medium">({badgeCount})</span>
+          )}
+        </span>
+        <ChevronDown size={14} className={`transition-transform shrink-0 ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
         <div className="card-frame absolute top-full left-0 mt-1 z-20 min-w-[10rem] max-h-64 overflow-y-auto py-1.5 px-2">

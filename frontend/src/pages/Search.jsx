@@ -318,112 +318,16 @@ export default function Search() {
 
       {filteredResults.length > 0 && (
         <>
-          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
-            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              <FilterDropdown
-                label="Store"
-                badgeCount={
-                  barStoreOptions.length - barHiddenStores.size < barStoreOptions.length
-                    ? barStoreOptions.length - barHiddenStores.size
-                    : null
-                }
-              >
-                {barStoreOptions.map((option) => (
-                  <FilterDropdownOption
-                    key={option}
-                    label={option}
-                    checked={!barHiddenStores.has(option)}
-                    onChange={() => toggleSetMember(setBarHiddenStores, option)}
-                  />
-                ))}
-              </FilterDropdown>
-              <FilterDropdown
-                label="Condition"
-                badgeCount={
-                  barConditionOptions.length - barHiddenConditions.size < barConditionOptions.length
-                    ? barConditionOptions.length - barHiddenConditions.size
-                    : null
-                }
-              >
-                {barConditionOptions.map((option) => (
-                  <FilterDropdownOption
-                    key={option}
-                    label={option}
-                    checked={!barHiddenConditions.has(option)}
-                    onChange={() => toggleSetMember(setBarHiddenConditions, option)}
-                  />
-                ))}
-              </FilterDropdown>
-              <FilterDropdown
-                label="Show"
-                badgeCount={(showArtCards ? 1 : 0) + (showForeignCards ? 1 : 0) || null}
-              >
-                <FilterDropdownOption
-                  label="Art cards"
-                  checked={showArtCards}
-                  onChange={(e) => updateShowArtCards(e.target.checked)}
-                />
-                <FilterDropdownOption
-                  label="Foreign cards"
-                  checked={showForeignCards}
-                  onChange={(e) => updateShowForeignCards(e.target.checked)}
-                />
-              </FilterDropdown>
-              <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
-                {[
-                  ["all", "All"],
-                  ["foil", "Foil"],
-                  ["nonfoil", "Nonfoil"],
-                ].map(([value, text], i) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setFoilFilter(value)}
-                    aria-pressed={foilFilter === value}
-                    className={`segmented-btn px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm ${
-                      i > 0 ? "border-l border-slate-200 dark:border-zinc-800" : ""
-                    } ${foilFilter === value ? "is-active" : ""}`}
-                  >
-                    {text}
-                  </button>
-                ))}
-              </div>
-              <div className="inline-flex items-center gap-1.5">
-                <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => updatePricingMode("aud")}
-                    aria-pressed={pricingMode === "aud"}
-                    className={`segmented-btn px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm ${
-                      pricingMode === "aud" ? "is-active" : ""
-                    }`}
-                  >
-                    AUD
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => updatePricingMode("original")}
-                    aria-pressed={pricingMode === "original"}
-                    className={`segmented-btn px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm border-l border-slate-200 dark:border-zinc-800 ${
-                      pricingMode === "original" ? "is-active" : ""
-                    }`}
-                  >
-                    Original
-                  </button>
-                </div>
-                <InfoTooltip>
-                  When shown in AUD, Australian GST is applied for stores where it isn't already included
-                  in the listed price.
-                </InfoTooltip>
-              </div>
-            </div>
-
-            <div className="flex flex-nowrap shrink-0 items-center gap-2">
+          {(() => {
+            const resultsCountEl = (
               <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-500 whitespace-nowrap">
                 {filteredResults.length === results.length
                   ? `${results.length} result${results.length === 1 ? "" : "s"}`
                   : `${filteredResults.length}/${results.length} results`}
               </p>
+            );
+
+            const sortButtonsEl = (
               <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
                 <button
                   onClick={() => updateSortOrder("asc")}
@@ -446,6 +350,9 @@ export default function Search() {
                   <ArrowDown size={16} />
                 </button>
               </div>
+            );
+
+            const viewButtonsEl = (
               <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
                 <button
                   onClick={() => updateViewMode("grid")}
@@ -466,8 +373,197 @@ export default function Search() {
                   <TableIcon size={16} />
                 </button>
               </div>
-            </div>
-          </div>
+            );
+
+            const storeDropdown = (stretch) => (
+              <FilterDropdown
+                label="Store"
+                className={stretch ? "flex-1" : ""}
+                badgeCount={
+                  barStoreOptions.length - barHiddenStores.size < barStoreOptions.length
+                    ? barStoreOptions.length - barHiddenStores.size
+                    : null
+                }
+              >
+                {barStoreOptions.map((option) => (
+                  <FilterDropdownOption
+                    key={option}
+                    label={option}
+                    checked={!barHiddenStores.has(option)}
+                    onChange={() => toggleSetMember(setBarHiddenStores, option)}
+                  />
+                ))}
+              </FilterDropdown>
+            );
+
+            const conditionDropdown = (stretch) => (
+              <FilterDropdown
+                label="Condition"
+                className={stretch ? "flex-1" : ""}
+                badgeCount={
+                  barConditionOptions.length - barHiddenConditions.size < barConditionOptions.length
+                    ? barConditionOptions.length - barHiddenConditions.size
+                    : null
+                }
+              >
+                {barConditionOptions.map((option) => (
+                  <FilterDropdownOption
+                    key={option}
+                    label={option}
+                    checked={!barHiddenConditions.has(option)}
+                    onChange={() => toggleSetMember(setBarHiddenConditions, option)}
+                  />
+                ))}
+              </FilterDropdown>
+            );
+
+            const showDropdown = (stretch) => (
+              <FilterDropdown
+                label="Show"
+                className={stretch ? "flex-1" : ""}
+                badgeCount={(showArtCards ? 1 : 0) + (showForeignCards ? 1 : 0) || null}
+              >
+                <FilterDropdownOption
+                  label="Art cards"
+                  checked={showArtCards}
+                  onChange={(e) => updateShowArtCards(e.target.checked)}
+                />
+                <FilterDropdownOption
+                  label="Foreign cards"
+                  checked={showForeignCards}
+                  onChange={(e) => updateShowForeignCards(e.target.checked)}
+                />
+              </FilterDropdown>
+            );
+
+            return (
+              <>
+                {/* Mobile: 3 rows — results+view, then dropdowns, then foil+currency,
+                    rows 2/3 stretched to fill the width. */}
+                <div className="flex sm:hidden flex-col gap-2">
+                  <div className="flex items-center justify-between gap-2">
+                    {resultsCountEl}
+                    <div className="flex items-center gap-2">
+                      {sortButtonsEl}
+                      {viewButtonsEl}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {storeDropdown(true)}
+                    {conditionDropdown(true)}
+                    {showDropdown(true)}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
+                      {[
+                        ["all", "All"],
+                        ["foil", "Foil"],
+                        ["nonfoil", "Nonfoil"],
+                      ].map(([value, text], i) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setFoilFilter(value)}
+                          aria-pressed={foilFilter === value}
+                          className={`segmented-btn flex-1 px-2 py-1 text-xs ${
+                            i > 0 ? "border-l border-slate-200 dark:border-zinc-800" : ""
+                          } ${foilFilter === value ? "is-active" : ""}`}
+                        >
+                          {text}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex-1 flex items-center gap-1">
+                      <div className="flex-1 flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => updatePricingMode("aud")}
+                          aria-pressed={pricingMode === "aud"}
+                          className={`segmented-btn flex-1 px-2 py-1 text-xs ${pricingMode === "aud" ? "is-active" : ""}`}
+                        >
+                          AUD
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updatePricingMode("original")}
+                          aria-pressed={pricingMode === "original"}
+                          className={`segmented-btn flex-1 px-2 py-1 text-xs border-l border-slate-200 dark:border-zinc-800 ${
+                            pricingMode === "original" ? "is-active" : ""
+                          }`}
+                        >
+                          Original
+                        </button>
+                      </div>
+                      <InfoTooltip>
+                        When shown in AUD, Australian GST is applied for stores where it isn't already
+                        included in the listed price.
+                      </InfoTooltip>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Desktop: single row — filter bar left, results/sort/view right. */}
+                <div className="hidden sm:flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {storeDropdown(false)}
+                    {conditionDropdown(false)}
+                    {showDropdown(false)}
+                    <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
+                      {[
+                        ["all", "All"],
+                        ["foil", "Foil"],
+                        ["nonfoil", "Nonfoil"],
+                      ].map(([value, text], i) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setFoilFilter(value)}
+                          aria-pressed={foilFilter === value}
+                          className={`segmented-btn px-3 py-1.5 text-sm ${
+                            i > 0 ? "border-l border-slate-200 dark:border-zinc-800" : ""
+                          } ${foilFilter === value ? "is-active" : ""}`}
+                        >
+                          {text}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="inline-flex items-center gap-1.5">
+                      <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => updatePricingMode("aud")}
+                          aria-pressed={pricingMode === "aud"}
+                          className={`segmented-btn px-3 py-1.5 text-sm ${pricingMode === "aud" ? "is-active" : ""}`}
+                        >
+                          AUD
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updatePricingMode("original")}
+                          aria-pressed={pricingMode === "original"}
+                          className={`segmented-btn px-3 py-1.5 text-sm border-l border-slate-200 dark:border-zinc-800 ${
+                            pricingMode === "original" ? "is-active" : ""
+                          }`}
+                        >
+                          Original
+                        </button>
+                      </div>
+                      <InfoTooltip>
+                        When shown in AUD, Australian GST is applied for stores where it isn't already
+                        included in the listed price.
+                      </InfoTooltip>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-nowrap shrink-0 items-center gap-2">
+                    {resultsCountEl}
+                    {sortButtonsEl}
+                    {viewButtonsEl}
+                  </div>
+                </div>
+              </>
+            );
+          })()}
 
           {viewMode === "grid" ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-5">

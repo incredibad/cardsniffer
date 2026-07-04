@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.31.0] - 2026-07-04
+
+### Changed
+- Mobile results row rebuilt into 3 dedicated rows instead of one wrapping row: results count + sort/view (right-aligned) directly under the search bar, then Store/Condition/Show dropdowns stretched to fill the width, then Foil and Currency toggles stretched to fill the width. Desktop keeps the existing single-row layout unchanged
+- `FilterDropdown` now accepts a `className` prop so it can stretch (`flex-1`) on mobile while staying content-sized on desktop
+
 ## [0.30.0] - 2026-07-04
 
 ### Removed
