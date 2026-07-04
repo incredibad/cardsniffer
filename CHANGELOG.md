@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.24.2] - 2026-07-04
+
+### Changed
+- Grid card 2x2 footer: swapped Qty and store badge, so Qty is top-left and the store badge is top-right (above the Buy button)
+
 ## [0.24.1] - 2026-07-04
 
 ### Changed

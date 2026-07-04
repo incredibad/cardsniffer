@@ -71,15 +71,15 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
         </div>
 
         <div className="mt-auto grid grid-cols-2 items-center gap-x-2 gap-y-1.5 pt-1">
+          <span className="text-xs text-slate-500 dark:text-zinc-500">
+            {quantity_available != null && `Qty: ${quantity_available}`}
+          </span>
           <span
-            className="chip shrink-0 font-semibold text-white w-fit"
+            className="chip shrink-0 font-semibold text-white w-fit justify-self-end"
             style={{ backgroundColor: storeMeta.color }}
             title={store_name}
           >
             {storeMeta.code}
-          </span>
-          <span className="text-xs text-slate-500 dark:text-zinc-500 justify-self-end">
-            {quantity_available != null && `Qty: ${quantity_available}`}
           </span>
           <div className="text-xl font-semibold text-slate-900 dark:text-zinc-50 leading-tight">
             {formatPrice(displayPrice, displayCurrency)}
