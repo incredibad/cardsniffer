@@ -481,7 +481,9 @@ export default function Search() {
 
             <div className="flex items-center gap-2">
               <p className="text-sm text-slate-500 dark:text-zinc-500 whitespace-nowrap">
-                {filteredResults.length} result{filteredResults.length === 1 ? "" : "s"}
+                {filteredResults.length === results.length
+                  ? `${results.length} result${results.length === 1 ? "" : "s"}`
+                  : `${filteredResults.length}/${results.length} results`}
               </p>
               <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
                 <button

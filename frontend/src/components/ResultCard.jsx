@@ -1,12 +1,9 @@
 import { Sparkles, ExternalLink } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
+import { formatPrice } from "../formatPrice";
 import TruncatedTooltip from "./TruncatedTooltip";
 import FoilOverlay from "./FoilOverlay";
-
-function formatPrice(price, currency) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(price);
-}
 
 export default function ResultCard({ result, pricingMode = "aud" }) {
   const {
