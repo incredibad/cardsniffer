@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.23.0] - 2026-07-04
+
+### Changed
+- Login moved out of Settings entirely into a header control next to the gear icon — "Login" (or "Set Up Admin" on first run) when signed out, username + logout when signed in. No more "Admin" tab
+- Non-admins (including logged-out visitors) no longer see any trace of the admin-only sections — Stores, VPN Proxy, Logs, and the new Users tab are fully absent, not just disabled or explained with a placeholder
+
 ## [0.22.0] - 2026-07-04
 
 ### Added

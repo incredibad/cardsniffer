@@ -2,6 +2,7 @@ import { Routes, Route, Link } from "react-router-dom";
 import { Settings as SettingsIcon } from "lucide-react";
 import Search from "./pages/Search";
 import Settings from "./pages/Settings";
+import AuthMenu from "./components/AuthMenu";
 
 export default function App() {
   return (
@@ -12,13 +13,16 @@ export default function App() {
             <img src="/favicon.png" alt="" className="h-8 w-8 rounded-lg" />
             Cardsniffer
           </Link>
-          <Link
-            to="/settings"
-            className="text-slate-400 hover:text-indigo-600 transition-colors dark:text-zinc-500 dark:hover:text-indigo-400"
-            aria-label="Settings"
-          >
-            <SettingsIcon size={22} />
-          </Link>
+          <div className="flex items-center gap-4">
+            <AuthMenu />
+            <Link
+              to="/settings"
+              className="text-slate-400 hover:text-indigo-600 transition-colors dark:text-zinc-500 dark:hover:text-indigo-400"
+              aria-label="Settings"
+            >
+              <SettingsIcon size={22} />
+            </Link>
+          </div>
         </div>
       </header>
 
