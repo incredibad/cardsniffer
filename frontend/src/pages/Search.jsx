@@ -13,6 +13,7 @@ import { api } from "../api";
 import ResultCard from "../components/ResultCard";
 import ResultTable from "../components/ResultTable";
 import InfoTooltip from "../components/InfoTooltip";
+import FilterDropdown from "../components/FilterDropdown";
 
 const SORT_ORDER_KEY = "cardsniffer.sortOrder";
 const VIEW_MODE_KEY = "cardsniffer.viewMode";
@@ -60,6 +61,14 @@ export default function Search() {
   );
   const [enabledStores, setEnabledStores] = useState([]);
   const [hiddenStores, setHiddenStores] = useState(loadHiddenStores);
+
+  // Live filter bar (results row) — ephemeral, not browser-persisted, reset
+  // on every new search. Independent of Search Options' own (persisted)
+  // store checklist above, by design — one's a lasting preference, the
+  // other's a quick one-off tweak to the current result set.
+  const [barHiddenStores, setBarHiddenStores] = useState(() => new Set());
+  const [barHiddenConditions, setBarHiddenConditions] = useState(() => new Set());
+  const [foilFilter, setFoilFilter] = useState("all"); // all | foil | nonfoil
 
   const [suggestions, setSuggestions] = useState([]);
   const [suggestOpen, setSuggestOpen] = useState(false);
@@ -119,14 +128,43 @@ export default function Search() {
     });
   }
 
+  function toggleSetMember(setter, value) {
+    setter((prev) => {
+      const next = new Set(prev);
+      if (next.has(value)) next.delete(value);
+      else next.add(value);
+      return next;
+    });
+  }
+
+  const barStoreOptions = useMemo(
+    () => [...new Set(results.map((r) => r.store_name))].sort(),
+    [results]
+  );
+  const barConditionOptions = useMemo(
+    () => [...new Set(results.map((r) => r.condition))].sort(),
+    [results]
+  );
+
   const filteredResults = useMemo(() => {
     return results.filter(
       (r) =>
         (showArtCards || !r.is_art) &&
         (showForeignCards || !r.foreign) &&
-        !hiddenStores.has(r.store_name)
+        !hiddenStores.has(r.store_name) &&
+        !barHiddenStores.has(r.store_name) &&
+        !barHiddenConditions.has(r.condition) &&
+        (foilFilter === "all" || (foilFilter === "foil" ? r.foil : !r.foil))
     );
-  }, [results, showArtCards, showForeignCards, hiddenStores]);
+  }, [
+    results,
+    showArtCards,
+    showForeignCards,
+    hiddenStores,
+    barHiddenStores,
+    barHiddenConditions,
+    foilFilter,
+  ]);
 
   const sortedResults = useMemo(() => {
     const sorted = [...filteredResults];
@@ -142,6 +180,9 @@ export default function Search() {
     clearTimeout(debounceRef.current);
     suggestRequestId.current++; // invalidate any pending autocomplete fetch still in flight
     inputRef.current?.blur();
+    setBarHiddenStores(new Set());
+    setBarHiddenConditions(new Set());
+    setFoilFilter("all");
     try {
       const data = await api.search(q);
       setResults(data.results);
@@ -305,32 +346,6 @@ export default function Search() {
                 />
                 Show foreign cards
               </label>
-              <div className="inline-flex items-center gap-1.5">
-                <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => updatePricingMode("aud")}
-                    aria-pressed={pricingMode === "aud"}
-                    className={`segmented-btn px-3 py-1 text-sm ${pricingMode === "aud" ? "is-active" : ""}`}
-                  >
-                    AUD
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => updatePricingMode("original")}
-                    aria-pressed={pricingMode === "original"}
-                    className={`segmented-btn px-3 py-1 text-sm border-l border-slate-200 dark:border-zinc-800 ${
-                      pricingMode === "original" ? "is-active" : ""
-                    }`}
-                  >
-                    Original
-                  </button>
-                </div>
-                <InfoTooltip>
-                  When shown in AUD, Australian GST is applied for stores where it isn't already included
-                  in the listed price.
-                </InfoTooltip>
-              </div>
 
               {enabledStores.length > 0 && (
                 <div className="w-full flex flex-wrap items-center gap-x-3 gap-y-1.5 pt-1.5 mt-1 border-t border-slate-200 dark:border-zinc-800">
@@ -382,8 +397,20 @@ export default function Search() {
             <>No listings found for &ldquo;{lastQuery}&rdquo;.</>
           ) : (
             <>
-              All {results.length} result{results.length === 1 ? "" : "s"} for &ldquo;{lastQuery}&rdquo; are
-              hidden by Search Options above — try adjusting the toggles or store filters.
+              <p>
+                All {results.length} result{results.length === 1 ? "" : "s"} for &ldquo;{lastQuery}&rdquo; are
+                hidden by Search Options or the results filters.
+              </p>
+              <button
+                onClick={() => {
+                  setBarHiddenStores(new Set());
+                  setBarHiddenConditions(new Set());
+                  setFoilFilter("all");
+                }}
+                className="mt-2 text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium"
+              >
+                Reset results filters
+              </button>
             </>
           )}
         </div>
@@ -391,11 +418,71 @@ export default function Search() {
 
       {filteredResults.length > 0 && (
         <>
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-slate-500 dark:text-zinc-500">
-              {filteredResults.length} result{filteredResults.length === 1 ? "" : "s"}
-            </p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <FilterDropdown
+                label="Store"
+                options={barStoreOptions}
+                hiddenSet={barHiddenStores}
+                onToggle={(v) => toggleSetMember(setBarHiddenStores, v)}
+              />
+              <FilterDropdown
+                label="Condition"
+                options={barConditionOptions}
+                hiddenSet={barHiddenConditions}
+                onToggle={(v) => toggleSetMember(setBarHiddenConditions, v)}
+              />
+              <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
+                {[
+                  ["all", "All"],
+                  ["foil", "Foil"],
+                  ["nonfoil", "Nonfoil"],
+                ].map(([value, text], i) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setFoilFilter(value)}
+                    aria-pressed={foilFilter === value}
+                    className={`segmented-btn px-3 py-1.5 text-sm ${i > 0 ? "border-l border-slate-200 dark:border-zinc-800" : ""} ${
+                      foilFilter === value ? "is-active" : ""
+                    }`}
+                  >
+                    {text}
+                  </button>
+                ))}
+              </div>
+              <div className="inline-flex items-center gap-1.5">
+                <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => updatePricingMode("aud")}
+                    aria-pressed={pricingMode === "aud"}
+                    className={`segmented-btn px-3 py-1.5 text-sm ${pricingMode === "aud" ? "is-active" : ""}`}
+                  >
+                    AUD
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updatePricingMode("original")}
+                    aria-pressed={pricingMode === "original"}
+                    className={`segmented-btn px-3 py-1.5 text-sm border-l border-slate-200 dark:border-zinc-800 ${
+                      pricingMode === "original" ? "is-active" : ""
+                    }`}
+                  >
+                    Original
+                  </button>
+                </div>
+                <InfoTooltip>
+                  When shown in AUD, Australian GST is applied for stores where it isn't already included
+                  in the listed price.
+                </InfoTooltip>
+              </div>
+            </div>
+
             <div className="flex items-center gap-2">
+              <p className="text-sm text-slate-500 dark:text-zinc-500 whitespace-nowrap">
+                {filteredResults.length} result{filteredResults.length === 1 ? "" : "s"}
+              </p>
               <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
                 <button
                   onClick={() => updateSortOrder("asc")}
