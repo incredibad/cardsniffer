@@ -1,5 +1,6 @@
 import { Sparkles, ExternalLink } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
+import { formatQty } from "../formatQty";
 import TruncatedTooltip from "./TruncatedTooltip";
 import ImageHoverPreview from "./ImageHoverPreview";
 
@@ -94,11 +95,9 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
                     {formatPrice(displayPrice, displayCurrency)}
                   </div>
                   <div className="flex items-center gap-2">
-                    {r.quantity_available != null && (
-                      <span className="text-xs text-slate-500 dark:text-zinc-500">
-                        Qty: {r.quantity_available}
-                      </span>
-                    )}
+                    <span className="text-xs text-slate-500 dark:text-zinc-500">
+                      Qty: {formatQty(r.quantity_available)}
+                    </span>
                     {buyButton}
                   </div>
                 </div>
@@ -129,11 +128,9 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
                 <div className="text-slate-900 dark:text-zinc-50 font-semibold whitespace-nowrap">
                   {formatPrice(displayPrice, displayCurrency)}
                 </div>
-                {r.quantity_available != null && (
-                  <div className="text-xs text-slate-500 dark:text-zinc-500 whitespace-nowrap">
-                    {r.quantity_available} in stock
-                  </div>
-                )}
+                <div className="text-xs text-slate-500 dark:text-zinc-500 whitespace-nowrap">
+                  {formatQty(r.quantity_available)} in stock
+                </div>
               </div>
               <div className="w-16 shrink-0">{storeBadge}</div>
               {buyButton}

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.24.3] - 2026-07-04
+
+### Fixed
+- Qty was blank for stores whose exact stock count isn't exposed or isn't trustworthy (Hareruya, GUF, Good Games, some MTGMintCard/Card Kingdom rows) — since every shown result is already confirmed in stock, these now show "1+" instead of nothing
+
 ## [0.24.2] - 2026-07-04
 
 ### Changed
