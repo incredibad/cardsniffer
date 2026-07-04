@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.25.0] - 2026-07-04
+
+### Added
+- Hareruya now reports real per-listing stock counts instead of "1+". The search API's own `stock` field turned out to be a decoy (confirmed by comparing it against the site's own rendered "NM Stock:N" text) — the real number only appears in a second-stage AJAX call the site itself makes to turn search results into markup, so the scraper now makes that same call (batching every result from a search into one request) and parses the rendered stock out of it. Adds a few seconds to searches for extremely reprinted staples (confirmed working for Sol Ring's 760-listing case, ~11s total) but every other search is effectively unaffected
+
 ## [0.24.3] - 2026-07-04
 
 ### Fixed
