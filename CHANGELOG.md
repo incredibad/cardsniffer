@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.19.2] - 2026-07-04
+
+### Changed
+- Search button shows just an icon (magnifying glass, or spinner while loading) on mobile instead of icon + "Search" text, saving space next to the input — desktop keeps the text label
+
 ## [0.19.1] - 2026-07-04
 
 ### Fixed

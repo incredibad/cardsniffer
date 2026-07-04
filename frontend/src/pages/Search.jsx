@@ -224,9 +224,18 @@ export default function Search() {
               </ul>
             )}
           </div>
-          <button type="submit" disabled={status === "loading" || !query.trim()} className="btn-primary">
-            {status === "loading" && <Loader2 size={16} className="animate-spin" />}
-            Search
+          <button
+            type="submit"
+            disabled={status === "loading" || !query.trim()}
+            aria-label="Search"
+            className="btn-primary px-3 sm:px-5"
+          >
+            {status === "loading" ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <SearchIcon size={16} className="sm:hidden" />
+            )}
+            <span className="hidden sm:inline">Search</span>
           </button>
         </form>
 
