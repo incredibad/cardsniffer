@@ -1,35 +1,27 @@
 import { useState, useEffect, useRef } from "react";
-import { Loader2, Wifi, Github, Sun, Moon, LogOut, Trash2, ShieldCheck, Shield } from "lucide-react";
+import { Loader2, Wifi, Github, Sun, Moon, Trash2, ShieldCheck, Shield } from "lucide-react";
 import { api } from "../api";
 import { getTheme, setTheme } from "../theme";
+import { useAuth } from "../AuthContext";
 
 const GITHUB_URL = "https://github.com/incredibad/cardsniffer";
 
 export default function Settings() {
   const [tab, setTab] = useState("General");
-  const [authState, setAuthState] = useState({ loading: true, setupRequired: false, user: null });
+  const { user } = useAuth();
+  const isAdmin = user?.is_admin ?? false;
+  const tabs = isAdmin ? ["General", "System", "Users"] : ["General", "System"];
 
   useEffect(() => {
-    refreshAuth();
-  }, []);
-
-  async function refreshAuth() {
-    try {
-      const data = await api.authStatus();
-      setAuthState({ loading: false, setupRequired: data.setup_required, user: data.user });
-    } catch {
-      setAuthState({ loading: false, setupRequired: false, user: null });
-    }
-  }
-
-  const isAdmin = authState.user?.is_admin ?? false;
+    if (!tabs.includes(tab)) setTab("General");
+  }, [tab, tabs]);
 
   return (
     <div className="flex flex-col gap-6">
       <h1 className="page-header text-3xl">Settings</h1>
 
       <div className="flex gap-1 border-b border-slate-200 dark:border-zinc-800">
-        {["General", "System", "Admin"].map((t) => (
+        {tabs.map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -46,18 +38,8 @@ export default function Settings() {
 
       {tab === "General" && <GeneralTab isAdmin={isAdmin} />}
       {tab === "System" && <SystemTab isAdmin={isAdmin} />}
-      {tab === "Admin" && <AdminTab authState={authState} onAuthChange={refreshAuth} />}
+      {tab === "Users" && isAdmin && <UserManagement currentUsername={user.username} />}
     </div>
-  );
-}
-
-// ── Shared "admin only" placeholder ─────────────────────────────────────────
-
-function AdminOnlyNotice({ children }) {
-  return (
-    <section className="card-frame p-4 text-sm text-slate-500 dark:text-zinc-400">
-      Log in as admin (see the Admin tab) to {children}.
-    </section>
   );
 }
 
@@ -108,11 +90,7 @@ function GeneralTab({ isAdmin }) {
   return (
     <div className="flex flex-col gap-6">
       <AppearanceSection />
-      {isAdmin ? (
-        <StoresAndProxySection />
-      ) : (
-        <AdminOnlyNotice>manage stores and the VPN proxy</AdminOnlyNotice>
-      )}
+      {isAdmin && <StoresAndProxySection />}
     </div>
   );
 }
@@ -265,13 +243,11 @@ function SystemTab({ isAdmin }) {
         </div>
       </section>
 
-      {isAdmin ? (
+      {isAdmin && (
         <section className="card-frame p-4">
           <h2 className="section-header mb-3">Logs</h2>
           <LogViewer />
         </section>
-      ) : (
-        <AdminOnlyNotice>view logs</AdminOnlyNotice>
       )}
     </div>
   );
@@ -320,182 +296,7 @@ function LogViewer() {
   );
 }
 
-// ── Admin tab ─────────────────────────────────────────────────────────────
-
-function AdminTab({ authState, onAuthChange }) {
-  if (authState.loading) {
-    return <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400" size={24} />;
-  }
-  if (authState.setupRequired) {
-    return <CreateAdminForm onSuccess={onAuthChange} />;
-  }
-  if (!authState.user) {
-    return <LoginForm onSuccess={onAuthChange} />;
-  }
-  return <LoggedInPanel user={authState.user} onAuthChange={onAuthChange} />;
-}
-
-function CreateAdminForm({ onSuccess }) {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
-  async function submit(e) {
-    e.preventDefault();
-    setError("");
-    if (password !== confirm) {
-      setError("Passwords don't match");
-      return;
-    }
-    setSubmitting(true);
-    try {
-      await api.authSetup(username, password);
-      onSuccess();
-    } catch (err) {
-      setError(err.message || "Setup failed");
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  return (
-    <section className="card-frame p-4 max-w-sm">
-      <h2 className="section-header mb-1">Create Admin Account</h2>
-      <p className="text-xs text-slate-500 dark:text-zinc-500 mb-3">
-        No admin account exists yet. Create one to manage stores, proxy settings, logs, and other users.
-      </p>
-      <form onSubmit={submit} className="flex flex-col gap-3">
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="Username"
-          autoComplete="username"
-          required
-          className="input-field px-3 py-2 text-sm"
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password (min. 8 characters)"
-          autoComplete="new-password"
-          minLength={8}
-          required
-          className="input-field px-3 py-2 text-sm"
-        />
-        <input
-          type="password"
-          value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
-          placeholder="Confirm password"
-          autoComplete="new-password"
-          minLength={8}
-          required
-          className="input-field px-3 py-2 text-sm"
-        />
-        {error && <p className="text-xs text-red-500 dark:text-red-400">{error}</p>}
-        <button type="submit" disabled={submitting} className="btn-primary px-4 py-2 text-sm">
-          {submitting ? <Loader2 size={14} className="animate-spin" /> : "Create Admin Account"}
-        </button>
-      </form>
-    </section>
-  );
-}
-
-function LoginForm({ onSuccess }) {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
-  async function submit(e) {
-    e.preventDefault();
-    setError("");
-    setSubmitting(true);
-    try {
-      await api.authLogin(username, password);
-      onSuccess();
-    } catch (err) {
-      setError(err.message || "Login failed");
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  return (
-    <section className="card-frame p-4 max-w-sm">
-      <h2 className="section-header mb-3">Log In</h2>
-      <form onSubmit={submit} className="flex flex-col gap-3">
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="Username"
-          autoComplete="username"
-          required
-          className="input-field px-3 py-2 text-sm"
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          autoComplete="current-password"
-          required
-          className="input-field px-3 py-2 text-sm"
-        />
-        {error && <p className="text-xs text-red-500 dark:text-red-400">{error}</p>}
-        <button type="submit" disabled={submitting} className="btn-primary px-4 py-2 text-sm">
-          {submitting ? <Loader2 size={14} className="animate-spin" /> : "Log In"}
-        </button>
-      </form>
-    </section>
-  );
-}
-
-function LoggedInPanel({ user, onAuthChange }) {
-  const [loggingOut, setLoggingOut] = useState(false);
-
-  async function logout() {
-    setLoggingOut(true);
-    try {
-      await api.authLogout();
-      onAuthChange();
-    } finally {
-      setLoggingOut(false);
-    }
-  }
-
-  return (
-    <div className="flex flex-col gap-6">
-      <section className="card-frame p-4 flex items-center justify-between">
-        <div className="text-sm text-slate-700 dark:text-zinc-300">
-          Logged in as <span className="font-semibold">{user.username}</span>
-          {user.is_admin ? (
-            <span className="chip ml-2 bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
-              Admin
-            </span>
-          ) : (
-            <span className="text-xs text-slate-500 dark:text-zinc-500 ml-2">(not an admin)</span>
-          )}
-        </div>
-        <button
-          onClick={logout}
-          disabled={loggingOut}
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200"
-        >
-          {loggingOut ? <Loader2 size={14} className="animate-spin" /> : <LogOut size={14} />}
-          Log Out
-        </button>
-      </section>
-
-      {user.is_admin && <UserManagement currentUsername={user.username} />}
-    </div>
-  );
-}
+// ── Users tab (admin only) ──────────────────────────────────────────────────
 
 function UserManagement({ currentUsername }) {
   const [users, setUsers] = useState(null);
