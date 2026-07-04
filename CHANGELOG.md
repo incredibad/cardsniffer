@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.37.0] - 2026-07-04
+
+### Changed
+- Gave up on the grid view foil corner-ribbon — text centering never landed right across several iterations. Reverted to a plain badge shown under the set name instead. The ribbon CSS is left in place (commented out) in case it's worth revisiting later
+
 ## [0.36.10] - 2026-07-04
 
 ### Fixed

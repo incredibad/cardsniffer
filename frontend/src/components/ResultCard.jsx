@@ -1,4 +1,4 @@
-import { ExternalLink } from "lucide-react";
+import { Sparkles, ExternalLink } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import { formatPrice } from "../formatPrice";
@@ -42,14 +42,11 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
           </div>
         )}
         {foil && storeMeta.foilOverlay && <FoilOverlay />}
+        {/* Corner-ribbon attempt for the foil badge didn't pan out (text
+            centering never landed right across iterations) — abandoned in
+            favor of a plain badge under the set name below. Left here
+            disabled rather than deleted in case it's worth revisiting.
         {foil && (
-          // Standard "CSS corner ribbon" recipe: one rotated element with a
-          // FIXED height (so 1-line vs 2-line text is no longer a variable
-          // that throws off centering), flexbox-centered content, sitting
-          // directly in the image's own existing overflow-hidden — no nested
-          // clip box, no shadow, nothing else to cause seams or need precise
-          // diagonal math. Width is deliberately much wider than any card,
-          // so it always bleeds fully past the edges regardless of card size.
           <div
             className="absolute top-4 -right-10 sm:top-5 sm:-right-12 w-40 sm:w-48 h-6 sm:h-7 rotate-45 flex items-center justify-center bg-violet-600 text-white pointer-events-none"
             title={foil_treatment || "Foil"}
@@ -59,6 +56,7 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
             </span>
           </div>
         )}
+        */}
       </div>
 
       <div className="p-2 sm:p-3.5 flex flex-col gap-1.5 sm:gap-2.5 flex-1 rounded-2xl overflow-hidden bg-white dark:bg-zinc-900">
@@ -74,6 +72,11 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
               text={`${set_name}${collector_number ? ` · #${collector_number}` : ""}`}
               className="text-[11px] sm:text-xs text-slate-500 dark:text-zinc-500 mt-0.5"
             />
+          )}
+          {foil && (
+            <span className="chip mt-1 bg-violet-100 text-violet-700 inline-flex items-center gap-1 w-fit dark:bg-violet-500/15 dark:text-violet-300">
+              <Sparkles size={11} /> {foil_treatment || "Foil"}
+            </span>
           )}
         </div>
 
