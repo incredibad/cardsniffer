@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.36.4] - 2026-07-04
+
+### Fixed
+- Grid view's foil ribbon was clipped by the whole image's rectangular bounds, which don't sit symmetrically around the diagonal the ribbon is drawn on for a non-square card image — this both threw off the text centering and cut long text off instead of wrapping. Now clipped by a dedicated small square wrapper centered on just the corner, matching the standard CSS corner-ribbon technique
+
 ## [0.36.3] - 2026-07-04
 
 ### Fixed
