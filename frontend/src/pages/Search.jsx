@@ -220,6 +220,9 @@ export default function Search() {
     clearTimeout(debounceRef.current);
     suggestRequestId.current++; // invalidate any pending autocomplete fetch still in flight
     inputRef.current?.blur();
+    // So triggering a search from the sticky bar while scrolled down lands
+    // you back at the top to see results from the start, not mid-page.
+    window.scrollTo({ top: 0, behavior: "smooth" });
     try {
       const data = await apiCall(q);
       setResults(data.results);
@@ -322,7 +325,7 @@ export default function Search() {
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
-      <div className="sticky top-0 z-30 bg-slate-50/95 backdrop-blur dark:bg-zinc-950/95 pb-2">
+      <div className="sticky top-0 z-30 bg-slate-50/95 backdrop-blur dark:bg-zinc-950/95">
       <div className="card-frame">
         <form onSubmit={runSearch} className="flex gap-2 p-2">
           <div className="relative flex-1">
