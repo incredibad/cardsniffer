@@ -93,7 +93,7 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
           >
             {storeMeta.code}
           </span>
-          <div className="flex items-baseline gap-1.5 min-w-0">
+          <div className="flex items-center gap-1.5 min-w-0">
             <div
               className={`text-base sm:text-xl font-semibold leading-tight ${
                 displayCurrency === "AUD"

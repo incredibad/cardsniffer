@@ -99,7 +99,7 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
                   {storeBadge}
                 </div>
                 <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-baseline gap-1.5 min-w-0">
+                  <div className="flex items-center gap-1.5 min-w-0">
                     <div className={`text-lg font-semibold ${priceColorClass}`}>
                       {formatPrice(displayPrice, displayCurrency)}
                     </div>
@@ -137,7 +137,7 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
               </div>
               <div className="w-32 shrink-0">{conditionChips}</div>
               <div className="w-24 shrink-0 text-right">
-                <div className="flex items-baseline justify-end gap-1.5 min-w-0">
+                <div className="flex items-center justify-end gap-1.5 min-w-0">
                   <div className={`font-semibold whitespace-nowrap ${priceColorClass}`}>
                     {formatPrice(displayPrice, displayCurrency)}
                   </div>
