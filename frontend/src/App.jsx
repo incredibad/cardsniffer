@@ -8,7 +8,8 @@ export default function App() {
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-gold-700/40 bg-ink-900/80 backdrop-blur">
         <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-3">
-          <Link to="/" className="logo-wordmark text-xl">
+          <Link to="/" className="logo-wordmark text-xl flex items-center gap-2">
+            <img src="/logo-mark.png" alt="" className="h-7 w-7" />
             Cardsniffer
           </Link>
           <Link

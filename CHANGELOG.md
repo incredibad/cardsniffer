@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.13.1] - 2026-07-04
+
+### Added
+- App logo (a white nose mark, transparent background) in the nav bar and as the browser favicon. The favicon version is composited onto the app's dark ink background since the source mark is white-on-transparent and would be invisible in a light browser chrome
+
 ## [0.13.0] - 2026-07-04
 
 ### Added
