@@ -26,13 +26,25 @@ function relativeAgo(elapsedMs) {
   return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
-// "4 Jul 2026, 12:48 (4 hours ago)" — minutes under an hour, hours under 48h,
-// then days. Beyond 2 weeks the "(... ago)" suffix is dropped entirely (just
-// the absolute date/time), since relative time stops being useful that far out.
+// Hardcoded rather than Intl's month: "short" — that's locale-dependent and
+// not reliably 3 letters (e.g. en-AU gives "Sept", not "Sep").
+const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+// No year, always-3-letter month ("4 Jul, 12:48") — the "ago" suffix already
+// carries how recent it is, so the year would just be redundant clutter here.
+function formatShortDateTime(isoString) {
+  const date = new Date(isoString);
+  const time = date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  return `${date.getDate()} ${SHORT_MONTHS[date.getMonth()]}, ${time}`;
+}
+
+// "4 Jul, 12:48 (4 hours ago)" — minutes under an hour, hours under 48h, then
+// days. Beyond 2 weeks the "(... ago)" suffix is dropped entirely (just the
+// absolute date/time), since relative time stops being useful that far out.
 export function formatListedAt(isoString) {
   const date = new Date(isoString);
   const elapsedMs = Date.now() - date.getTime();
-  const absolute = formatDateTime(isoString);
+  const absolute = formatShortDateTime(isoString);
   if (elapsedMs < 0 || elapsedMs > TWO_WEEKS_MS) return absolute;
   return `${absolute} (${relativeAgo(elapsedMs)})`;
 }
