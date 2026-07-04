@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.36.6] - 2026-07-04
+
+### Fixed
+- Grid view's foil ribbon was still clipping the start/end of wrapped 2-line text (e.g. "Chocobo Track Foil" showing as "HOCOBO TRAC"/"FOIL") — the fixed pixel `top` offset centering it was tuned for single-line height, so taller 2-line text threw off the alignment between the ribbon and its clip window. Switched to CSS's `top-1/2 left-1/2` + `-translate-1/2` centering trick, which centers correctly regardless of how tall the wrapped text ends up being
+
 ## [0.36.5] - 2026-07-04
 
 ### Fixed
