@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.52.0] - 2026-07-05
+
+### Added
+- Search bar is now sticky, staying pinned to the top of the viewport while scrolling through results
+- "Back to top" button (bottom-right, appears after scrolling ~200px) on every page, via new `BackToTopButton.jsx`
+
 ## [0.51.2] - 2026-07-05
 
 ### Changed

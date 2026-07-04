@@ -322,6 +322,7 @@ export default function Search() {
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
+      <div className="sticky top-0 z-30 bg-slate-50/95 backdrop-blur dark:bg-zinc-950/95 pb-2">
       <div className="card-frame">
         <form onSubmit={runSearch} className="flex gap-2 p-2">
           <div className="relative flex-1">
@@ -421,6 +422,7 @@ export default function Search() {
             )}
           </div>
         </form>
+      </div>
       </div>
 
       {status === "error" && (

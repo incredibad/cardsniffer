@@ -3,6 +3,7 @@ import { Settings as SettingsIcon } from "lucide-react";
 import Search from "./pages/Search";
 import Settings from "./pages/Settings";
 import AuthMenu from "./components/AuthMenu";
+import BackToTopButton from "./components/BackToTopButton";
 
 export default function App() {
   return (
@@ -32,6 +33,8 @@ export default function App() {
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </main>
+
+      <BackToTopButton />
     </div>
   );
 }
