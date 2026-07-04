@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.51.0] - 2026-07-05
+
+### Added
+- eBay listing date now shows a human-readable "ago" suffix, e.g. "4 Jul 2026, 12:48 (4 hours ago)" — minutes under an hour, hours up to 48h, then days ("2 days ago" onward), dropping the suffix entirely beyond 2 weeks (just the absolute date/time). New `formatListedAt` in `formatDate.js`
+
 ## [0.50.3] - 2026-07-05
 
 ### Fixed

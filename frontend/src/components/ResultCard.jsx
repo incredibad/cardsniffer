@@ -2,7 +2,7 @@ import { Sparkles, ExternalLink } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import { formatPrice } from "../formatPrice";
-import { formatDateTime } from "../formatDate";
+import { formatListedAt } from "../formatDate";
 import TruncatedTooltip from "./TruncatedTooltip";
 import FoilOverlay from "./FoilOverlay";
 import Tooltip from "./Tooltip";
@@ -34,7 +34,7 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
   // username, already surfaced in the badge tooltip) — the creation date is
   // far more useful in this slot, especially for eBay Snipe results.
   const subtitleText = listed_at
-    ? formatDateTime(listed_at)
+    ? formatListedAt(listed_at)
     : set_name
     ? `${set_name}${collector_number ? ` · #${collector_number}` : ""}`
     : null;
