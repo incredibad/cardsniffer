@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { computePopoverPosition } from "../popoverPosition";
 
 const MAX_WIDTH = 448; // px, matches the w-[min(85vw,28rem)] cap below
 
 // Thumbnail that reveals a much larger preview of the same image on
 // tap/hover, rendered into a portal (positioned via the trigger's own
 // bounding rect) so it isn't clipped by an ancestor's overflow-hidden and can
-// be sized well past the thumbnail itself. Tapping outside closes it.
+// be sized well past the thumbnail itself. Flips above/below depending on
+// available space so it never renders off-screen. Tapping outside closes it.
 export default function ImageHoverPreview({ src, alt, className = "" }) {
   const rootRef = useRef(null);
   const popupRef = useRef(null);
   const [open, setOpen] = useState(false);
-  const [rect, setRect] = useState(null);
+  const [pos, setPos] = useState(null);
 
   useEffect(() => {
     if (!open) return;
@@ -38,7 +40,7 @@ export default function ImageHoverPreview({ src, alt, className = "" }) {
 
   function show() {
     if (!rootRef.current) return;
-    setRect(rootRef.current.getBoundingClientRect());
+    setPos(computePopoverPosition(rootRef.current.getBoundingClientRect(), { maxWidth: MAX_WIDTH }));
     setOpen(true);
   }
 
@@ -54,19 +56,25 @@ export default function ImageHoverPreview({ src, alt, className = "" }) {
         className={`${className} cursor-zoom-in`}
       />
       {open &&
-        rect &&
+        pos &&
         createPortal(
           <div
             ref={popupRef}
             style={{
               position: "fixed",
-              left: Math.max(8, Math.min(rect.left, window.innerWidth - MAX_WIDTH - 8)),
-              top: rect.top - 8,
-              transform: "translateY(-100%)",
+              left: pos.left,
+              top: pos.top,
+              transform: pos.transform,
+              maxHeight: pos.maxHeight,
             }}
-            className="z-50 p-1.5 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-xl"
+            className="z-50 p-1.5 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-xl overflow-hidden"
           >
-            <img src={src} alt={alt} className="w-[min(85vw,28rem)] rounded-xl object-contain" />
+            <img
+              src={src}
+              alt={alt}
+              style={{ maxHeight: pos.maxHeight - 12 }}
+              className="w-[min(85vw,28rem)] max-w-full rounded-xl object-contain"
+            />
           </div>,
           document.body
         )}

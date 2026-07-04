@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { computePopoverPosition } from "../popoverPosition";
 
 const MAX_WIDTH = 256; // px, matches max-w-[16rem] below
 
@@ -7,13 +8,14 @@ const MAX_WIDTH = 256; // px, matches max-w-[16rem] below
 // overflowing (scrollWidth > clientWidth), tapping/hovering it reveals a
 // styled tooltip with the untruncated value, rendered into a portal so it
 // isn't clipped by an ancestor's overflow-hidden (used elsewhere for corner
-// rounding on cards/rows this component lives inside).
+// rounding on cards/rows this component lives inside). Flips above/below
+// depending on available space so it never renders off-screen.
 export default function TruncatedTooltip({ as: As = "div", text, className = "" }) {
   const ref = useRef(null);
   const popupRef = useRef(null);
   const [truncated, setTruncated] = useState(false);
   const [open, setOpen] = useState(false);
-  const [rect, setRect] = useState(null);
+  const [pos, setPos] = useState(null);
 
   useEffect(() => {
     const el = ref.current;
@@ -46,7 +48,7 @@ export default function TruncatedTooltip({ as: As = "div", text, className = "" 
 
   function show() {
     if (!truncated || !ref.current) return;
-    setRect(ref.current.getBoundingClientRect());
+    setPos(computePopoverPosition(ref.current.getBoundingClientRect(), { maxWidth: MAX_WIDTH }));
     setOpen(true);
   }
 
@@ -62,18 +64,19 @@ export default function TruncatedTooltip({ as: As = "div", text, className = "" 
         {text}
       </As>
       {open &&
-        rect &&
+        pos &&
         createPortal(
           <div
             ref={popupRef}
             role="tooltip"
             style={{
               position: "fixed",
-              left: Math.max(8, Math.min(rect.left, window.innerWidth - MAX_WIDTH - 8)),
-              top: rect.top - 8,
-              transform: "translateY(-100%)",
+              left: pos.left,
+              top: pos.top,
+              transform: pos.transform,
+              maxHeight: pos.maxHeight,
             }}
-            className="z-50 max-w-[16rem] rounded-xl bg-slate-900 text-slate-100 dark:bg-zinc-800 dark:text-zinc-100 text-xs leading-snug px-3 py-2 shadow-lg whitespace-normal break-words"
+            className="z-50 max-w-[16rem] rounded-xl bg-slate-900 text-slate-100 dark:bg-zinc-800 dark:text-zinc-100 text-xs leading-snug px-3 py-2 shadow-lg whitespace-normal break-words overflow-y-auto"
           >
             {text}
           </div>,

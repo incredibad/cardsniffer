@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.21.2] - 2026-07-04
+
+### Fixed
+- Image preview and truncated-text tooltips could render off the top of the screen for rows near the top of the viewport — they always anchored above the trigger regardless of available space. Both now flip below when there isn't enough room above, and clamp their own size to whichever space is actually available
+
 ## [0.21.1] - 2026-07-04
 
 ### Fixed
