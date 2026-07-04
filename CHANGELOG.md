@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.20.0] - 2026-07-04
+
+### Changed
+- Rebuilt mobile table view — it was one flex row that reflowed organically based on how much fit, so the wrap point shifted per row (long vs short card names) and produced a staggered, off-centre look. Replaced with a deliberate mobile layout mirroring grid view's own card design: a larger portrait thumbnail beside stacked info, with price/store/buy pinned to the bottom — consistent row-to-row and makes proper use of the vertical space. Desktop keeps its single-line table-style row
+
 ## [0.19.2] - 2026-07-04
 
 ### Changed
