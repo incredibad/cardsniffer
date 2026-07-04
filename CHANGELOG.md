@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.42.0] - 2026-07-04
+
+### Fixed
+- The Store/Condition/Show filter bar no longer disappears when the active filters hide every result — it now stays visible (with a "hidden by filters" message plus a Reset link in place of the results grid) so individual filters can be adjusted instead of only offering a full reset
+
 ## [0.41.2] - 2026-07-04
 
 ### Changed

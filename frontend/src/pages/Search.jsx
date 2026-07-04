@@ -309,35 +309,13 @@ export default function Search() {
         </div>
       )}
 
-      {status === "success" && filteredResults.length === 0 && (
+      {status === "success" && results.length === 0 && (
         <div className="text-center text-slate-500 dark:text-zinc-500 py-12">
-          {results.length === 0 ? (
-            <>No listings found for &ldquo;{lastQuery}&rdquo;.</>
-          ) : (
-            <>
-              <p>
-                All {results.length} result{results.length === 1 ? "" : "s"} for &ldquo;{lastQuery}&rdquo; are
-                hidden by the filters above.
-              </p>
-              <button
-                onClick={() => {
-                  setBarHiddenStores(new Set());
-                  setBarHiddenConditions(new Set());
-                  setFoilFilter("all");
-                  updateShowArtCards(true);
-                  updateShowForeignCards(true);
-                  updateExactMatchOnly(false);
-                }}
-                className="mt-2 text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium"
-              >
-                Reset filters
-              </button>
-            </>
-          )}
+          No listings found for &ldquo;{lastQuery}&rdquo;.
         </div>
       )}
 
-      {filteredResults.length > 0 && (
+      {results.length > 0 && (
         <>
           {(() => {
             const resultsCountEl = (
@@ -599,7 +577,27 @@ export default function Search() {
             );
           })()}
 
-          {viewMode === "grid" ? (
+          {filteredResults.length === 0 ? (
+            <div className="text-center text-slate-500 dark:text-zinc-500 py-12">
+              <p>
+                All {results.length} result{results.length === 1 ? "" : "s"} for &ldquo;{lastQuery}&rdquo; are
+                hidden by the filters above.
+              </p>
+              <button
+                onClick={() => {
+                  setBarHiddenStores(new Set());
+                  setBarHiddenConditions(new Set());
+                  setFoilFilter("all");
+                  updateShowArtCards(true);
+                  updateShowForeignCards(true);
+                  updateExactMatchOnly(false);
+                }}
+                className="mt-2 text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium"
+              >
+                Reset filters
+              </button>
+            </div>
+          ) : viewMode === "grid" ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-5">
               {sortedResults.map((r, i) => (
                 <ResultCard key={`${r.product_url}-${r.condition}-${i}`} result={r} pricingMode={pricingMode} />
