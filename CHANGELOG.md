@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.36.8] - 2026-07-04
+
+### Changed
+- Grid view's foil ribbon no longer uses a nested clip box — that inner overflow-hidden (plus its shadow) was the source of visible seam/"clipping lines" and needed exact diagonal math to avoid gaps. Now it's one oversized ribbon (160px/224px) relying solely on the card image's own rounded corner clip to cut it off, guaranteeing full bleed with no extra boundary to cause artifacts
+
 ## [0.36.7] - 2026-07-04
 
 ### Fixed

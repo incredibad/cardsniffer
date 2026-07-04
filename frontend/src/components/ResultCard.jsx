@@ -43,27 +43,22 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
         )}
         {foil && storeMeta.foilOverlay && <FoilOverlay />}
         {foil && (
-          // A ribbon clipped by the whole (non-square) image's overflow-hidden
-          // doesn't clip symmetrically around the diagonal it's supposed to
-          // sit on, which throws off centering. A dedicated square wrapper
-          // sized/centered on just the corner clips it symmetrically instead.
-          <div className="absolute -top-1 -right-1 w-12 h-12 sm:w-16 sm:h-16 overflow-hidden pointer-events-none">
-            {/* Clip box is nudged past the image's true corner (-top-1/-right-1)
-                rather than sitting exactly flush with it, so the ribbon
-                overshoots the image's own edge and gets its final cutoff from
-                the image's overflow-hidden — guarantees the background bleeds
-                all the way to the edge instead of leaving a hairline gap from
-                imprecise diagonal math. top-1/2 left-1/2 + -translate-x/y-1/2
-                centers the ribbon on the clip box regardless of the span's
-                rendered height (1-line vs 2-line wrapped text differ). */}
-            <div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60px] sm:w-[80px] rotate-45 text-center"
-              title={foil_treatment || "Foil"}
-            >
-              <span className="block w-full break-words bg-violet-600 text-white font-semibold uppercase text-[7px] sm:text-[9px] leading-tight py-1 shadow-sm">
-                {foil_treatment || "Foil"}
-              </span>
-            </div>
+          // No intermediate clip box — that nested overflow-hidden was the
+          // source of the visible seam/"clipping lines" (a hard edge where
+          // shadow-sm got abruptly cut off), and needed exact diagonal math
+          // to avoid gaps. Simpler and more robust: make the ribbon far
+          // bigger than any card could be and let the *image's own*
+          // rounded-2xl overflow-hidden (one boundary, already there) do the
+          // only clipping. top-6 right-6 + translate-x-1/2/-translate-y-1/2
+          // centers it on that point regardless of its own size, so 1-line
+          // vs 2-line wrapped text (different heights) both stay centered.
+          <div
+            className="absolute top-6 right-6 translate-x-1/2 -translate-y-1/2 w-40 sm:w-56 rotate-45 text-center pointer-events-none"
+            title={foil_treatment || "Foil"}
+          >
+            <span className="block w-full break-words bg-violet-600 text-white font-semibold uppercase text-[7px] sm:text-[9px] leading-tight py-1">
+              {foil_treatment || "Foil"}
+            </span>
           </div>
         )}
       </div>
