@@ -19,6 +19,7 @@ function postJSON(path, payload) {
 
 export const api = {
   search: (q) => request(`/search?q=${encodeURIComponent(q)}`),
+  listStores: () => request("/stores"),
   getSettings: () => request("/settings"),
   updateSettings: (payload) =>
     request("/settings", {

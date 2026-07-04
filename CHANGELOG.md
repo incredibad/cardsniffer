@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.24.0] - 2026-07-04
+
+### Added
+- Search Options: a store filter — checkboxes for every currently-enabled store, letting you hide specific stores' results without needing to re-search. Persisted per-browser, and backed by a new public `/api/stores` endpoint (since `/api/settings` is now admin-only) exposing just the enabled store list
+
 ## [0.23.0] - 2026-07-04
 
 ### Changed
