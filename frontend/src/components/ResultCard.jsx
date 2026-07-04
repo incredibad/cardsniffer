@@ -1,5 +1,6 @@
 import { Sparkles, ExternalLink } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
+import TruncatedTooltip from "./TruncatedTooltip";
 
 function formatPrice(price, currency) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(price);
@@ -44,17 +45,17 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
 
       <div className="p-3.5 flex flex-col gap-2.5 flex-1 rounded-2xl overflow-hidden bg-white dark:bg-zinc-900">
         <div>
-          <h3
-            className="font-semibold text-slate-900 dark:text-zinc-50 text-sm leading-snug truncate"
-            title={card_name}
-          >
-            {card_name}
-          </h3>
+          <TruncatedTooltip
+            as="h3"
+            text={card_name}
+            className="font-semibold text-slate-900 dark:text-zinc-50 text-sm leading-snug"
+          />
           {set_name && (
-            <p className="text-xs text-slate-500 dark:text-zinc-500 truncate mt-0.5">
-              {set_name}
-              {collector_number && ` · #${collector_number}`}
-            </p>
+            <TruncatedTooltip
+              as="p"
+              text={`${set_name}${collector_number ? ` · #${collector_number}` : ""}`}
+              className="text-xs text-slate-500 dark:text-zinc-500 mt-0.5"
+            />
           )}
         </div>
 
