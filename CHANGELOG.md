@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.46.0] - 2026-07-04
+
+### Added
+- Date sorting ("Date Asc"/"Date Desc"), alongside Price Asc/Desc, in a new Sort dropdown replacing the old asc/desc icon-button pair. Only eBay listings carry a date (`SearchResult.listed_at`, from the Browse API's `itemCreationDate`) — in Date mode, eBay results are sorted by date and always sit above everything else, which falls back to a price sort since it has no date of its own
+- New `SelectDropdown.jsx` component: a single-select popover (auto-closes on pick) for the Sort control, distinct from `FilterDropdown`'s checkbox multi-select
+
 ## [0.45.0] - 2026-07-04
 
 ### Changed
