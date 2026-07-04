@@ -2,6 +2,7 @@ import { Sparkles, ExternalLink } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import { formatPrice } from "../formatPrice";
+import { formatDateTime } from "../formatDate";
 import TruncatedTooltip from "./TruncatedTooltip";
 import FoilOverlay from "./FoilOverlay";
 import Tooltip from "./Tooltip";
@@ -33,7 +34,12 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
           displayCurrency === "AUD"
             ? "text-slate-900 dark:text-zinc-50"
             : "text-amber-700 dark:text-amber-400";
-        const setText = r.set_name
+        // eBay has no set code to show here (its "set_name" is the seller
+        // username, already surfaced in the badge tooltip) — the creation
+        // date is far more useful in this slot, especially for eBay Snipe.
+        const setText = r.listed_at
+          ? formatDateTime(r.listed_at)
+          : r.set_name
           ? `${r.set_name}${r.collector_number ? ` · #${r.collector_number}` : ""}`
           : null;
 

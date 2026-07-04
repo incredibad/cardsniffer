@@ -2,6 +2,7 @@ import { Sparkles, ExternalLink } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import { formatPrice } from "../formatPrice";
+import { formatDateTime } from "../formatDate";
 import TruncatedTooltip from "./TruncatedTooltip";
 import FoilOverlay from "./FoilOverlay";
 import Tooltip from "./Tooltip";
@@ -29,6 +30,14 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
   const storeMeta = getStoreMeta(store_name);
   const displayPrice = pricingMode === "original" ? price_original : price;
   const displayCurrency = pricingMode === "original" ? currency_original : currency;
+  // eBay has no set code to show here (its "set_name" is the seller
+  // username, already surfaced in the badge tooltip) — the creation date is
+  // far more useful in this slot, especially for eBay Snipe results.
+  const subtitleText = listed_at
+    ? formatDateTime(listed_at)
+    : set_name
+    ? `${set_name}${collector_number ? ` · #${collector_number}` : ""}`
+    : null;
 
   return (
     <div className="card-frame flex flex-col overflow-hidden">
@@ -75,10 +84,10 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
             text={card_name}
             className="font-semibold text-slate-900 dark:text-zinc-50 text-xs sm:text-sm leading-snug"
           />
-          {set_name && (
+          {subtitleText && (
             <TruncatedTooltip
               as="p"
-              text={`${set_name}${collector_number ? ` · #${collector_number}` : ""}`}
+              text={subtitleText}
               className="text-[11px] sm:text-xs text-slate-500 dark:text-zinc-500 mt-0.5"
             />
           )}
