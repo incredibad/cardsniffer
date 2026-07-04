@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.14.5] - 2026-07-04
+
+### Fixed
+- Grid card image/content corners: use full `rounded-2xl` (all four corners) as a plain Tailwind class on both the image and content divs, replacing the previous top-only/bottom-only inline-style attempt
+
 ## [0.14.4] - 2026-07-04
 
 ### Fixed
