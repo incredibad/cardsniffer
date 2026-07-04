@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.14.0] - 2026-07-04
+
+### Changed
+- Replaced the dark gold/ink medieval theme with a clean Material-style look: Inter font, indigo accent, slate/zinc neutrals, rounded surfaces and pill-shaped buttons/chips
+- Added a light/dark mode switch (Settings → General → Appearance). The choice is stored per-browser (localStorage) and applied before first paint to avoid a flash of the wrong theme; if nothing's been chosen yet it follows the OS preference
+
 ## [0.13.1] - 2026-07-04
 
 ### Added
