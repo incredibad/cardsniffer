@@ -18,6 +18,7 @@ const SORT_ORDER_KEY = "cardsniffer.sortOrder";
 const VIEW_MODE_KEY = "cardsniffer.viewMode";
 const SHOW_ART_KEY = "cardsniffer.showArtCards";
 const SHOW_FOREIGN_KEY = "cardsniffer.showForeignCards";
+const EXACT_MATCH_KEY = "cardsniffer.exactMatchOnly";
 const PRICING_MODE_KEY = "cardsniffer.pricingMode";
 const SUGGEST_DEBOUNCE_MS = 150;
 const SUGGEST_MIN_LENGTH = 2;
@@ -41,6 +42,9 @@ export default function Search() {
   );
   const [showForeignCards, setShowForeignCards] = useState(
     () => localStorage.getItem(SHOW_FOREIGN_KEY) === "true"
+  );
+  const [exactMatchOnly, setExactMatchOnly] = useState(
+    () => localStorage.getItem(EXACT_MATCH_KEY) === "true"
   );
   const [pricingMode, setPricingMode] = useState(
     () => localStorage.getItem(PRICING_MODE_KEY) || "aud"
@@ -78,6 +82,11 @@ export default function Search() {
     localStorage.setItem(SHOW_FOREIGN_KEY, String(value));
   }
 
+  function updateExactMatchOnly(value) {
+    setExactMatchOnly(value);
+    localStorage.setItem(EXACT_MATCH_KEY, String(value));
+  }
+
   function updatePricingMode(mode) {
     setPricingMode(mode);
     localStorage.setItem(PRICING_MODE_KEY, mode);
@@ -107,15 +116,26 @@ export default function Search() {
   );
 
   const filteredResults = useMemo(() => {
+    const needle = lastQuery.trim().toLowerCase();
     return results.filter(
       (r) =>
         (showArtCards || !r.is_art) &&
         (showForeignCards || !r.foreign) &&
+        (!exactMatchOnly || r.card_name.trim().toLowerCase() === needle) &&
         !barHiddenStores.has(r.store_name) &&
         !barHiddenConditions.has(r.condition) &&
         (foilFilter === "all" || (foilFilter === "foil" ? r.foil : !r.foil))
     );
-  }, [results, showArtCards, showForeignCards, barHiddenStores, barHiddenConditions, foilFilter]);
+  }, [
+    results,
+    lastQuery,
+    showArtCards,
+    showForeignCards,
+    exactMatchOnly,
+    barHiddenStores,
+    barHiddenConditions,
+    foilFilter,
+  ]);
 
   const sortedResults = useMemo(() => {
     const sorted = [...filteredResults];
@@ -306,6 +326,7 @@ export default function Search() {
                   setFoilFilter("all");
                   updateShowArtCards(true);
                   updateShowForeignCards(true);
+                  updateExactMatchOnly(false);
                 }}
                 className="mt-2 text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium"
               >
@@ -421,7 +442,9 @@ export default function Search() {
               <FilterDropdown
                 label="Show"
                 className={stretch ? "flex-1" : ""}
-                badgeCount={(showArtCards ? 1 : 0) + (showForeignCards ? 1 : 0) || null}
+                badgeCount={
+                  (showArtCards ? 1 : 0) + (showForeignCards ? 1 : 0) + (exactMatchOnly ? 1 : 0) || null
+                }
               >
                 <FilterDropdownOption
                   label="Art cards"
@@ -432,6 +455,11 @@ export default function Search() {
                   label="Foreign cards"
                   checked={showForeignCards}
                   onChange={(e) => updateShowForeignCards(e.target.checked)}
+                />
+                <FilterDropdownOption
+                  label="Exact match only"
+                  checked={exactMatchOnly}
+                  onChange={(e) => updateExactMatchOnly(e.target.checked)}
                 />
               </FilterDropdown>
             );
