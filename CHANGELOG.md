@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.20.4] - 2026-07-04
+
+### Fixed
+- Mobile table view row was ballooning in height and scattering the condition chip and price/store/buy block into disconnected floating positions — caused by the thumbnail having no definite height (relying on stretch with no `aspect-ratio` to anchor it), which let it balloon and drag the whole row tall. Given a fixed `aspect-[5/7]` box again, with everything in that row now vertically centered and tightly grouped instead of stretched to fill artificial space
+
 ## [0.20.3] - 2026-07-04
 
 ### Fixed
