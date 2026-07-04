@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented here.
 
+## [0.27.0] - 2026-07-04
+
+### Added
+- Live results filter bar (Store, Condition, Foil/Nonfoil) in the results row, left-aligned — purely client-side, no re-search, and resets on every new search (unlike Search Options' own persisted store checklist, which this is intentionally independent from). Results count, sort, and view controls moved to the right side of the same row, in that order
+
+### Changed
+- AUD/Original pricing toggle moved out of Search Options into the new results-row filter bar
+
 ## [0.26.1] - 2026-07-04
 
 ### Changed
