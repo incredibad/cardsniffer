@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented here.
 
+## [0.22.0] - 2026-07-04
+
+### Added
+- User accounts with admin/regular roles, ahead of future multi-user features like saved lists — not just a single admin flag, proper `users` + `auth_sessions` tables
+- First load with no accounts prompts to create the initial admin account (Settings → Admin tab); once one exists, the same tab shows a login form instead
+- Admin-only: Stores, VPN Proxy, and Logs sections in Settings, plus a new Users panel (create/delete users, grant or revoke admin, see each user's last-seen time). Guards against deleting or demoting the last remaining admin
+- Session-based auth via an HttpOnly cookie (server-side session table, not a JWT, so logout/deletion actually revokes it) — passwords hashed with PBKDF2-SHA256 (600k iterations), no new dependency needed
+- Search and the dark/light theme toggle remain fully public/unauthenticated, as does the About section (version + GitHub link) in Settings
+
 ## [0.21.2] - 2026-07-04
 
 ### Fixed

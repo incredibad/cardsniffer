@@ -3,12 +3,13 @@ import glob
 import json
 import os
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
 
+from auth import require_admin
 from log_buffer import snapshot, lines_from
 
-router = APIRouter(prefix="/logs", tags=["logs"])
+router = APIRouter(prefix="/logs", tags=["logs"], dependencies=[Depends(require_admin)])
 
 _LOG_FILE = "/data/cardsniffer.log"
 

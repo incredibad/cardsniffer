@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Loader2, Wifi, Github, Sun, Moon } from "lucide-react";
+import { Loader2, Wifi, Github, Sun, Moon, LogOut, Trash2, ShieldCheck, Shield } from "lucide-react";
 import { api } from "../api";
 import { getTheme, setTheme } from "../theme";
 
@@ -7,13 +7,29 @@ const GITHUB_URL = "https://github.com/incredibad/cardsniffer";
 
 export default function Settings() {
   const [tab, setTab] = useState("General");
+  const [authState, setAuthState] = useState({ loading: true, setupRequired: false, user: null });
+
+  useEffect(() => {
+    refreshAuth();
+  }, []);
+
+  async function refreshAuth() {
+    try {
+      const data = await api.authStatus();
+      setAuthState({ loading: false, setupRequired: data.setup_required, user: data.user });
+    } catch {
+      setAuthState({ loading: false, setupRequired: false, user: null });
+    }
+  }
+
+  const isAdmin = authState.user?.is_admin ?? false;
 
   return (
     <div className="flex flex-col gap-6">
       <h1 className="page-header text-3xl">Settings</h1>
 
       <div className="flex gap-1 border-b border-slate-200 dark:border-zinc-800">
-        {["General", "System"].map((t) => (
+        {["General", "System", "Admin"].map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -28,9 +44,20 @@ export default function Settings() {
         ))}
       </div>
 
-      {tab === "General" && <GeneralTab />}
-      {tab === "System" && <SystemTab />}
+      {tab === "General" && <GeneralTab isAdmin={isAdmin} />}
+      {tab === "System" && <SystemTab isAdmin={isAdmin} />}
+      {tab === "Admin" && <AdminTab authState={authState} onAuthChange={refreshAuth} />}
     </div>
+  );
+}
+
+// ── Shared "admin only" placeholder ─────────────────────────────────────────
+
+function AdminOnlyNotice({ children }) {
+  return (
+    <section className="card-frame p-4 text-sm text-slate-500 dark:text-zinc-400">
+      Log in as admin (see the Admin tab) to {children}.
+    </section>
   );
 }
 
@@ -77,7 +104,20 @@ function AppearanceSection() {
   );
 }
 
-function GeneralTab() {
+function GeneralTab({ isAdmin }) {
+  return (
+    <div className="flex flex-col gap-6">
+      <AppearanceSection />
+      {isAdmin ? (
+        <StoresAndProxySection />
+      ) : (
+        <AdminOnlyNotice>manage stores and the VPN proxy</AdminOnlyNotice>
+      )}
+    </div>
+  );
+}
+
+function StoresAndProxySection() {
   const [settings, setSettings] = useState(null);
   const [proxyUrl, setProxyUrl] = useState("");
   const [loading, setLoading] = useState(true);
@@ -139,9 +179,7 @@ function GeneralTab() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <AppearanceSection />
-
+    <>
       <section className="card-frame p-4">
         <h2 className="section-header mb-3">Stores</h2>
         <div className="flex flex-col gap-2">
@@ -203,13 +241,13 @@ function GeneralTab() {
           {testError && <span className="text-xs text-red-500 dark:text-red-400">{testError}</span>}
         </div>
       </section>
-    </div>
+    </>
   );
 }
 
 // ── System tab ────────────────────────────────────────────────────────────
 
-function SystemTab() {
+function SystemTab({ isAdmin }) {
   return (
     <div className="flex flex-col gap-6">
       <section className="card-frame p-4">
@@ -227,10 +265,14 @@ function SystemTab() {
         </div>
       </section>
 
-      <section className="card-frame p-4">
-        <h2 className="section-header mb-3">Logs</h2>
-        <LogViewer />
-      </section>
+      {isAdmin ? (
+        <section className="card-frame p-4">
+          <h2 className="section-header mb-3">Logs</h2>
+          <LogViewer />
+        </section>
+      ) : (
+        <AdminOnlyNotice>view logs</AdminOnlyNotice>
+      )}
     </div>
   );
 }
@@ -246,7 +288,7 @@ function LogViewer() {
       if (!cancelled) setLines(data.lines);
     });
 
-    const source = new EventSource("/api/logs/stream");
+    const source = new EventSource("/api/logs/stream", { withCredentials: true });
     source.onmessage = (event) => {
       const line = JSON.parse(event.data);
       setLines((prev) => [...prev.slice(-499), line]);
@@ -275,5 +317,331 @@ function LogViewer() {
         lines.map((line, i) => <div key={i}>{line}</div>)
       )}
     </div>
+  );
+}
+
+// ── Admin tab ─────────────────────────────────────────────────────────────
+
+function AdminTab({ authState, onAuthChange }) {
+  if (authState.loading) {
+    return <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400" size={24} />;
+  }
+  if (authState.setupRequired) {
+    return <CreateAdminForm onSuccess={onAuthChange} />;
+  }
+  if (!authState.user) {
+    return <LoginForm onSuccess={onAuthChange} />;
+  }
+  return <LoggedInPanel user={authState.user} onAuthChange={onAuthChange} />;
+}
+
+function CreateAdminForm({ onSuccess }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    if (password !== confirm) {
+      setError("Passwords don't match");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await api.authSetup(username, password);
+      onSuccess();
+    } catch (err) {
+      setError(err.message || "Setup failed");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <section className="card-frame p-4 max-w-sm">
+      <h2 className="section-header mb-1">Create Admin Account</h2>
+      <p className="text-xs text-slate-500 dark:text-zinc-500 mb-3">
+        No admin account exists yet. Create one to manage stores, proxy settings, logs, and other users.
+      </p>
+      <form onSubmit={submit} className="flex flex-col gap-3">
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Username"
+          autoComplete="username"
+          required
+          className="input-field px-3 py-2 text-sm"
+        />
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password (min. 8 characters)"
+          autoComplete="new-password"
+          minLength={8}
+          required
+          className="input-field px-3 py-2 text-sm"
+        />
+        <input
+          type="password"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          placeholder="Confirm password"
+          autoComplete="new-password"
+          minLength={8}
+          required
+          className="input-field px-3 py-2 text-sm"
+        />
+        {error && <p className="text-xs text-red-500 dark:text-red-400">{error}</p>}
+        <button type="submit" disabled={submitting} className="btn-primary px-4 py-2 text-sm">
+          {submitting ? <Loader2 size={14} className="animate-spin" /> : "Create Admin Account"}
+        </button>
+      </form>
+    </section>
+  );
+}
+
+function LoginForm({ onSuccess }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    setSubmitting(true);
+    try {
+      await api.authLogin(username, password);
+      onSuccess();
+    } catch (err) {
+      setError(err.message || "Login failed");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <section className="card-frame p-4 max-w-sm">
+      <h2 className="section-header mb-3">Log In</h2>
+      <form onSubmit={submit} className="flex flex-col gap-3">
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Username"
+          autoComplete="username"
+          required
+          className="input-field px-3 py-2 text-sm"
+        />
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          autoComplete="current-password"
+          required
+          className="input-field px-3 py-2 text-sm"
+        />
+        {error && <p className="text-xs text-red-500 dark:text-red-400">{error}</p>}
+        <button type="submit" disabled={submitting} className="btn-primary px-4 py-2 text-sm">
+          {submitting ? <Loader2 size={14} className="animate-spin" /> : "Log In"}
+        </button>
+      </form>
+    </section>
+  );
+}
+
+function LoggedInPanel({ user, onAuthChange }) {
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  async function logout() {
+    setLoggingOut(true);
+    try {
+      await api.authLogout();
+      onAuthChange();
+    } finally {
+      setLoggingOut(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      <section className="card-frame p-4 flex items-center justify-between">
+        <div className="text-sm text-slate-700 dark:text-zinc-300">
+          Logged in as <span className="font-semibold">{user.username}</span>
+          {user.is_admin ? (
+            <span className="chip ml-2 bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
+              Admin
+            </span>
+          ) : (
+            <span className="text-xs text-slate-500 dark:text-zinc-500 ml-2">(not an admin)</span>
+          )}
+        </div>
+        <button
+          onClick={logout}
+          disabled={loggingOut}
+          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+        >
+          {loggingOut ? <Loader2 size={14} className="animate-spin" /> : <LogOut size={14} />}
+          Log Out
+        </button>
+      </section>
+
+      {user.is_admin && <UserManagement currentUsername={user.username} />}
+    </div>
+  );
+}
+
+function UserManagement({ currentUsername }) {
+  const [users, setUsers] = useState(null);
+  const [error, setError] = useState("");
+  const [newUsername, setNewUsername] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newIsAdmin, setNewIsAdmin] = useState(false);
+  const [creating, setCreating] = useState(false);
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function load() {
+    try {
+      setUsers(await api.listUsers());
+    } catch (err) {
+      setError(err.message || "Failed to load users");
+    }
+  }
+
+  async function createUser(e) {
+    e.preventDefault();
+    setError("");
+    setCreating(true);
+    try {
+      await api.createUser({ username: newUsername, password: newPassword, is_admin: newIsAdmin });
+      setNewUsername("");
+      setNewPassword("");
+      setNewIsAdmin(false);
+      await load();
+    } catch (err) {
+      setError(err.message || "Failed to create user");
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  async function toggleAdmin(u) {
+    setError("");
+    try {
+      await api.updateUser(u.id, { is_admin: !u.is_admin });
+      await load();
+    } catch (err) {
+      setError(err.message || "Failed to update user");
+    }
+  }
+
+  async function removeUser(u) {
+    if (!confirm(`Delete user "${u.username}"? This can't be undone.`)) return;
+    setError("");
+    try {
+      await api.deleteUser(u.id);
+      await load();
+    } catch (err) {
+      setError(err.message || "Failed to delete user");
+    }
+  }
+
+  return (
+    <section className="card-frame p-4">
+      <h2 className="section-header mb-3">Users</h2>
+
+      {error && <p className="text-xs text-red-500 dark:text-red-400 mb-3">{error}</p>}
+
+      {users === null ? (
+        <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400" size={20} />
+      ) : (
+        <div className="flex flex-col gap-1.5 mb-4">
+          {users.map((u) => (
+            <div
+              key={u.id}
+              className="flex items-center justify-between gap-2 py-2 border-b border-slate-100 dark:border-zinc-800/60 last:border-0 text-sm"
+            >
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-medium text-slate-900 dark:text-zinc-50 truncate">{u.username}</span>
+                  {u.is_admin && (
+                    <span className="chip bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
+                      Admin
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-slate-500 dark:text-zinc-500">
+                  Last seen: {u.last_seen_at ? new Date(u.last_seen_at).toLocaleString() : "Never"}
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  onClick={() => toggleAdmin(u)}
+                  title={u.is_admin ? "Remove admin access" : "Grant admin access"}
+                  className="p-1.5 rounded-full text-slate-400 hover:text-indigo-600 dark:text-zinc-500 dark:hover:text-indigo-400 transition-colors"
+                >
+                  {u.is_admin ? <ShieldCheck size={16} /> : <Shield size={16} />}
+                </button>
+                <button
+                  onClick={() => removeUser(u)}
+                  disabled={u.username === currentUsername}
+                  title={u.username === currentUsername ? "Can't delete your own account" : "Delete user"}
+                  className="p-1.5 rounded-full text-slate-400 hover:text-red-500 disabled:opacity-30 disabled:hover:text-slate-400 dark:text-zinc-500 dark:hover:text-red-400 transition-colors"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <form onSubmit={createUser} className="flex flex-col gap-2 pt-2 border-t border-slate-200 dark:border-zinc-800">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newUsername}
+            onChange={(e) => setNewUsername(e.target.value)}
+            placeholder="New username"
+            autoComplete="off"
+            required
+            className="input-field flex-1 px-3 py-2 text-sm"
+          />
+          <input
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="Password (min. 8 characters)"
+            autoComplete="new-password"
+            minLength={8}
+            required
+            className="input-field flex-1 px-3 py-2 text-sm"
+          />
+        </div>
+        <div className="flex items-center justify-between">
+          <label className="inline-flex items-center gap-1.5 text-sm text-slate-700 dark:text-zinc-300 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={newIsAdmin}
+              onChange={(e) => setNewIsAdmin(e.target.checked)}
+              className="accent-indigo-600 w-4 h-4"
+            />
+            Grant admin access
+          </label>
+          <button type="submit" disabled={creating} className="btn-primary px-4 py-2 text-sm">
+            {creating ? <Loader2 size={14} className="animate-spin" /> : "Add User"}
+          </button>
+        </div>
+      </form>
+    </section>
   );
 }

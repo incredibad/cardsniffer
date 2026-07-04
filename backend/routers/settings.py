@@ -3,10 +3,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from auth import require_admin
 from database import Setting, get_db, get_setting
 from scrapers import SCRAPERS
 
-router = APIRouter(prefix="/settings", tags=["settings"])
+router = APIRouter(prefix="/settings", tags=["settings"], dependencies=[Depends(require_admin)])
 
 
 class StoreSetting(BaseModel):
