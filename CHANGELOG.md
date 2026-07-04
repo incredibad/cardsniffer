@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented here.
 
+## [0.21.1] - 2026-07-04
+
+### Fixed
+- Truncated-text tooltips and the table-view image preview were being clipped by their container's own `overflow-hidden` (needed for corner rounding) — both now render into a portal on `document.body`, positioned from the trigger's own bounding rect, so they escape any ancestor clipping entirely
+- Image preview enlarged well past any on-page rendering (up to 28rem, capped at 85% of viewport width so it never overflows on small screens)
+- Autocomplete could still reopen after a search completed, even with the input unfocused — a debounced fetch scheduled from typing earlier could still resolve afterward and repopulate the list. Now cancelled (both the pending timer and any in-flight request) the moment a search starts
+
 ## [0.21.0] - 2026-07-04
 
 ### Added
