@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented here.
 
+## [0.20.2] - 2026-07-04
+
+### Changed
+- Mobile table view restructured again: image is now its own full-height column (width follows from its aspect ratio), name/set take the full width of the second column, and condition/price/store/buy form two columns underneath that
+
+### Fixed
+- Autocomplete suggestions could reappear after a completed search — the stale list was never cleared (only closed), so refocusing the input brought back results from before the search. Now cleared alongside closing it
+
 ## [0.20.1] - 2026-07-04
 
 ### Changed

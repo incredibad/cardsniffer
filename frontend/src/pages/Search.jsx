@@ -108,6 +108,7 @@ export default function Search() {
     setStatus("loading");
     setDismissedErrors(false);
     setSuggestOpen(false);
+    setSuggestions([]);
     inputRef.current?.blur();
     try {
       const data = await api.search(q);
