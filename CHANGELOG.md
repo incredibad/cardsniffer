@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.42.1] - 2026-07-04
+
+### Fixed
+- Price/postage/buy row (grid card and table view, desktop and mobile): the price+postage group used `items-baseline`, sinking the smaller postage text below the visual center of the larger price text. Switched to `items-center` throughout
+
 ## [0.42.0] - 2026-07-04
 
 ### Fixed
