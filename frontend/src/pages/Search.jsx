@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Search as SearchIcon,
   Loader2,
@@ -55,6 +55,11 @@ export default function Search() {
   const [activeSuggestion, setActiveSuggestion] = useState(-1);
   const debounceRef = useRef(null);
   const suggestRequestId = useRef(0);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   function updateSortOrder(order) {
     setSortOrder(order);
@@ -99,12 +104,11 @@ export default function Search() {
     return sorted;
   }, [filteredResults, sortOrder]);
 
-  const hiddenCount = results.length - filteredResults.length;
-
   async function performSearch(q) {
     setStatus("loading");
     setDismissedErrors(false);
     setSuggestOpen(false);
+    inputRef.current?.blur();
     try {
       const data = await api.search(q);
       setResults(data.results);
@@ -185,6 +189,7 @@ export default function Search() {
           <div className="relative flex-1">
             <SearchIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
             <input
+              ref={inputRef}
               type="text"
               value={query}
               onChange={(e) => handleQueryChange(e.target.value)}
@@ -329,7 +334,6 @@ export default function Search() {
           <div className="flex items-center justify-between">
             <p className="text-sm text-slate-500 dark:text-zinc-500">
               {filteredResults.length} result{filteredResults.length === 1 ? "" : "s"}
-              {hiddenCount > 0 && ` (${hiddenCount} hidden)`}
             </p>
             <div className="flex items-center gap-2">
               <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
