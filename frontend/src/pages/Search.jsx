@@ -180,13 +180,6 @@ export default function Search() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="page-header text-3xl">Search for a card</h1>
-        <p className="text-slate-500 dark:text-zinc-400 text-sm mt-1">
-          Find listings across the stores Cardsniffer tracks.
-        </p>
-      </div>
-
       <div className="card-frame overflow-hidden">
         <form onSubmit={runSearch} className="flex gap-2 p-2">
           <div className="relative flex-1">
@@ -232,19 +225,19 @@ export default function Search() {
           </button>
         </form>
 
-        <div className="border-t border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/40">
+        <div className="border-t border-slate-200 dark:border-zinc-800">
           <button
             type="button"
             onClick={toggleOptionsOpen}
             aria-expanded={optionsOpen}
-            className="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-sm text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800/70 transition-colors"
+            className="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-sm text-slate-500 dark:text-zinc-400 bg-slate-50 dark:bg-zinc-800/40 hover:bg-slate-100 dark:hover:bg-zinc-800/70 transition-colors"
           >
             <span className="section-header">Search Options</span>
             <ChevronDown size={16} className={`transition-transform ${optionsOpen ? "rotate-180" : ""}`} />
           </button>
 
           {optionsOpen && (
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 pb-2 text-sm text-slate-600 dark:text-zinc-400">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-2 text-sm text-slate-600 dark:text-zinc-400 bg-slate-100/60 dark:bg-zinc-800/20 border-t border-slate-200 dark:border-zinc-800">
               <label className="inline-flex items-center gap-1.5 cursor-pointer">
                 <input
                   type="checkbox"
