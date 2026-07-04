@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.28.1] - 2026-07-04
+
+### Changed
+- Prices not in AUD (Original pricing mode, non-AUD stores) now render in amber instead of the default text colour, reinforcing the existing "U$"/"A$" prefix with a visual cue rather than relying on reading the currency prefix alone
+
 ## [0.28.0] - 2026-07-04
 
 ### Added

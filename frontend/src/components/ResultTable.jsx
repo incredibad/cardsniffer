@@ -18,6 +18,10 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
         const storeMeta = getStoreMeta(r.store_name);
         const displayPrice = pricingMode === "original" ? r.price_original : r.price;
         const displayCurrency = pricingMode === "original" ? r.currency_original : r.currency;
+        const priceColorClass =
+          displayCurrency === "AUD"
+            ? "text-slate-900 dark:text-zinc-50"
+            : "text-amber-700 dark:text-amber-400";
         const setText = r.set_name
           ? `${r.set_name}${r.collector_number ? ` · #${r.collector_number}` : ""}`
           : null;
@@ -89,7 +93,7 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
                   {storeBadge}
                 </div>
                 <div className="flex items-center justify-between gap-2">
-                  <div className="text-lg text-slate-900 dark:text-zinc-50 font-semibold">
+                  <div className={`text-lg font-semibold ${priceColorClass}`}>
                     {formatPrice(displayPrice, displayCurrency)}
                   </div>
                   <div className="flex items-center gap-2">
@@ -124,7 +128,7 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
               </div>
               <div className="w-32 shrink-0">{conditionChips}</div>
               <div className="w-24 shrink-0 text-right">
-                <div className="text-slate-900 dark:text-zinc-50 font-semibold whitespace-nowrap">
+                <div className={`font-semibold whitespace-nowrap ${priceColorClass}`}>
                   {formatPrice(displayPrice, displayCurrency)}
                 </div>
                 <div className="text-xs text-slate-500 dark:text-zinc-500 whitespace-nowrap">
