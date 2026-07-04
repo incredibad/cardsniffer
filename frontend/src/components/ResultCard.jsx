@@ -47,16 +47,17 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
           // doesn't clip symmetrically around the diagonal it's supposed to
           // sit on, which throws off centering. A dedicated square wrapper
           // sized/centered on just the corner clips it symmetrically instead.
-          <div className="absolute top-0 right-0 w-12 h-12 sm:w-16 sm:h-16 overflow-hidden pointer-events-none">
-            {/* w-[68px]/w-[90px] = the clip box's diagonal (side * sqrt(2)),
-                so the ribbon spans exactly corner-to-corner of its own clip
-                box. top-1/2 left-1/2 + -translate-x/y-1/2 centers it on that
-                box regardless of the span's rendered height, which a fixed
-                pixel offset can't do — 1-line vs 2-line text (long treatment
-                names wrap) have different heights, and a fixed offset tuned
-                for one throws off the other, clipping the wrapped case. */}
+          <div className="absolute -top-1 -right-1 w-12 h-12 sm:w-16 sm:h-16 overflow-hidden pointer-events-none">
+            {/* Clip box is nudged past the image's true corner (-top-1/-right-1)
+                rather than sitting exactly flush with it, so the ribbon
+                overshoots the image's own edge and gets its final cutoff from
+                the image's overflow-hidden — guarantees the background bleeds
+                all the way to the edge instead of leaving a hairline gap from
+                imprecise diagonal math. top-1/2 left-1/2 + -translate-x/y-1/2
+                centers the ribbon on the clip box regardless of the span's
+                rendered height (1-line vs 2-line wrapped text differ). */}
             <div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[68px] sm:w-[90px] rotate-45 text-center"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60px] sm:w-[80px] rotate-45 text-center"
               title={foil_treatment || "Foil"}
             >
               <span className="block w-full break-words bg-violet-600 text-white font-semibold uppercase text-[7px] sm:text-[9px] leading-tight py-1 shadow-sm">

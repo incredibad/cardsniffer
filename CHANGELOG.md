@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.36.7] - 2026-07-04
+
+### Fixed
+- Grid view's foil ribbon width reduced (90px -> 80px desktop, scaled proportionally on mobile), and its clip box now overshoots past the card image's true corner slightly instead of sitting exactly flush with it, so the ribbon's background reliably bleeds all the way to the edge rather than leaving a hairline gap
+
 ## [0.36.6] - 2026-07-04
 
 ### Fixed
