@@ -15,6 +15,7 @@ import ResultTable from "../components/ResultTable";
 import InfoTooltip from "../components/InfoTooltip";
 
 const SORT_ORDER_KEY = "cardsniffer.sortOrder";
+const VIEW_MODE_KEY = "cardsniffer.viewMode";
 const SHOW_ART_KEY = "cardsniffer.showArtCards";
 const SHOW_FOREIGN_KEY = "cardsniffer.showForeignCards";
 const PRICING_MODE_KEY = "cardsniffer.pricingMode";
@@ -30,7 +31,9 @@ export default function Search() {
   const [errorMessage, setErrorMessage] = useState("");
   const [dismissedErrors, setDismissedErrors] = useState(false);
   const [lastQuery, setLastQuery] = useState("");
-  const [viewMode, setViewMode] = useState("grid"); // grid | table
+  const [viewMode, setViewMode] = useState(
+    () => localStorage.getItem(VIEW_MODE_KEY) || "grid"
+  ); // grid | table
   const [sortOrder, setSortOrder] = useState(
     () => localStorage.getItem(SORT_ORDER_KEY) || "asc"
   ); // asc | desc
@@ -71,6 +74,11 @@ export default function Search() {
   function updatePricingMode(mode) {
     setPricingMode(mode);
     localStorage.setItem(PRICING_MODE_KEY, mode);
+  }
+
+  function updateViewMode(mode) {
+    setViewMode(mode);
+    localStorage.setItem(VIEW_MODE_KEY, mode);
   }
 
   function toggleOptionsOpen() {
@@ -224,19 +232,19 @@ export default function Search() {
           </button>
         </form>
 
-        <div className="border-t border-slate-200 dark:border-zinc-800">
+        <div className="border-t border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/40">
           <button
             type="button"
             onClick={toggleOptionsOpen}
             aria-expanded={optionsOpen}
-            className="w-full flex items-center justify-between gap-2 px-4 py-2 text-sm text-slate-500 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800/40 transition-colors"
+            className="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-sm text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800/70 transition-colors"
           >
             <span className="section-header">Search Options</span>
             <ChevronDown size={16} className={`transition-transform ${optionsOpen ? "rotate-180" : ""}`} />
           </button>
 
           {optionsOpen && (
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 pb-3 text-sm text-slate-600 dark:text-zinc-400">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 pb-2 text-sm text-slate-600 dark:text-zinc-400">
               <label className="inline-flex items-center gap-1.5 cursor-pointer">
                 <input
                   type="checkbox"
@@ -355,7 +363,7 @@ export default function Search() {
               </div>
               <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
                 <button
-                  onClick={() => setViewMode("grid")}
+                  onClick={() => updateViewMode("grid")}
                   aria-label="Grid view"
                   aria-pressed={viewMode === "grid"}
                   className={`segmented-btn p-1.5 ${viewMode === "grid" ? "is-active" : ""}`}
@@ -363,7 +371,7 @@ export default function Search() {
                   <LayoutGrid size={16} />
                 </button>
                 <button
-                  onClick={() => setViewMode("table")}
+                  onClick={() => updateViewMode("table")}
                   aria-label="Table view"
                   aria-pressed={viewMode === "table"}
                   className={`segmented-btn p-1.5 border-l border-slate-200 dark:border-zinc-800 ${
