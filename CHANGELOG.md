@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.20.5] - 2026-07-04
+
+### Changed
+- Mobile table view rebuilt to a simple explicit spec: column A is the image alone, column B is three stacked rows — name/set (full width), condition + store pill, then price + Buy button
+
 ## [0.20.4] - 2026-07-04
 
 ### Fixed
