@@ -20,8 +20,17 @@ const SHOW_ART_KEY = "cardsniffer.showArtCards";
 const SHOW_FOREIGN_KEY = "cardsniffer.showForeignCards";
 const PRICING_MODE_KEY = "cardsniffer.pricingMode";
 const OPTIONS_OPEN_KEY = "cardsniffer.searchOptionsOpen";
+const HIDDEN_STORES_KEY = "cardsniffer.hiddenStores";
 const SUGGEST_DEBOUNCE_MS = 150;
 const SUGGEST_MIN_LENGTH = 2;
+
+function loadHiddenStores() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(HIDDEN_STORES_KEY)) || []);
+  } catch {
+    return new Set();
+  }
+}
 
 export default function Search() {
   const [query, setQuery] = useState("");
@@ -49,6 +58,8 @@ export default function Search() {
   const [optionsOpen, setOptionsOpen] = useState(
     () => localStorage.getItem(OPTIONS_OPEN_KEY) !== "false"
   );
+  const [enabledStores, setEnabledStores] = useState([]);
+  const [hiddenStores, setHiddenStores] = useState(loadHiddenStores);
 
   const [suggestions, setSuggestions] = useState([]);
   const [suggestOpen, setSuggestOpen] = useState(false);
@@ -59,6 +70,10 @@ export default function Search() {
 
   useEffect(() => {
     inputRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    api.listStores().then(setEnabledStores).catch(() => {});
   }, []);
 
   function updateSortOrder(order) {
@@ -94,9 +109,24 @@ export default function Search() {
     });
   }
 
+  function toggleStoreHidden(storeName, visible) {
+    setHiddenStores((prev) => {
+      const next = new Set(prev);
+      if (visible) next.delete(storeName);
+      else next.add(storeName);
+      localStorage.setItem(HIDDEN_STORES_KEY, JSON.stringify([...next]));
+      return next;
+    });
+  }
+
   const filteredResults = useMemo(() => {
-    return results.filter((r) => (showArtCards || !r.is_art) && (showForeignCards || !r.foreign));
-  }, [results, showArtCards, showForeignCards]);
+    return results.filter(
+      (r) =>
+        (showArtCards || !r.is_art) &&
+        (showForeignCards || !r.foreign) &&
+        !hiddenStores.has(r.store_name)
+    );
+  }, [results, showArtCards, showForeignCards, hiddenStores]);
 
   const sortedResults = useMemo(() => {
     const sorted = [...filteredResults];
@@ -301,6 +331,22 @@ export default function Search() {
                   in the listed price.
                 </InfoTooltip>
               </div>
+
+              {enabledStores.length > 0 && (
+                <div className="w-full flex flex-wrap items-center gap-x-3 gap-y-1.5 pt-1.5 mt-1 border-t border-slate-200 dark:border-zinc-800">
+                  {enabledStores.map((s) => (
+                    <label key={s.key} className="inline-flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={!hiddenStores.has(s.store_name)}
+                        onChange={(e) => toggleStoreHidden(s.store_name, e.target.checked)}
+                        className="accent-indigo-600 w-4 h-4"
+                      />
+                      {s.store_name}
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -337,7 +383,7 @@ export default function Search() {
           ) : (
             <>
               All {results.length} result{results.length === 1 ? "" : "s"} for &ldquo;{lastQuery}&rdquo; are
-              hidden by Search Options — try enabling "Show art cards" or "Show foreign cards" above.
+              hidden by Search Options above — try adjusting the toggles or store filters.
             </>
           )}
         </div>
