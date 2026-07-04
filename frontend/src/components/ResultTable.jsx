@@ -72,7 +72,7 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
               <ImageHoverPreview
                 src={r.image_url}
                 alt={r.card_name}
-                foil={r.foil}
+                foil={r.foil && storeMeta.foilOverlay}
                 className="w-20 aspect-[5/7] rounded-lg overflow-hidden bg-slate-100 dark:bg-zinc-800 shrink-0 object-cover"
               />
               <div className="flex-1 min-w-0 flex flex-col gap-1.5">
@@ -111,7 +111,7 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
               <ImageHoverPreview
                 src={r.image_url}
                 alt={r.card_name}
-                foil={r.foil}
+                foil={r.foil && storeMeta.foilOverlay}
                 className="w-10 aspect-[5/7] rounded-lg overflow-hidden bg-slate-100 dark:bg-zinc-800 shrink-0 object-cover"
               />
               <div className="flex-1 min-w-0">

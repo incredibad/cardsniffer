@@ -40,7 +40,7 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
             No image
           </div>
         )}
-        {foil && <FoilOverlay />}
+        {foil && storeMeta.foilOverlay && <FoilOverlay />}
       </div>
 
       <div className="p-3.5 flex flex-col gap-2.5 flex-1 rounded-2xl overflow-hidden bg-white dark:bg-zinc-900">

@@ -1,8 +1,8 @@
 // Diagonal rainbow sheen blended over a card image to signal "foil" — the
 // standard CSS holo-card trick (rainbow gradient + color-dodge blend), used
-// since not every store's own photography actually shows foil shine.
-// Layered on top regardless of whether the source photo already has one;
-// harmless if it does, just a slightly stronger sheen.
+// since not every store's own photography actually shows foil shine. Callers
+// only render this for stores flagged foilOverlay:true in storeMeta.js — off
+// for stores whose own photos already show genuine foil shine.
 export default function FoilOverlay() {
   return (
     <div
