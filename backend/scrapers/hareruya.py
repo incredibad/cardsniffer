@@ -1,24 +1,31 @@
 import re
 from urllib.parse import urlencode
 
+from bs4 import BeautifulSoup
+
 from .base import BaseScraper, SearchResult
 
 BASE_URL = "https://www.hareruyamtg.com"
 SEARCH_API_URL = f"{BASE_URL}/en/products/search/unisearch_api"
+LAZY_URL = f"{BASE_URL}/en/products/search/unisearch/lazy"
 DETAIL_URL = f"{BASE_URL}/en/products/detail"
 
 # Hareruya's search page is a JS-driven SPA — the server-rendered HTML has an
 # empty result list that gets filled in by an AJAX call to this Solr-backed
 # JSON endpoint (see the page's inline `getUnisearchApi` / unisearch_api
-# calls). Hitting it directly skips two more AJAX round-trips the site itself
-# makes to turn the JSON into HTML (unisearch -> unisearch/lazy), which exist
-# only to render markup we'd have to re-parse anyway. Not disallowed by
-# robots.txt (only /en/products/search?*page=*&sort=*&order=* is).
+# calls). Hitting it directly skips the site's own follow-up AJAX call
+# (unisearch/lazy) that turns this JSON into the actual result markup —
+# except we still need that step too, since it's also the only place the
+# real per-listing stock count is exposed (see _fetch_accurate_stock below).
+# Not disallowed by robots.txt (only /en/products/search?*page=*&sort=*&order=*
+# is).
 #
 # rows has no documented cap — 1000 was observed to return a full 760-result
 # set for "Sol Ring" without truncation — so one request covers even the most
 # heavily-reprinted staples.
 _ROWS = 1000
+
+_STOCK_RE = re.compile(r"Stock:(\d+)")
 
 # language codes from the site's own `languages` JS map; only ones actually
 # seen in results matter for the product URL's `lang` query param.
@@ -99,15 +106,59 @@ class HareruyaScraper(BaseScraper):
         )
         response.raise_for_status()
         data = response.json()
+        docs = data.get("response", {}).get("docs", [])
+
+        accurate_stock = await self._fetch_accurate_stock(docs)
 
         results: list[SearchResult] = []
-        for doc in data.get("response", {}).get("docs", []):
-            result = self._parse_doc(doc)
+        for doc, stock in zip(docs, accurate_stock):
+            result = self._parse_doc(doc, stock)
             if result is not None:
                 results.append(result)
         return results
 
-    def _parse_doc(self, doc: dict) -> SearchResult | None:
+    async def _fetch_accurate_stock(self, docs: list[dict]) -> list[int | None]:
+        """The unisearch_api response's own `stock` field is a decoy (see
+        _parse_doc) — the real per-listing count only shows up in the
+        rendered markup from the site's own second-stage AJAX call, which
+        takes the very same docs and server-renders them (batching every doc
+        from a search into one call here — confirmed this holds even for
+        Sol Ring's 760-listing case, ~7s but correct and in the same order
+        as the input docs, so results zip back up by index)."""
+        if not docs:
+            return []
+
+        form = {}
+        for i, doc in enumerate(docs):
+            for key, value in doc.items():
+                form[f"docs[{i}][{key}]"] = value
+        form["css"] = "itemList"
+
+        try:
+            response = await self.client.post(
+                LAZY_URL,
+                data=form,
+                headers={"X-Requested-With": "XMLHttpRequest"},
+            )
+            response.raise_for_status()
+        except Exception:
+            return [None] * len(docs)
+
+        soup = BeautifulSoup(response.text, "lxml")
+        stocks: list[int | None] = []
+        for item in soup.select("li.itemList"):
+            stock_el = item.select_one(".itemDetail__stock")
+            match = _STOCK_RE.search(stock_el.get_text()) if stock_el else None
+            stocks.append(int(match.group(1)) if match else None)
+
+        # If the rendered count doesn't line up 1:1 with what was sent,
+        # bail out to "unknown for everything" rather than risk mis-zipping
+        # a stock count onto the wrong listing.
+        if len(stocks) != len(docs):
+            return [None] * len(docs)
+        return stocks
+
+    def _parse_doc(self, doc: dict, accurate_stock: int | None = None) -> SearchResult | None:
         price = doc.get("price")
         if price is None:
             return None
@@ -130,14 +181,18 @@ class HareruyaScraper(BaseScraper):
             + urlencode({"lang": lang_code or "EN", "class": doc.get("product_class", "")})
         )
 
-        # `stock` here is not the real per-listing count — cross-checked
-        # against the product detail page's own "Stock" column across a
-        # dozen listings, the search index's number was inflated by a
-        # factor that varies per listing (6x-24x, not a fixed multiplier),
-        # while zero-vs-nonzero matched the real figure in every case. So
-        # the boolean is trustworthy but the count isn't — report presence,
-        # not a fabricated quantity.
-        stock = int(doc.get("stock") or 0)
+        # `stock` on the doc itself is a decoy — cross-checked against the
+        # real per-listing count (only exposed by the site's second-stage
+        # render, see _fetch_accurate_stock), it's inflated by a factor that
+        # varies per listing (6x-24x, not fixed), while zero-vs-nonzero
+        # matched the real figure in every case. So it's only used as a
+        # fallback if fetching the accurate count failed outright.
+        if accurate_stock is not None:
+            in_stock = accurate_stock > 0
+            quantity_available = accurate_stock
+        else:
+            in_stock = int(doc.get("stock") or 0) > 0
+            quantity_available = None
 
         return SearchResult(
             card_name=card_name,
@@ -147,8 +202,8 @@ class HareruyaScraper(BaseScraper):
             condition=_CONDITIONS.get(doc.get("card_condition", ""), "NM"),
             price=float(price),
             currency="JPY",
-            in_stock=stock > 0,
-            quantity_available=None,
+            in_stock=in_stock,
+            quantity_available=quantity_available,
             image_url=doc.get("image_url") or None,
             product_url=product_url,
             store_name=self.store_name,
