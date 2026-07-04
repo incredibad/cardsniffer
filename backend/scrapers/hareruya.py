@@ -112,15 +112,15 @@ class HareruyaScraper(BaseScraper):
         if price is None:
             return None
 
-        # language "1" is Japanese-language prints; card_name carries a
-        # "【Art Card】" prefix for the non-playable MOM-style Art Series —
-        # neither is a normal English-playable single, so skip both.
-        if doc.get("language") == "1":
-            return None
+        # language "2" is English; anything else (JP, CS, CT, FR, DE, IT, KO,
+        # PT, RU, ES, AG) is a foreign-language print. card_name carries a
+        # "【Art Card】" prefix for the non-playable MOM-style Art Series.
+        # Neither is dropped here — flagged instead, so the search router's
+        # "show foreign cards"/"show art cards" options can decide.
+        foreign = doc.get("language") != "2"
 
         card_name = doc.get("card_name", "")
-        if card_name.startswith("【Art Card】"):
-            return None
+        is_art = card_name.startswith("【Art Card】")
 
         set_name, collector_number = _parse_title(doc.get("product_name_en", ""), card_name)
 
@@ -152,4 +152,6 @@ class HareruyaScraper(BaseScraper):
             image_url=doc.get("image_url") or None,
             product_url=product_url,
             store_name=self.store_name,
+            is_art=is_art,
+            foreign=foreign,
         )
