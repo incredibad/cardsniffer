@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented here.
 
+## [0.18.1] - 2026-07-04
+
+### Changed
+- Search Options bar made more compact: shorter header row, tighter padding on the checkboxes/pricing toggle below, and a slightly tinted background distinguishing it from the search box above it
+
+### Fixed
+- Grid/table view mode wasn't actually remembered across visits (unlike sort order, which already was) — now persisted per-browser like the rest of the search settings
+
 ## [0.18.0] - 2026-07-04
 
 ### Changed
