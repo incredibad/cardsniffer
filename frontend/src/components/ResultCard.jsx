@@ -81,7 +81,13 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
           >
             {storeMeta.code}
           </span>
-          <div className="text-xl font-semibold text-slate-900 dark:text-zinc-50 leading-tight">
+          <div
+            className={`text-xl font-semibold leading-tight ${
+              displayCurrency === "AUD"
+                ? "text-slate-900 dark:text-zinc-50"
+                : "text-amber-700 dark:text-amber-400"
+            }`}
+          >
             {formatPrice(displayPrice, displayCurrency)}
           </div>
           <a
