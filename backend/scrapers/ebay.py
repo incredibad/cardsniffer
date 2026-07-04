@@ -174,4 +174,5 @@ class EbayScraper(BaseScraper):
             product_url=item.get("itemWebUrl", ""),
             store_name=self.store_name,
             shipping_price=float(shipping_price) if shipping_price is not None else None,
+            listed_at=item.get("itemCreationDate"),
         )

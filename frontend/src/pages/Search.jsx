@@ -5,14 +5,13 @@ import {
   X,
   LayoutGrid,
   Table as TableIcon,
-  ArrowUp,
-  ArrowDown,
 } from "lucide-react";
 import { api } from "../api";
 import ResultCard from "../components/ResultCard";
 import ResultTable from "../components/ResultTable";
 import InfoTooltip from "../components/InfoTooltip";
 import FilterDropdown, { FilterDropdownOption } from "../components/FilterDropdown";
+import SelectDropdown from "../components/SelectDropdown";
 import { STORE_META } from "../storeMeta";
 
 // Static rather than derived from the current results, so the filter bar's
@@ -25,7 +24,18 @@ const STORE_OPTIONS = Object.keys(STORE_META).sort();
 // other store uses one or the other, never both.
 const CONDITION_OPTIONS = ["NM", "SP", "LP", "MP", "HP", "DMG"];
 
-const SORT_ORDER_KEY = "cardsniffer.sortOrder";
+// Date sort only really applies to eBay (the only store with a per-listing
+// "when posted" date) — everything else falls back to a price sort within
+// its own group, but the eBay group always sits above it regardless.
+const SORT_MODE_OPTIONS = [
+  { value: "price_asc", label: "Price Asc" },
+  { value: "price_desc", label: "Price Desc" },
+  { value: "date_asc", label: "Date Asc" },
+  { value: "date_desc", label: "Date Desc" },
+];
+const SORT_MODE_VALUES = SORT_MODE_OPTIONS.map((o) => o.value);
+
+const SORT_MODE_KEY = "cardsniffer.sortMode";
 const VIEW_MODE_KEY = "cardsniffer.viewMode";
 const SHOW_ART_KEY = "cardsniffer.showArtCards";
 const SHOW_FOREIGN_KEY = "cardsniffer.showForeignCards";
@@ -56,9 +66,10 @@ export default function Search() {
   const [viewMode, setViewMode] = useState(
     () => localStorage.getItem(VIEW_MODE_KEY) || "grid"
   ); // grid | table
-  const [sortOrder, setSortOrder] = useState(
-    () => localStorage.getItem(SORT_ORDER_KEY) || "asc"
-  ); // asc | desc
+  const [sortMode, setSortMode] = useState(() => {
+    const stored = localStorage.getItem(SORT_MODE_KEY);
+    return SORT_MODE_VALUES.includes(stored) ? stored : "price_asc";
+  });
   const [showArtCards, setShowArtCards] = useState(
     () => localStorage.getItem(SHOW_ART_KEY) === "true"
   );
@@ -105,9 +116,9 @@ export default function Search() {
     inputRef.current?.focus();
   }, []);
 
-  function updateSortOrder(order) {
-    setSortOrder(order);
-    localStorage.setItem(SORT_ORDER_KEY, order);
+  function updateSortMode(mode) {
+    setSortMode(mode);
+    localStorage.setItem(SORT_MODE_KEY, mode);
   }
 
   function updateShowArtCards(value) {
@@ -167,10 +178,21 @@ export default function Search() {
   ]);
 
   const sortedResults = useMemo(() => {
-    const sorted = [...filteredResults];
-    sorted.sort((a, b) => (sortOrder === "asc" ? a.price - b.price : b.price - a.price));
-    return sorted;
-  }, [filteredResults, sortOrder]);
+    if (sortMode === "price_asc" || sortMode === "price_desc") {
+      const dir = sortMode === "price_asc" ? 1 : -1;
+      return [...filteredResults].sort((a, b) => dir * (a.price - b.price));
+    }
+
+    // Date sort: only eBay results have a listed_at. That group sorts by
+    // date and always sits above everything else, which falls back to a
+    // price sort (in the same direction) since it has no date to sort by.
+    const dir = sortMode === "date_asc" ? 1 : -1;
+    const dated = filteredResults.filter((r) => r.listed_at);
+    const undated = filteredResults.filter((r) => !r.listed_at);
+    dated.sort((a, b) => dir * (new Date(a.listed_at) - new Date(b.listed_at)));
+    undated.sort((a, b) => dir * (a.price - b.price));
+    return [...dated, ...undated];
+  }, [filteredResults, sortMode]);
 
   async function performSearch(q) {
     setStatus("loading");
@@ -352,29 +374,8 @@ export default function Search() {
               </p>
             );
 
-            const sortButtonsEl = (
-              <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
-                <button
-                  onClick={() => updateSortOrder("asc")}
-                  aria-label="Sort by price, low to high"
-                  aria-pressed={sortOrder === "asc"}
-                  title="Price: low to high"
-                  className={`segmented-btn p-1.5 flex items-center gap-1 ${sortOrder === "asc" ? "is-active" : ""}`}
-                >
-                  <ArrowUp size={16} />
-                </button>
-                <button
-                  onClick={() => updateSortOrder("desc")}
-                  aria-label="Sort by price, high to low"
-                  aria-pressed={sortOrder === "desc"}
-                  title="Price: high to low"
-                  className={`segmented-btn p-1.5 flex items-center gap-1 border-l border-slate-200 dark:border-zinc-800 ${
-                    sortOrder === "desc" ? "is-active" : ""
-                  }`}
-                >
-                  <ArrowDown size={16} />
-                </button>
-              </div>
+            const sortDropdownEl = (
+              <SelectDropdown value={sortMode} options={SORT_MODE_OPTIONS} onChange={updateSortMode} />
             );
 
             const viewButtonsEl = (
@@ -482,7 +483,7 @@ export default function Search() {
                   <div className="flex items-center justify-between gap-2">
                     {resultsCountEl}
                     <div className="flex items-center gap-2">
-                      {sortButtonsEl}
+                      {sortDropdownEl}
                       {viewButtonsEl}
                     </div>
                   </div>
@@ -595,7 +596,7 @@ export default function Search() {
 
                   <div className="flex flex-nowrap shrink-0 items-center gap-2">
                     {resultsCountEl}
-                    {sortButtonsEl}
+                    {sortDropdownEl}
                     {viewButtonsEl}
                   </div>
                 </div>

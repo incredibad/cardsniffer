@@ -69,6 +69,11 @@ class SearchResult:
     # currency as `price` — no separate currency field needed since every
     # scraper that sets this only ever operates in one currency (eBay: AUD).
     shipping_price: Optional[float] = None
+    # When the listing was posted, ISO 8601 string, for the frontend's "Date"
+    # sort. None (the default) means the store has no such concept — most
+    # stores just show current catalog inventory, not individual dated
+    # listings, so this is only ever set by eBay for now.
+    listed_at: Optional[str] = None
 
 
 class BaseScraper(ABC):
