@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.35.1] - 2026-07-04
+
+### Changed
+- Card Kingdom now requests 100 results per page (its own hard server-side ceiling, confirmed by testing well past it) instead of the 25 default, and sorts alphabetically by name instead of "popularity" — both controlled via cookies rather than URL params on this site, not obvious from the request shape alone. Same number of requests, up to 4x more results per search (Sol Ring: 63 -> 155)
+
 ## [0.35.0] - 2026-07-04
 
 ### Fixed
