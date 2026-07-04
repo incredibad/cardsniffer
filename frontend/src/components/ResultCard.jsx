@@ -42,6 +42,14 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
           </div>
         )}
         {foil && storeMeta.foilOverlay && <FoilOverlay />}
+        {foil && (
+          <span
+            className="chip absolute top-1.5 right-1.5 max-w-[calc(100%-0.75rem)] truncate bg-violet-600/90 text-white inline-flex items-center gap-1 shadow-sm backdrop-blur-sm"
+            title={foil_treatment || "Foil"}
+          >
+            <Sparkles size={11} className="shrink-0" /> <span className="truncate">{foil_treatment || "Foil"}</span>
+          </span>
+        )}
       </div>
 
       <div className="p-2 sm:p-3.5 flex flex-col gap-1.5 sm:gap-2.5 flex-1 rounded-2xl overflow-hidden bg-white dark:bg-zinc-900">
@@ -60,20 +68,10 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
           )}
         </div>
 
-        <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
-          <span className="chip bg-slate-100 text-slate-600 uppercase dark:bg-zinc-800 dark:text-zinc-300">
-            {condition}
-          </span>
-          {foil && (
-            <span className="chip bg-violet-100 text-violet-700 inline-flex items-center gap-1 dark:bg-violet-500/15 dark:text-violet-300">
-              <Sparkles size={11} /> {foil_treatment || "Foil"}
-            </span>
-          )}
-        </div>
-
         <div className="mt-auto grid grid-cols-2 items-center gap-x-1.5 gap-y-1 sm:gap-x-2 sm:gap-y-1.5 pt-1">
           <span className="text-[11px] sm:text-xs text-slate-500 dark:text-zinc-500">
-            Qty: {formatQty(quantity_available)}
+            <span className="font-semibold text-slate-700 dark:text-zinc-300 uppercase">{condition}</span>
+            {" · "}Qty: {formatQty(quantity_available)}
           </span>
           <span
             className="chip shrink-0 font-semibold text-white w-fit justify-self-end"
