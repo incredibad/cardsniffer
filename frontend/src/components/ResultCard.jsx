@@ -23,7 +23,10 @@ export default function ResultCard({ result }) {
 
   return (
     <div className="card-frame flex flex-col overflow-hidden">
-      <div className="aspect-[5/7] rounded-t-2xl overflow-hidden bg-slate-100 dark:bg-zinc-800">
+      <div
+        className="aspect-[5/7] overflow-hidden bg-slate-100 dark:bg-zinc-800"
+        style={{ borderTopLeftRadius: "1rem", borderTopRightRadius: "1rem" }}
+      >
         {image_url ? (
           <img
             src={image_url}
@@ -38,7 +41,10 @@ export default function ResultCard({ result }) {
         )}
       </div>
 
-      <div className="p-3.5 flex flex-col gap-2.5 flex-1 rounded-b-2xl overflow-hidden bg-white dark:bg-zinc-900">
+      <div
+        className="p-3.5 flex flex-col gap-2.5 flex-1 overflow-hidden bg-white dark:bg-zinc-900"
+        style={{ borderBottomLeftRadius: "1rem", borderBottomRightRadius: "1rem" }}
+      >
         <div>
           <h3
             className="font-semibold text-slate-900 dark:text-zinc-50 text-sm leading-snug truncate"
