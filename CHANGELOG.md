@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.41.2] - 2026-07-04
+
+### Changed
+- eBay postage indicator simplified further: dropped the envelope icon and the "A" currency prefix (AU-only sellers, so it's always AUD) and shows "+$0.00" instead of "Free" — now just a bare "+$1.99"
+
 ## [0.41.1] - 2026-07-04
 
 ### Changed

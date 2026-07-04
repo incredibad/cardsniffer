@@ -1,4 +1,4 @@
-import { Sparkles, ExternalLink, Mail } from "lucide-react";
+import { Sparkles, ExternalLink } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import { formatPrice } from "../formatPrice";
@@ -27,9 +27,8 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
           : null;
 
         const postageEl = r.shipping_price != null && (
-          <span className="inline-flex items-center gap-0.5 text-[11px] text-slate-400 dark:text-zinc-500 whitespace-nowrap">
-            <Mail size={10} />
-            {r.shipping_price === 0 ? "Free" : `+${formatPrice(r.shipping_price, "AUD")}`}
+          <span className="text-[11px] text-slate-400 dark:text-zinc-500 whitespace-nowrap">
+            +${r.shipping_price.toFixed(2)}
           </span>
         );
 

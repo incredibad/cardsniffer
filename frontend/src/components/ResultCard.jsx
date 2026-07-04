@@ -1,4 +1,4 @@
-import { Sparkles, ExternalLink, Mail } from "lucide-react";
+import { Sparkles, ExternalLink } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import { formatPrice } from "../formatPrice";
@@ -104,9 +104,8 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
               {formatPrice(displayPrice, displayCurrency)}
             </div>
             {shipping_price != null && (
-              <span className="inline-flex items-center gap-0.5 text-[10px] sm:text-[11px] text-slate-400 dark:text-zinc-500 whitespace-nowrap">
-                <Mail size={10} />
-                {shipping_price === 0 ? "Free" : `+${formatPrice(shipping_price, "AUD")}`}
+              <span className="text-[10px] sm:text-[11px] text-slate-400 dark:text-zinc-500 whitespace-nowrap">
+                +${shipping_price.toFixed(2)}
               </span>
             )}
           </div>
