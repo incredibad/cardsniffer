@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.36.9] - 2026-07-04
+
+### Changed
+- Rebuilt grid view's foil ribbon using the standard "CSS corner ribbon" recipe instead of a bespoke approach: one rotated element with a fixed height (so 1-line vs 2-line text can't throw off centering) and flexbox-centered content, sitting directly in the card image's existing clip boundary with no extra wrapper, shadow, or precise diagonal math needed
+
 ## [0.36.8] - 2026-07-04
 
 ### Changed
