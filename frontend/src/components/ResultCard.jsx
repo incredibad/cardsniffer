@@ -29,7 +29,12 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
 
   return (
     <div className="card-frame flex flex-col overflow-hidden">
-      <div className="relative aspect-[5/7] rounded-2xl overflow-hidden bg-slate-100 dark:bg-zinc-800">
+      <a
+        href={product_url}
+        target="_blank"
+        rel="noreferrer"
+        className="relative block aspect-[5/7] rounded-2xl overflow-hidden bg-slate-100 dark:bg-zinc-800"
+      >
         {image_url ? (
           <img
             src={image_url}
@@ -58,7 +63,7 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
           </div>
         )}
         */}
-      </div>
+      </a>
 
       <div className="p-2 sm:p-3.5 flex flex-col gap-1.5 sm:gap-2.5 flex-1 rounded-2xl overflow-hidden bg-white dark:bg-zinc-900">
         <div>

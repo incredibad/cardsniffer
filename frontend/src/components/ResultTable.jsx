@@ -3,7 +3,16 @@ import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import { formatPrice } from "../formatPrice";
 import TruncatedTooltip from "./TruncatedTooltip";
-import ImageHoverPreview from "./ImageHoverPreview";
+import FoilOverlay from "./FoilOverlay";
+
+function Thumbnail({ src, alt, href, foil, className }) {
+  return (
+    <a href={href} target="_blank" rel="noreferrer" className={`relative block ${className}`}>
+      {src && <img src={src} alt={alt} loading="lazy" className="w-full h-full object-cover" />}
+      {foil && <FoilOverlay />}
+    </a>
+  );
+}
 
 // Two deliberate layouts rather than one flex-wrap row reflowing organically —
 // letting rows wrap based on available width made wrap points inconsistent
@@ -75,11 +84,12 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
                 name/set (full width), condition + store (right-aligned), then
                 price + qty + buy. */}
             <div className="flex sm:hidden gap-3 p-3">
-              <ImageHoverPreview
+              <Thumbnail
                 src={r.image_url}
                 alt={r.card_name}
+                href={r.product_url}
                 foil={r.foil && storeMeta.foilOverlay}
-                className="w-20 aspect-[5/7] rounded-lg overflow-hidden bg-slate-100 dark:bg-zinc-800 shrink-0 object-cover"
+                className="w-20 aspect-[5/7] rounded-lg overflow-hidden bg-slate-100 dark:bg-zinc-800 shrink-0"
               />
               <div className="flex-1 min-w-0 flex flex-col gap-1.5">
                 <div className="min-w-0">
@@ -117,11 +127,12 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
 
             {/* Desktop: single-line table-like row */}
             <div className="hidden sm:flex items-center gap-3 p-3">
-              <ImageHoverPreview
+              <Thumbnail
                 src={r.image_url}
                 alt={r.card_name}
+                href={r.product_url}
                 foil={r.foil && storeMeta.foilOverlay}
-                className="w-10 aspect-[5/7] rounded-lg overflow-hidden bg-slate-100 dark:bg-zinc-800 shrink-0 object-cover"
+                className="w-10 aspect-[5/7] rounded-lg overflow-hidden bg-slate-100 dark:bg-zinc-800 shrink-0"
               />
               <div className="flex-1 min-w-0">
                 <TruncatedTooltip
