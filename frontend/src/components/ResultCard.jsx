@@ -43,20 +43,18 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
         )}
         {foil && storeMeta.foilOverlay && <FoilOverlay />}
         {foil && (
-          // No intermediate clip box — that nested overflow-hidden was the
-          // source of the visible seam/"clipping lines" (a hard edge where
-          // shadow-sm got abruptly cut off), and needed exact diagonal math
-          // to avoid gaps. Simpler and more robust: make the ribbon far
-          // bigger than any card could be and let the *image's own*
-          // rounded-2xl overflow-hidden (one boundary, already there) do the
-          // only clipping. top-6 right-6 + translate-x-1/2/-translate-y-1/2
-          // centers it on that point regardless of its own size, so 1-line
-          // vs 2-line wrapped text (different heights) both stay centered.
+          // Standard "CSS corner ribbon" recipe: one rotated element with a
+          // FIXED height (so 1-line vs 2-line text is no longer a variable
+          // that throws off centering), flexbox-centered content, sitting
+          // directly in the image's own existing overflow-hidden — no nested
+          // clip box, no shadow, nothing else to cause seams or need precise
+          // diagonal math. Width is deliberately much wider than any card,
+          // so it always bleeds fully past the edges regardless of card size.
           <div
-            className="absolute top-6 right-6 translate-x-1/2 -translate-y-1/2 w-40 sm:w-56 rotate-45 text-center pointer-events-none"
+            className="absolute top-4 -right-10 sm:top-5 sm:-right-12 w-40 sm:w-48 h-6 sm:h-7 rotate-45 flex items-center justify-center bg-violet-600 text-white pointer-events-none"
             title={foil_treatment || "Foil"}
           >
-            <span className="block w-full break-words bg-violet-600 text-white font-semibold uppercase text-[7px] sm:text-[9px] leading-tight py-1">
+            <span className="line-clamp-2 text-center text-[8px] sm:text-[9px] font-semibold uppercase leading-tight px-1">
               {foil_treatment || "Foil"}
             </span>
           </div>
