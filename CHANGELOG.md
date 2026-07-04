@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.31.2] - 2026-07-04
+
+### Changed
+- Mobile grid view back to 2 columns, with the card's padding, gaps, and font sizes (name, set, Qty, price, Buy button) all reduced on mobile to fit that width comfortably — sm: breakpoint and up keep the previous, larger sizing
+
 ## [0.31.1] - 2026-07-04
 
 ### Changed

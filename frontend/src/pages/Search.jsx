@@ -566,7 +566,7 @@ export default function Search() {
           })()}
 
           {viewMode === "grid" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-5">
               {sortedResults.map((r, i) => (
                 <ResultCard key={`${r.product_url}-${r.condition}-${i}`} result={r} pricingMode={pricingMode} />
               ))}
