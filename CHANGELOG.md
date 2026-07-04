@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.40.0] - 2026-07-04
+
+### Added
+- "All"/"None" buttons in the results filter bar's Store, Condition, and Show dropdowns (`FilterDropdown.jsx`), so bulk-toggling a filter no longer takes one click per option
+- The "Show" dropdown's toggles (art cards, foreign cards, exact match only) are now built from a data-driven list instead of three hardcoded checkboxes, so a future toggle only needs one new list entry and is automatically covered by All/None
+
 ## [0.39.1] - 2026-07-04
 
 ### Added

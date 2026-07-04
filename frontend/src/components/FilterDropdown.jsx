@@ -6,7 +6,14 @@ import { ChevronDown } from "lucide-react";
 // where its ancestor doesn't clip with overflow-hidden. Pass className="flex-1"
 // to stretch it to fill a flex row (mobile); left as an ordinary content-sized
 // flex item otherwise (desktop).
-export default function FilterDropdown({ label, badgeCount, children, className = "" }) {
+export default function FilterDropdown({
+  label,
+  badgeCount,
+  children,
+  className = "",
+  onSelectAll,
+  onSelectNone,
+}) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
 
@@ -37,6 +44,24 @@ export default function FilterDropdown({ label, badgeCount, children, className 
       </button>
       {open && (
         <div className="card-frame absolute top-full left-0 mt-1 z-20 min-w-[10rem] max-h-64 overflow-y-auto py-1.5 px-2">
+          {(onSelectAll || onSelectNone) && (
+            <div className="flex items-center justify-between gap-2 pb-1.5 mb-1.5 border-b border-slate-200 dark:border-zinc-800 text-xs font-medium">
+              <button
+                type="button"
+                onClick={onSelectAll}
+                className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+              >
+                All
+              </button>
+              <button
+                type="button"
+                onClick={onSelectNone}
+                className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+              >
+                None
+              </button>
+            </div>
+          )}
           {children}
         </div>
       )}
