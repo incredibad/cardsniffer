@@ -58,43 +58,43 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
             key={`${r.product_url}-${r.condition}-${i}`}
             className="hover:bg-slate-50 dark:hover:bg-zinc-800/40 transition-colors"
           >
-            {/* Mobile: name/set on their own full-width line, then image + condition +
-                price/store/buy tightly grouped in a single row underneath — everything
-                vertically centered against the image's own fixed aspect-ratio height,
-                nothing stretched to fill artificial space. */}
-            <div className="flex sm:hidden flex-col gap-2 p-3">
-              <div className="min-w-0">
-                <div className="font-semibold text-slate-900 dark:text-zinc-50 leading-snug truncate">
-                  {r.card_name}
-                </div>
-                {r.set_name && (
-                  <div className="text-xs text-slate-500 dark:text-zinc-500 truncate">
-                    {r.set_name}
-                    {r.collector_number && ` · #${r.collector_number}`}
-                  </div>
+            {/* Mobile: column A is the image alone; column B is 3 stacked rows —
+                name/set (full width), condition+store, then price+buy. */}
+            <div className="flex sm:hidden gap-3 p-3">
+              <div className="w-20 aspect-[5/7] rounded-lg overflow-hidden bg-slate-100 dark:bg-zinc-800 shrink-0">
+                {r.image_url && (
+                  <img
+                    src={r.image_url}
+                    alt={r.card_name}
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                  />
                 )}
               </div>
-              <div className="flex items-center gap-3">
-                <div className="w-16 aspect-[5/7] rounded-lg overflow-hidden bg-slate-100 dark:bg-zinc-800 shrink-0">
-                  {r.image_url && (
-                    <img
-                      src={r.image_url}
-                      alt={r.card_name}
-                      loading="lazy"
-                      className="w-full h-full object-cover"
-                    />
+              <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                <div className="min-w-0">
+                  <div className="font-semibold text-slate-900 dark:text-zinc-50 leading-snug truncate">
+                    {r.card_name}
+                  </div>
+                  {r.set_name && (
+                    <div className="text-xs text-slate-500 dark:text-zinc-500 truncate">
+                      {r.set_name}
+                      {r.collector_number && ` · #${r.collector_number}`}
+                    </div>
                   )}
                 </div>
-                <div className="flex-1 min-w-0">{conditionChips}</div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="text-right">
-                    <div className="text-slate-900 dark:text-zinc-50 font-semibold leading-tight">
-                      {formatPrice(displayPrice, displayCurrency)}
-                    </div>
-                    <div className="text-xs text-slate-500 dark:text-zinc-500 flex items-center justify-end gap-1.5 mt-0.5">
-                      {storeBadge}
-                      {r.quantity_available != null && <span>{r.quantity_available} in stock</span>}
-                    </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {conditionChips}
+                  {storeBadge}
+                  {r.quantity_available != null && (
+                    <span className="text-xs text-slate-500 dark:text-zinc-500">
+                      {r.quantity_available} in stock
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-slate-900 dark:text-zinc-50 font-semibold">
+                    {formatPrice(displayPrice, displayCurrency)}
                   </div>
                   {buyButton}
                 </div>
