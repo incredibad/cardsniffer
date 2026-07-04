@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.52.2] - 2026-07-05
+
+### Fixed
+- Card Kingdom: cards with no real foil printing (e.g. Sliver Queen — Stronghold predates Magic's foil program entirely) were false-flagging as foil, because CK's "Foils" tab search sometimes returns the exact same product page as the nonfoil tab rather than a distinct SKU. Deduplicated by `(product_url, condition)` — CK's own stable per-product identifier — rather than trusting which tab a result came from unconditionally
+
 ## [0.52.1] - 2026-07-05
 
 ### Fixed

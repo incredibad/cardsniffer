@@ -86,12 +86,29 @@ class CardKingdomScraper(BaseScraper):
         # first "(") is always the actual name to match against.
         needle = _normalize(query)
 
-        results: list[SearchResult] = []
+        nonfoil_results: list[SearchResult] = []
+        foil_results: list[SearchResult] = []
         for tab, response in zip(_TABS, responses):
             soup = BeautifulSoup(response.text, "lxml")
             force_foil = tab == "mtg_foil"
+            target = foil_results if force_foil else nonfoil_results
             for block in soup.select("div.productItemWrapper.productCardWrapper"):
-                results.extend(self._parse_product_block(block, force_foil=force_foil))
+                target.extend(self._parse_product_block(block, force_foil=force_foil))
+
+        # CK's Foils-tab search sometimes returns a product that has no
+        # actual foil printing at all — confirmed live for Sliver Queen
+        # (Stronghold predates Magic's foil program entirely, Feb 1998 vs
+        # foils starting with Urza's Legacy in 1999): the exact same product
+        # page (/mtg/stronghold/sliver-queen) shows up under both tabs,
+        # rather than there being a distinct foil SKU. product_url is CK's
+        # own stable per-product identifier, so (product_url, condition) is
+        # a structural "is this literally the same listing" check — unlike
+        # comparing prices, it makes no assumption about foil/nonfoil always
+        # being priced differently (they might legitimately coincide).
+        nonfoil_keys = {(r.product_url, r.condition) for r in nonfoil_results}
+        foil_results = [r for r in foil_results if (r.product_url, r.condition) not in nonfoil_keys]
+
+        results = nonfoil_results + foil_results
         return [r for r in results if needle in _normalize(r.card_name)]
 
     async def _fetch_tab(self, query: str, tab: str):
