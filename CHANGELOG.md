@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.36.2] - 2026-07-04
+
+### Fixed
+- Grid view's foil ribbon was truncating longer treatment names (e.g. "Chocobo Track Foil") to a single line — now wraps to two lines, with the font shrinking a size further for names over 12 characters so they still fit legibly
+
 ## [0.36.1] - 2026-07-04
 
 ### Changed
