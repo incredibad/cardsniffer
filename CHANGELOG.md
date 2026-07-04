@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.34.2] - 2026-07-04
+
+### Fixed
+- Card Kingdom's generic "foil" text check scanned the *whole* title, including the card name — there's a real card literally named "Foil" (Unhinged) whose plain nonfoil printing would've been flagged as foil purely from its own name. Both the generic check and the known-treatment match now only look at the "(Descriptor)" portion after the name
+
 ## [0.34.1] - 2026-07-04
 
 ### Fixed

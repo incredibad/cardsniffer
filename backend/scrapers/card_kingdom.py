@@ -88,7 +88,14 @@ class CardKingdomScraper(BaseScraper):
             return []
 
         full_title = title_el.get_text(strip=True)
-        card_name = full_title.split(" (", 1)[0].strip()
+        name_part, _, descriptor_part = full_title.partition(" (")
+        card_name = name_part.strip()
+        # There's a real card named "Foil" (Unhinged) — checking the *whole*
+        # title for the word "foil" would flag its plain nonfoil printing
+        # as foil just because of its own name. Scoping to the "(...)"
+        # descriptor after the name sidesteps that; CK's titles consistently
+        # follow "Name (Descriptor)" whenever there's anything to say.
+        descriptor_text = f"({descriptor_part}" if descriptor_part else ""
 
         set_el = block.select_one(".productDetailSet > a")
         set_name = None
@@ -101,15 +108,15 @@ class CardKingdomScraper(BaseScraper):
         if collector_el:
             collector_number = collector_el.get_text(strip=True).replace("Collector #:", "").strip() or None
 
-        # "foil" in full_title.lower() alone false-positives on "(Non-Foil)"/
+        # "foil" in title_lower alone false-positives on "(Non-Foil)"/
         # "(Nonfoil)" titles (e.g. Secret Lair prints that spell out the
         # finish) — "foil" is literally a substring of "non-foil". Strip
         # those out first so only a genuine foil mention counts.
-        title_lower = full_title.lower()
+        title_lower = descriptor_text.lower()
         for non_foil_phrase in ("non-foil", "non foil", "nonfoil"):
             title_lower = title_lower.replace(non_foil_phrase, "")
 
-        foil_treatment = extract_foil_treatment(full_title)
+        foil_treatment = extract_foil_treatment(descriptor_text)
 
         foil = force_foil or foil_treatment is not None or "foil" in title_lower
 
