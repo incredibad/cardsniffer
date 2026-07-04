@@ -447,12 +447,6 @@ export default function Search() {
         </div>
       )}
 
-      {status === "success" && results.length === 0 && (
-        <div className="text-center text-slate-500 dark:text-zinc-500 py-12">
-          No listings found for &ldquo;{lastQuery}&rdquo;.
-        </div>
-      )}
-
       {(() => {
             // Filters/sort/view are always available — even before a search
             // is run or while one's in flight — so they can be set up ahead
@@ -694,6 +688,12 @@ export default function Search() {
               </>
             );
           })()}
+
+      {status === "success" && results.length === 0 && (
+        <div className="text-center text-slate-500 dark:text-zinc-500 py-12">
+          No listings found for &ldquo;{lastQuery}&rdquo;.
+        </div>
+      )}
 
       {results.length > 0 && (
         filteredResults.length === 0 ? (

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.50.3] - 2026-07-05
+
+### Fixed
+- "No listings found" was rendering above the always-visible filter bar instead of below it, inconsistent with the "hidden by filters" message which correctly sits below. Moved it to match
+
 ## [0.50.2] - 2026-07-05
 
 ### Changed
