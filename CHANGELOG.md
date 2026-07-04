@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.34.3] - 2026-07-04
+
+### Fixed
+- Corrected a comment in `card_kingdom.py` misidentifying "Foil" as an Unhinged joke card — it's a real Prophecy card with multiple reprints
+
 ## [0.34.2] - 2026-07-04
 
 ### Fixed
