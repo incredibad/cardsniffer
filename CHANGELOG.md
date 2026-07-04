@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.36.1] - 2026-07-04
+
+### Changed
+- Grid view's foil badge is now an actual diagonal corner ribbon (rotated 45°, cutting across the top-right corner) rather than a rounded pill sitting near the corner
+
 ## [0.36.0] - 2026-07-04
 
 ### Changed
