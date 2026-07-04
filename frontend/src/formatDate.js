@@ -11,7 +11,6 @@ export function formatDate(isoString) {
 const MINUTE_MS = 60 * 1000;
 const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;
-const TWO_WEEKS_MS = 14 * DAY_MS;
 
 function relativeAgo(elapsedMs) {
   if (elapsedMs < HOUR_MS) {
@@ -39,12 +38,12 @@ function formatShortDateTime(isoString) {
 }
 
 // "4 Jul, 12:48 (4 hours ago)" — minutes under an hour, hours under 48h, then
-// days. Beyond 2 weeks the "(... ago)" suffix is dropped entirely (just the
-// absolute date/time), since relative time stops being useful that far out.
+// days, incrementing indefinitely (most eBay listings surfaced here are only
+// ever a few weeks old at most, so there's no point capping it).
 export function formatListedAt(isoString) {
   const date = new Date(isoString);
   const elapsedMs = Date.now() - date.getTime();
   const absolute = formatShortDateTime(isoString);
-  if (elapsedMs < 0 || elapsedMs > TWO_WEEKS_MS) return absolute;
+  if (elapsedMs < 0) return absolute;
   return `${absolute} (${relativeAgo(elapsedMs)})`;
 }

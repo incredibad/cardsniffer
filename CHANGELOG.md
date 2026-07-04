@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.51.2] - 2026-07-05
+
+### Changed
+- eBay listing date's "(... ago)" suffix no longer drops off after 2 weeks — it now just keeps incrementing in days indefinitely, since results here are practically never more than a few weeks old anyway
+
 ## [0.51.1] - 2026-07-05
 
 ### Changed
