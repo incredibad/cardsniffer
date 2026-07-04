@@ -37,10 +37,14 @@ _PRICE_RE = re.compile(r"([\d,]+\.\d{2})")
 _RARITY_SUFFIX_RE = re.compile(r"\s*\([A-Z]\)\s*$")
 _NON_CONDITION_CLASSES = {"itemAddToCart", "active", "disabled", ""}
 # Title's parenthetical treatment group is often "COLLECTOR# - Treatment"
-# (e.g. "(1494 - Galaxy Foil)") rather than just the treatment on its own —
-# strip the number prefix so it doesn't get mistaken for (or tacked onto)
-# the treatment name.
-_LEADING_COLLECTOR_NUMBER_RE = re.compile(r"^\d+\s*-\s*")
+# (e.g. "(1494 - Galaxy Foil)") rather than just the treatment on its own,
+# and the number can itself have its own descriptor before it (e.g.
+# "(Borderless 49 - Textured Foil)") — strip everything through the first
+# "<digits> - " so what's left is just the actual treatment, not "Borderless
+# 49 - Textured Foil" as one lump. .*? (non-greedy) means this only strips
+# when a genuine "number -" pattern exists at all; a treatment with no
+# number in it ("Codex Bundle Promo Foil") is left untouched.
+_LEADING_COLLECTOR_NUMBER_RE = re.compile(r"^.*?\d+\s*-\s*")
 
 
 def _parse_price(text: str) -> float | None:

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.33.1] - 2026-07-04
+
+### Fixed
+- Card Kingdom's collector number can have its own descriptor before it in the title (e.g. "(Showcase 437 - Fracture Foil)", "(Borderless 49 - Textured Foil)"), which the previous fix didn't strip since it only matched a number at the very start. Now strips everything through the first "number - " wherever it appears, confirmed against several real examples (Solitude, Twinflame Tyrant, Niv-Mizzet Supreme)
+- MTGMate's foil_treatment no longer assumes only "Etched" exists beyond plain Nonfoil/Foil — any other finish value is now treated as a specific treatment name generally (confirmed real via "Mana Foil" turning up on Card Kingdom too)
+
 ## [0.33.0] - 2026-07-04
 
 ### Added

@@ -31,11 +31,27 @@ STORE_URL = "https://www.mtgmate.com.au"
 # uuid/variant/name/price/rarity fields are all just the same lookup key,
 # not literal values — the actual name/price/image/link/condition live in
 # `uuid`, a dict keyed by that same id. `condition` has only ever been seen
-# as "Regular" (mapped to NM below); `finish` is Nonfoil/Foil/Etched, with
-# Etched treated as foil like the other scrapers' etched/surge-foil variants.
+# as "Regular" (mapped to NM below). `finish` is Nonfoil/Foil for the plain
+# cases, but MTGMate carries other named treatments too (seen: "Etched";
+# reported: "Mana Foil", not yet confirmed against a live in-stock listing
+# since testing would burn the 1000/month limit chasing it) — so any finish
+# beyond plain Nonfoil/Foil is treated as a specific treatment name rather
+# than assuming an exhaustive fixed set (see _foil_treatment below).
 # `price` is in AUD cents. No pagination cap observed in this HTML mode
 # (unlike the tool's earlier markdown mode, which capped at 20 rows/page).
 _CONDITIONS = {"Regular": "NM"}
+
+
+def _foil_treatment(finish: str) -> str | None:
+    """finish beyond plain Nonfoil/Foil names a specific treatment. Used
+    verbatim if it already reads as one ("Mana Foil"); "Foil" is appended
+    for a bare treatment word that doesn't already say it ("Etched" ->
+    "Foil Etched", matching WotC's own naming for that treatment)."""
+    if finish in ("", "Nonfoil", "Foil"):
+        return None
+    if "foil" in finish.lower():
+        return finish
+    return f"Foil {finish}"
 
 
 def _extract_props(html_text: str) -> dict:
@@ -86,9 +102,7 @@ class MtgMateScraper(BaseScraper):
         quantity = int(card.get("quantity") or 0)
         price_cents = detail.get("price") or 0
 
-        # "Etched" is the only one of the three finish values that names a
-        # specific treatment rather than a plain foil/nonfoil marker.
-        foil_treatment = "Foil Etched" if detail.get("finish") == "Etched" else None
+        foil_treatment = _foil_treatment(detail.get("finish") or "")
 
         return SearchResult(
             card_name=detail.get("name", ""),
