@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.31.1] - 2026-07-04
+
+### Changed
+- Mobile grid view now shows 1 column instead of 2 — the cards were too cramped side-by-side on narrow screens
+
 ## [0.31.0] - 2026-07-04
 
 ### Changed
