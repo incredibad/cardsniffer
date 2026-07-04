@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented here.
 
+## [0.28.0] - 2026-07-04
+
+### Added
+- Results count now reads "7/14 results" when filters are actively hiding some of them, instead of just the filtered count with no indication anything's hidden
+- Each store's metadata now also records its home country and currency (matching what its scraper actually returns), alongside the existing code/colour
+
+### Fixed
+- USD prices ("Original" pricing mode) rendered with a bare "$", identical to AUD — Intl's en-US locale only disambiguates non-home currencies (AUD shows "A$", JPY shows "¥", ...) and silently leaves USD alone. Now shown as "U$" explicitly so it can't be mistaken for AUD
+
 ## [0.27.0] - 2026-07-04
 
 ### Added

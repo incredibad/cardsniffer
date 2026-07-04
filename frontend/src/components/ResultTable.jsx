@@ -1,12 +1,9 @@
 import { Sparkles, ExternalLink } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
+import { formatPrice } from "../formatPrice";
 import TruncatedTooltip from "./TruncatedTooltip";
 import ImageHoverPreview from "./ImageHoverPreview";
-
-function formatPrice(price, currency) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(price);
-}
 
 // Two deliberate layouts rather than one flex-wrap row reflowing organically —
 // letting rows wrap based on available width made wrap points inconsistent
