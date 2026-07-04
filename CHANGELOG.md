@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.14.2] - 2026-07-04
+
+### Fixed
+- Grid card corners could render square instead of rounded on some cards — the outer card's `overflow-hidden` clip wasn't reliably rounding the image and content areas at the exact corner pixels in every browser, so the matching radius is now also set directly on the image and content elements themselves
+
 ## [0.14.1] - 2026-07-04
 
 ### Fixed
