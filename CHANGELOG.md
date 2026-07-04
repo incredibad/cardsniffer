@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented here.
 
+## [0.16.0] - 2026-07-04
+
+### Added
+- Search Options: "Show art cards" and "Show foreign cards" toggles above results, both off by default and remembered per-browser. Every search still fetches everything from every store — the toggles just show/hide already-fetched results instantly, no re-search needed when you flip them
+
+### Changed
+- Backend no longer discards art-only or foreign-language listings before they reach the app — Hareruya (and, for foreign, MTGMintCard's language badge) now tag them instead, and the "Art Series" set-name check from 0.15.0 tags rather than drops. This broadens "foreign" on Hareruya from Japanese-only to any non-English printing, since the new toggle is framed as an English/foreign switch
+
+### Fixed
+- MTGMintCard listings in a language other than English were previously shown unmarked (no filtering existed for that store at all) — now flagged via its language badge like everything else
+
 ## [0.15.0] - 2026-07-04
 
 ### Added

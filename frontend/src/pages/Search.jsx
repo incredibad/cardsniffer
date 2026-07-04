@@ -5,6 +5,8 @@ import ResultCard from "../components/ResultCard";
 import ResultTable from "../components/ResultTable";
 
 const SORT_ORDER_KEY = "cardsniffer.sortOrder";
+const SHOW_ART_KEY = "cardsniffer.showArtCards";
+const SHOW_FOREIGN_KEY = "cardsniffer.showForeignCards";
 const SUGGEST_DEBOUNCE_MS = 150;
 const SUGGEST_MIN_LENGTH = 2;
 
@@ -20,6 +22,12 @@ export default function Search() {
   const [sortOrder, setSortOrder] = useState(
     () => localStorage.getItem(SORT_ORDER_KEY) || "asc"
   ); // asc | desc
+  const [showArtCards, setShowArtCards] = useState(
+    () => localStorage.getItem(SHOW_ART_KEY) === "true"
+  );
+  const [showForeignCards, setShowForeignCards] = useState(
+    () => localStorage.getItem(SHOW_FOREIGN_KEY) === "true"
+  );
 
   const [suggestions, setSuggestions] = useState([]);
   const [suggestOpen, setSuggestOpen] = useState(false);
@@ -32,11 +40,27 @@ export default function Search() {
     localStorage.setItem(SORT_ORDER_KEY, order);
   }
 
+  function updateShowArtCards(value) {
+    setShowArtCards(value);
+    localStorage.setItem(SHOW_ART_KEY, String(value));
+  }
+
+  function updateShowForeignCards(value) {
+    setShowForeignCards(value);
+    localStorage.setItem(SHOW_FOREIGN_KEY, String(value));
+  }
+
+  const filteredResults = useMemo(() => {
+    return results.filter((r) => (showArtCards || !r.is_art) && (showForeignCards || !r.foreign));
+  }, [results, showArtCards, showForeignCards]);
+
   const sortedResults = useMemo(() => {
-    const sorted = [...results];
+    const sorted = [...filteredResults];
     sorted.sort((a, b) => (sortOrder === "asc" ? a.price - b.price : b.price - a.price));
     return sorted;
-  }, [results, sortOrder]);
+  }, [filteredResults, sortOrder]);
+
+  const hiddenCount = results.length - filteredResults.length;
 
   async function performSearch(q) {
     setStatus("loading");
@@ -168,6 +192,28 @@ export default function Search() {
         </button>
       </form>
 
+      <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-zinc-400">
+        <span className="section-header">Search Options</span>
+        <label className="inline-flex items-center gap-1.5 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showArtCards}
+            onChange={(e) => updateShowArtCards(e.target.checked)}
+            className="accent-indigo-600 w-4 h-4"
+          />
+          Show art cards
+        </label>
+        <label className="inline-flex items-center gap-1.5 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showForeignCards}
+            onChange={(e) => updateShowForeignCards(e.target.checked)}
+            className="accent-indigo-600 w-4 h-4"
+          />
+          Show foreign cards
+        </label>
+      </div>
+
       {status === "error" && (
         <div className="card-frame border-red-300 dark:border-red-500/40 px-4 py-3 text-red-600 dark:text-red-300 text-sm">
           {errorMessage}
@@ -192,17 +238,25 @@ export default function Search() {
         </div>
       )}
 
-      {status === "success" && results.length === 0 && (
+      {status === "success" && filteredResults.length === 0 && (
         <div className="text-center text-slate-500 dark:text-zinc-500 py-12">
-          No listings found for &ldquo;{lastQuery}&rdquo;.
+          {results.length === 0 ? (
+            <>No listings found for &ldquo;{lastQuery}&rdquo;.</>
+          ) : (
+            <>
+              All {results.length} result{results.length === 1 ? "" : "s"} for &ldquo;{lastQuery}&rdquo; are
+              hidden by Search Options — try enabling "Show art cards" or "Show foreign cards" above.
+            </>
+          )}
         </div>
       )}
 
-      {results.length > 0 && (
+      {filteredResults.length > 0 && (
         <>
           <div className="flex items-center justify-between">
             <p className="text-sm text-slate-500 dark:text-zinc-500">
-              {results.length} result{results.length === 1 ? "" : "s"}
+              {filteredResults.length} result{filteredResults.length === 1 ? "" : "s"}
+              {hiddenCount > 0 && ` (${hiddenCount} hidden)`}
             </p>
             <div className="flex items-center gap-2">
               <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">

@@ -46,6 +46,16 @@ class SearchResult:
     image_url: Optional[str]
     product_url: str
     store_name: str
+    # Non-playable art-only print (e.g. Secret Lair/Art Series "cards" with no
+    # rules text). Most stores don't carry these; scrapers that do should set
+    # this instead of dropping the row, so the search router's "show art
+    # cards" option can decide whether to include it.
+    is_art: bool = False
+    # Non-English printing. Most stores are English-only and never set this;
+    # scrapers for stores that carry other languages should set it so the
+    # search router's "show foreign cards" option can decide whether to
+    # include it.
+    foreign: bool = False
 
 
 class BaseScraper(ABC):

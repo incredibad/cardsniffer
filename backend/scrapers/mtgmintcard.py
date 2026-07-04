@@ -26,7 +26,9 @@ SEARCH_URL = f"{BASE_URL}/mtg/singles/search"
 # previous version of this scraper used it as one because of a selector
 # bug: the badge sits right next to a same-classed language badge
 # (span.label-success, "ENG"/"JP") and an unqualified `.lv-spec` selector
-# matched that one first instead.
+# matched that one first instead. That same language badge is also the
+# signal for non-English listings — flagged via SearchResult.foreign rather
+# than dropped, so the search router's "show foreign cards" option decides.
 
 _PRICE_RE = re.compile(r"([\d,]+\.\d{2})")
 _BRACKET_RE = re.compile(r"\(([^()]*)\)")
@@ -69,6 +71,9 @@ class MtgMintCardScraper(BaseScraper):
 
         finish_badge = row.select_one(".label-primary.lv-spec, .label-primary.lv-spec-pre")
         foil = "foil" in finish_badge.get_text(strip=True).lower() if finish_badge else False
+
+        lang_badge = row.select_one(".label-success")
+        foreign = bool(lang_badge) and lang_badge.get_text(strip=True).upper() not in ("", "ENG")
 
         set_el = row.select_one('td[align="center"] img')
         edition = set_el.get("title", "").strip() or set_el.get("alt", "").strip() if set_el else None
@@ -113,4 +118,5 @@ class MtgMintCardScraper(BaseScraper):
             image_url=image_url,
             product_url=product_url,
             store_name=self.store_name,
+            foreign=foreign,
         )

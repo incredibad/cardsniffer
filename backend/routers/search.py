@@ -16,15 +16,18 @@ router = APIRouter(prefix="/search", tags=["search"])
 _GST_RATE = 1.10
 _GST_STORE_NAMES = {cls.store_name for cls in SCRAPERS.values() if cls.applies_gst}
 
-# "Art Series" cards are non-playable collector items (just card-sized art,
-# no rules text) that some stores list as regular search hits — filtered out
-# regardless of store, since the set field is where this consistently shows up.
-_EXCLUDED_SET_SUBSTRINGS = ("art series",)
+# "Art Series" cards are non-playable collector items (just card-sized art, no
+# rules text). Some stores list these as regular search hits without a
+# scraper-level way to detect it, but the set field reliably names it — so
+# results are tagged (not dropped) here regardless of store or the scraper's
+# own is_art flag, and the frontend's "show art cards" toggle decides whether
+# to display them.
+_ART_SET_SUBSTRINGS = ("art series",)
 
 
-def _is_excluded(result) -> bool:
+def _is_art(result) -> bool:
     set_name = (result.set_name or "").lower()
-    return any(substr in set_name for substr in _EXCLUDED_SET_SUBSTRINGS)
+    return result.is_art or any(substr in set_name for substr in _ART_SET_SUBSTRINGS)
 
 
 @router.get("")
@@ -47,10 +50,7 @@ async def search(q: str = Query(..., min_length=1), db: Session = Depends(get_db
             return []
 
     per_store = await asyncio.gather(*(run_one(k) for k in enabled_keys))
-    in_stock = [
-        r for store_results in per_store for r in store_results
-        if r.in_stock and not _is_excluded(r)
-    ]
+    in_stock = [r for store_results in per_store for r in store_results if r.in_stock]
 
     currencies = {r.currency for r in in_stock}
     rates = dict(zip(currencies, await asyncio.gather(*(get_rate_to_aud(c) for c in currencies))))
@@ -70,6 +70,7 @@ async def search(q: str = Query(..., min_length=1), db: Session = Depends(get_db
             d["currency"] = "AUD"
         if r.store_name in _GST_STORE_NAMES:
             d["price"] = round(d["price"] * _GST_RATE, 2)
+        d["is_art"] = _is_art(r)
         results.append(d)
 
     db.add(SearchLog(query=q, result_count=len(results)))
