@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.19.1] - 2026-07-04
+
+### Fixed
+- Autocomplete suggestions dropdown was being clipped by the search bar's own container — the `overflow-hidden` added to round the Search Options bar's tinted background was also cutting off the dropdown, since it's absolutely positioned inside that same container. Removed the outer `overflow-hidden` and rounded the Search Options header/content directly instead (the same fix already used for card corners a few versions back)
+
 ## [0.19.0] - 2026-07-04
 
 ### Added
