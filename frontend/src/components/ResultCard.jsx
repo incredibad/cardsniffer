@@ -48,7 +48,7 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
             title={foil_treatment || "Foil"}
           >
             <span
-              className={`block bg-violet-600 text-white font-semibold uppercase tracking-wide leading-tight py-1.5 shadow-sm ${
+              className={`block bg-violet-600 text-white font-semibold uppercase leading-tight py-1.5 shadow-sm ${
                 (foil_treatment || "").length > 12 ? "text-[7px]" : "text-[9px]"
               }`}
             >

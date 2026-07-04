@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.36.3] - 2026-07-04
+
+### Fixed
+- Grid view's foil ribbon text looked visually off-center — `tracking-wide` (letter-spacing) adds space after the last character too, which biases centered text left. Removed it
+
 ## [0.36.2] - 2026-07-04
 
 ### Fixed
