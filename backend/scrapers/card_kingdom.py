@@ -90,11 +90,12 @@ class CardKingdomScraper(BaseScraper):
         full_title = title_el.get_text(strip=True)
         name_part, _, descriptor_part = full_title.partition(" (")
         card_name = name_part.strip()
-        # There's a real card named "Foil" (Unhinged) — checking the *whole*
-        # title for the word "foil" would flag its plain nonfoil printing
-        # as foil just because of its own name. Scoping to the "(...)"
-        # descriptor after the name sidesteps that; CK's titles consistently
-        # follow "Name (Descriptor)" whenever there's anything to say.
+        # There's a real card literally named "Foil" (Prophecy, with several
+        # reprints) — checking the *whole* title for the word "foil" would
+        # flag its plain nonfoil printing as foil just because of its own
+        # name. Scoping to the "(...)" descriptor after the name sidesteps
+        # that; CK's titles consistently follow "Name (Descriptor)" whenever
+        # there's anything to say.
         descriptor_text = f"({descriptor_part}" if descriptor_part else ""
 
         set_el = block.select_one(".productDetailSet > a")
