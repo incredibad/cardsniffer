@@ -363,10 +363,11 @@ export default function Search() {
         </div>
       )}
 
-      {results.length > 0 && (
-        <>
-          {(() => {
-            const resultsCountEl = (
+      {(() => {
+            // Filters/sort/view are always available — even before a search
+            // is run or while one's in flight — so they can be set up ahead
+            // of time rather than only appearing once results exist.
+            const resultsCountEl = status === "success" && (
               <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-500 whitespace-nowrap">
                 {filteredResults.length === results.length
                   ? `${results.length} result${results.length === 1 ? "" : "s"}`
@@ -604,36 +605,36 @@ export default function Search() {
             );
           })()}
 
-          {filteredResults.length === 0 ? (
-            <div className="text-center text-slate-500 dark:text-zinc-500 py-12">
-              <p>
-                All {results.length} result{results.length === 1 ? "" : "s"} for &ldquo;{lastQuery}&rdquo; are
-                hidden by the filters above.
-              </p>
-              <button
-                onClick={() => {
-                  setBarHiddenStores(new Set());
-                  setBarHiddenConditions(new Set());
-                  setFoilFilter("all");
-                  updateShowArtCards(true);
-                  updateShowForeignCards(true);
-                  updateExactMatchOnly(false);
-                }}
-                className="mt-2 text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium"
-              >
-                Reset filters
-              </button>
-            </div>
-          ) : viewMode === "grid" ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-5">
-              {sortedResults.map((r, i) => (
-                <ResultCard key={`${r.product_url}-${r.condition}-${i}`} result={r} pricingMode={pricingMode} />
-              ))}
-            </div>
-          ) : (
-            <ResultTable results={sortedResults} pricingMode={pricingMode} />
-          )}
-        </>
+      {results.length > 0 && (
+        filteredResults.length === 0 ? (
+          <div className="text-center text-slate-500 dark:text-zinc-500 py-12">
+            <p>
+              All {results.length} result{results.length === 1 ? "" : "s"} for &ldquo;{lastQuery}&rdquo; are
+              hidden by the filters above.
+            </p>
+            <button
+              onClick={() => {
+                setBarHiddenStores(new Set());
+                setBarHiddenConditions(new Set());
+                setFoilFilter("all");
+                updateShowArtCards(true);
+                updateShowForeignCards(true);
+                updateExactMatchOnly(false);
+              }}
+              className="mt-2 text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium"
+            >
+              Reset filters
+            </button>
+          </div>
+        ) : viewMode === "grid" ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-5">
+            {sortedResults.map((r, i) => (
+              <ResultCard key={`${r.product_url}-${r.condition}-${i}`} result={r} pricingMode={pricingMode} />
+            ))}
+          </div>
+        ) : (
+          <ResultTable results={sortedResults} pricingMode={pricingMode} />
+        )
       )}
     </div>
   );
