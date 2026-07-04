@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.52.3] - 2026-07-05
+
+### Changed
+- Scroll-to-top on search is now instant instead of smooth-animated — the animation felt slow after scrolling through a long results page
+
 ## [0.52.2] - 2026-07-05
 
 ### Fixed
