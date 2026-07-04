@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.18.2] - 2026-07-04
+
+### Changed
+- Removed the "Search for a card" heading and description above the search box — the search bar is self-explanatory
+- Search Options: the checkbox/pricing row now has its own distinct tint from the header row above it, with even top/bottom padding instead of sitting flush against the header
+
 ## [0.18.1] - 2026-07-04
 
 ### Changed
