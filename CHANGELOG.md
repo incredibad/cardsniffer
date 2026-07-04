@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented here.
 
+## [0.19.0] - 2026-07-04
+
+### Added
+- Search input is focused automatically on page load, and blurred as soon as a search starts (closes the mobile keyboard immediately rather than waiting for results)
+
+### Changed
+- Table view no longer uses a rigid `<table>` — it's now a wrapping flex row per result, so on narrow screens the price/store/buy group drops to its own line below the card name instead of forcing the row off the right edge of the screen. Card art is a bit larger too, since portrait art has vertical room to work with once the row wraps
+- Removed the "(N hidden)" note from the results count — it read as an error/warning for something that's just the Search Options toggles doing their job
+
 ## [0.18.2] - 2026-07-04
 
 ### Changed
