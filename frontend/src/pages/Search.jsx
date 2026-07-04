@@ -222,7 +222,9 @@ export default function Search() {
     inputRef.current?.blur();
     // So triggering a search from the sticky bar while scrolled down lands
     // you back at the top to see results from the start, not mid-page.
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    // Instant rather than smooth — animating the scroll felt slow after a
+    // long results page.
+    window.scrollTo({ top: 0, behavior: "instant" });
     try {
       const data = await apiCall(q);
       setResults(data.results);
