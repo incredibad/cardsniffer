@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.44.0] - 2026-07-04
+
+### Changed
+- Card images now link to the same product URL as the Buy button, in both grid and table/list views
+- Table/list view's thumbnail: replaced the click/hover-to-zoom preview with the plain buy link (couldn't do both on one click) — `ImageHoverPreview.jsx` removed as now-unused
+
 ## [0.43.1] - 2026-07-04
 
 ### Fixed
