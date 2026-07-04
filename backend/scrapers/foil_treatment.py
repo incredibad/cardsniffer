@@ -1,23 +1,42 @@
-_GENERIC_FOIL_LABELS = {"foil", "foils", "non-foil", "non foil", "nonfoil"}
+# Maintained list of Magic foil treatment names, cross-referenced against
+# each store's raw title text. Chosen over generically parsing "whichever
+# parenthetical mentions foil" because titles vary too much store to store
+# (multiple parenthetical groups, frame/border descriptors glued on,
+# collector numbers mixed in) to parse reliably — see git history for the
+# false starts. The tradeoff: a treatment not in this list shows as a plain
+# "Foil" badge until someone spots it and it gets added here.
+_KNOWN_TREATMENTS = [
+    "Foil Etched",
+    "Surge Foil",
+    "Galaxy Foil",
+    "Textured Foil",
+    "Fracture Foil",
+    "Halo Foil",
+    "Dragonscale Foil",
+    "Chocobo Track Foil",
+    "Chocobo Foil",
+    "Mana Foil",
+    "Rainbow Foil",
+    "Confetti Foil",
+    "Gilded Foil",
+    "Oil Slick Raised Foil",
+    "Ripple Foil",
+    "Step-and-Compleat Foil",
+    "Serialized Foil",
+]
 
 
 def extract_foil_treatment(*texts: str | None) -> str | None:
-    """Given candidate treatment/parenthetical fragments from a title (e.g.
-    Card Kingdom's "(Foil Etched)", MTGMintCard's "(Surge Foil)"), returns
-    the first one that names a specific foil treatment — i.e. mentions
-    "foil" but is more specific than a plain "Foil"/"Non-Foil" marker.
-    Returns None when nothing more specific is found, so callers fall back
-    to a generic "Foil" badge.
+    """Cross-references title text (or fragments of it) against the known
+    treatment list above, returning the longest match found — longest so a
+    specific hit like "Chocobo Track Foil" wins over a shorter one it
+    contains ("Chocobo Foil") rather than whichever happens to come first.
     """
-    for text in texts:
-        if not text:
-            continue
-        cleaned = text.strip()
-        if cleaned.lower() in _GENERIC_FOIL_LABELS:
-            continue
-        if "foil" in cleaned.lower():
-            return cleaned
-    return None
+    combined = " ".join(t for t in texts if t).lower()
+    if not combined:
+        return None
+    matches = [name for name in _KNOWN_TREATMENTS if name.lower() in combined]
+    return max(matches, key=len) if matches else None
 
 
 def humanize_foil_tag(tag: str) -> str:

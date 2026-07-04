@@ -92,12 +92,15 @@ class GoodGamesScraper(BaseScraper):
         set_match = _SET_RE.search(desc_text)
         set_name = set_match.group(1).strip() if set_match else None
 
+        # A title can carry multiple parenthetical descriptors at once, e.g.
+        # "(Showcase) (Fracture Foil) (Japanese)" — the treatment can be in
+        # any position, not just the first, so every group is a candidate.
         card_name = _SET_BRACKET_RE.sub("", title)
-        treatment_match = _TREATMENT_RE.search(card_name)
-        foil_treatment = extract_foil_treatment(treatment_match.group(1)) if treatment_match else None
+        treatment_groups = _TREATMENT_RE.findall(card_name)
+        foil_treatment = extract_foil_treatment(title)
         card_name = _TREATMENT_RE.sub("", card_name).strip()
-        if set_name and treatment_match:
-            set_name = f"{set_name} — {treatment_match.group(1)}"
+        if set_name and treatment_groups:
+            set_name = " — ".join([set_name, *treatment_groups])
 
         results: list[SearchResult] = []
         for variant in variants:

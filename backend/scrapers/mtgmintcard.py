@@ -73,7 +73,7 @@ class MtgMintCardScraper(BaseScraper):
 
         finish_badge = row.select_one(".label-primary.lv-spec, .label-primary.lv-spec-pre")
         foil = "foil" in finish_badge.get_text(strip=True).lower() if finish_badge else False
-        foil_treatment = extract_foil_treatment(*bracket_texts) if foil else None
+        foil_treatment = extract_foil_treatment(full_title) if foil else None
 
         lang_badge = row.select_one(".label-success")
         foreign = bool(lang_badge) and lang_badge.get_text(strip=True).upper() not in ("", "ENG")
