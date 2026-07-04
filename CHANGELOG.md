@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented here.
 
+## [0.33.0] - 2026-07-04
+
+### Added
+- Specific foil treatments (e.g. "Foil Etched", "Galaxy Foil", "Surge Foil", "Dragonscale Foil") now show as the badge label in place of generic "Foil", wherever a store's own data names one. No hardcoded treatment list — each scraper derives it from whatever the store already exposes: title text fragments for Card Kingdom/MTGMintCard/Hareruya/GUF/Good Games TCG (shared `extract_foil_treatment` helper), Scryfall-style `promo_types`/`foil_type` fields for Card Stars (which turned out to mirror Scryfall's own schema), and MTGMate's 3-value `finish` field ("Etched" -> "Foil Etched", the one genuinely hardcoded case since that store exposes nothing more specific)
+
+### Fixed
+- Card Kingdom's title-parenthetical treatment text is actually "COLLECTOR# - Treatment" (e.g. "1494 - Galaxy Foil"), which the new extraction was initially capturing whole, including the collector number — stripped before use
+
 ## [0.32.1] - 2026-07-04
 
 ### Fixed

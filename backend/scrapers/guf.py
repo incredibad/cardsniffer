@@ -6,6 +6,7 @@ from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 
 from .base import BaseScraper, SearchResult
+from .foil_treatment import extract_foil_treatment
 
 BASE_URL = "https://guf.com.au"
 SEARCH_URL = f"{BASE_URL}/search"
@@ -117,6 +118,7 @@ class GufScraper(BaseScraper):
 
         card_name = _SET_BRACKET_RE.sub("", title)
         treatment_match = _TREATMENT_RE.search(card_name)
+        foil_treatment = extract_foil_treatment(treatment_match.group(1)) if treatment_match else None
         card_name = _TREATMENT_RE.sub("", card_name).strip()
         if set_name and treatment_match:
             set_name = f"{set_name} — {treatment_match.group(1)}"
@@ -145,6 +147,7 @@ class GufScraper(BaseScraper):
                 set_name=set_name,
                 collector_number=None,
                 foil=foil,
+                foil_treatment=foil_treatment if foil else None,
                 condition="NM",
                 price=round(float(price_cents) / 100, 2),
                 currency="AUD",

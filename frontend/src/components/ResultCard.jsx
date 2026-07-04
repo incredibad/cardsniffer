@@ -11,6 +11,7 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
     set_name,
     collector_number,
     foil,
+    foil_treatment,
     condition,
     price,
     currency,
@@ -65,7 +66,7 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
           </span>
           {foil && (
             <span className="chip bg-violet-100 text-violet-700 inline-flex items-center gap-1 dark:bg-violet-500/15 dark:text-violet-300">
-              <Sparkles size={11} /> Foil
+              <Sparkles size={11} /> {foil_treatment || "Foil"}
             </span>
           )}
         </div>

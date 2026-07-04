@@ -56,6 +56,11 @@ class SearchResult:
     # search router's "show foreign cards" option can decide whether to
     # include it.
     foreign: bool = False
+    # Specific named foil treatment (e.g. "Foil Etched", "Dragonscale Foil",
+    # "Surge Foil") when a scraper can tell it apart from a plain foil —
+    # shown as the badge label in place of generic "Foil" when set. None
+    # (the default) just falls back to "Foil" for any foil=True result.
+    foil_treatment: Optional[str] = None
 
 
 class BaseScraper(ABC):

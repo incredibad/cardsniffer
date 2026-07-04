@@ -33,7 +33,7 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
             </span>
             {r.foil && (
               <span className="chip bg-violet-100 text-violet-700 inline-flex items-center gap-1 dark:bg-violet-500/15 dark:text-violet-300">
-                <Sparkles size={11} /> Foil
+                <Sparkles size={11} /> {r.foil_treatment || "Foil"}
               </span>
             )}
           </div>

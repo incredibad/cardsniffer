@@ -4,6 +4,7 @@ from urllib.parse import urlencode
 from bs4 import BeautifulSoup
 
 from .base import BaseScraper, SearchResult
+from .foil_treatment import extract_foil_treatment
 
 BASE_URL = "https://www.hareruyamtg.com"
 SEARCH_API_URL = f"{BASE_URL}/en/products/search/unisearch_api"
@@ -57,8 +58,8 @@ _CONDITION_ABBRS = {"nm", "sp", "sp+", "mp", "mp+", "hp", "hp+", "poor", "ex"}
 _CONDITIONS = {"1": "NM", "2": "SP", "3": "MP", "4": "HP"}
 
 
-def _parse_title(title: str, card_name: str) -> tuple[str | None, str | None]:
-    """Returns (set_name, collector_number) parsed from product_name_en.
+def _parse_title(title: str, card_name: str) -> tuple[str | None, str | None, list[str]]:
+    """Returns (set_name, collector_number, treatments) parsed from product_name_en.
 
     card_name pins down which 《...》 group is the actual card — split-card/
     modal-DFC titles like "《Zidane Tribal》//《Ragavan, Nimble Pilferer》"
@@ -93,7 +94,7 @@ def _parse_title(title: str, card_name: str) -> tuple[str | None, str | None]:
 
     treatment = " · ".join(dict.fromkeys(t for t in treatments if t))
     set_name = f"{set_code} — {treatment}" if set_code and treatment else set_code
-    return set_name, collector_number
+    return set_name, collector_number, treatments
 
 
 class HareruyaScraper(BaseScraper):
@@ -173,7 +174,9 @@ class HareruyaScraper(BaseScraper):
         card_name = doc.get("card_name", "")
         is_art = card_name.startswith("【Art Card】")
 
-        set_name, collector_number = _parse_title(doc.get("product_name_en", ""), card_name)
+        set_name, collector_number, treatments = _parse_title(doc.get("product_name_en", ""), card_name)
+        foil = doc.get("foil_flg") == "1"
+        foil_treatment = extract_foil_treatment(*treatments) if foil else None
 
         lang_code = _LANGUAGES.get(doc.get("language", ""))
         product_url = (
@@ -198,7 +201,8 @@ class HareruyaScraper(BaseScraper):
             card_name=card_name,
             set_name=set_name,
             collector_number=collector_number,
-            foil=doc.get("foil_flg") == "1",
+            foil=foil,
+            foil_treatment=foil_treatment,
             condition=_CONDITIONS.get(doc.get("card_condition", ""), "NM"),
             price=float(price),
             currency="JPY",

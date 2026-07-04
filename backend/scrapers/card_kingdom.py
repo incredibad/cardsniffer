@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from curl_cffi.requests import AsyncSession
 
 from .base import BaseScraper, SearchResult
+from .foil_treatment import extract_foil_treatment
 
 BASE_URL = "https://www.cardkingdom.com"
 SEARCH_URL = f"{BASE_URL}/catalog/search"
@@ -35,6 +36,11 @@ _TABS = ["mtg_card", "mtg_foil"]
 _PRICE_RE = re.compile(r"([\d,]+\.\d{2})")
 _RARITY_SUFFIX_RE = re.compile(r"\s*\([A-Z]\)\s*$")
 _NON_CONDITION_CLASSES = {"itemAddToCart", "active", "disabled", ""}
+# Title's parenthetical treatment group is often "COLLECTOR# - Treatment"
+# (e.g. "(1494 - Galaxy Foil)") rather than just the treatment on its own —
+# strip the number prefix so it doesn't get mistaken for (or tacked onto)
+# the treatment name.
+_LEADING_COLLECTOR_NUMBER_RE = re.compile(r"^\d+\s*-\s*")
 
 
 def _parse_price(text: str) -> float | None:
@@ -107,7 +113,16 @@ class CardKingdomScraper(BaseScraper):
         title_lower = full_title.lower()
         for non_foil_phrase in ("non-foil", "non foil", "nonfoil"):
             title_lower = title_lower.replace(non_foil_phrase, "")
-        foil = force_foil or "foil" in title_lower
+
+        # Specific treatments (e.g. "(Foil Etched)", "(Dragonscale Foil)")
+        # show up as parenthetical groups in the title alongside/instead of
+        # a plain "(Foil)" marker.
+        treatment_texts = [
+            _LEADING_COLLECTOR_NUMBER_RE.sub("", t) for t in re.findall(r"\(([^()]*)\)", full_title)
+        ]
+        foil_treatment = extract_foil_treatment(*treatment_texts)
+
+        foil = force_foil or foil_treatment is not None or "foil" in title_lower
 
         image_el = block.find("mtg-card-image")
         image_url = image_el.get("src") if image_el else None
@@ -119,6 +134,7 @@ class CardKingdomScraper(BaseScraper):
             set_name=set_name,
             collector_number=collector_number,
             foil=foil,
+            foil_treatment=foil_treatment,
             image_url=image_url,
             product_url=product_url,
             store_name=self.store_name,

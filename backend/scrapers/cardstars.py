@@ -1,6 +1,7 @@
 import re
 
 from .base import BaseScraper, SearchResult
+from .foil_treatment import humanize_foil_tag
 
 API_URL = "https://mtg-marketplace-production-cca5.up.railway.app/api/cards/search"
 CARD_URL = "https://www.cardstars.com.au/card/mtg"
@@ -39,6 +40,22 @@ def _slugify(name: str) -> str:
     return _SLUG_RE.sub("-", name).strip("-")
 
 
+def _foil_treatment(card: dict) -> str | None:
+    """This API mirrors Scryfall's own card schema (scryfall_id, oracle_id,
+    frame_effects, promo_types, ...), so unlike the other scrapers we get a
+    genuinely specific treatment for free: promo_types carries entries like
+    "surgefoil"/"dragonscalefoil"/"rainbowfoil" for named foil treatments,
+    and foil_type is "etched" for etched foils (a separate field, not a
+    promo_type) — everything else is a plain "traditional" foil, no specific
+    name to show."""
+    for promo in card.get("promo_types") or []:
+        if promo.lower() != "foil" and promo.lower().endswith("foil"):
+            return humanize_foil_tag(promo)
+    if card.get("foil_type") == "etched":
+        return "Foil Etched"
+    return None
+
+
 class CardStarsScraper(BaseScraper):
     store_name = "Card Stars"
 
@@ -70,6 +87,7 @@ class CardStarsScraper(BaseScraper):
             set_name=card.get("set_name"),
             collector_number=card.get("collector_number"),
             foil=card.get("finish") != "nonfoil",
+            foil_treatment=_foil_treatment(card),
             condition=card.get("condition") or "NM",
             price=float(price),
             currency="AUD",
