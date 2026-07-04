@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.14.1] - 2026-07-04
+
+### Fixed
+- Grid view card images now bleed to the card's edges instead of sitting in a padded inset
+
 ## [0.14.0] - 2026-07-04
 
 ### Changed

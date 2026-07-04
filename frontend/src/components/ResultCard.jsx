@@ -22,22 +22,20 @@ export default function ResultCard({ result }) {
   const storeMeta = getStoreMeta(store_name);
 
   return (
-    <div className="card-frame flex flex-col">
-      <div className="p-2.5 pb-0">
-        <div className="aspect-[5/7] rounded-xl overflow-hidden bg-slate-100 dark:bg-zinc-800">
-          {image_url ? (
-            <img
-              src={image_url}
-              alt={card_name}
-              loading="lazy"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-slate-400 dark:text-zinc-600 text-sm">
-              No image
-            </div>
-          )}
-        </div>
+    <div className="card-frame flex flex-col overflow-hidden">
+      <div className="aspect-[5/7] bg-slate-100 dark:bg-zinc-800">
+        {image_url ? (
+          <img
+            src={image_url}
+            alt={card_name}
+            loading="lazy"
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-slate-400 dark:text-zinc-600 text-sm">
+            No image
+          </div>
+        )}
       </div>
 
       <div className="p-3.5 flex flex-col gap-2.5 flex-1">
