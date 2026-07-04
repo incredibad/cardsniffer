@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { Loader2, Wifi, Github } from "lucide-react";
+import { Loader2, Wifi, Github, Sun, Moon } from "lucide-react";
 import { api } from "../api";
+import { getTheme, setTheme } from "../theme";
 
 const GITHUB_URL = "https://github.com/incredibad/cardsniffer";
 
@@ -11,15 +12,15 @@ export default function Settings() {
     <div className="flex flex-col gap-6">
       <h1 className="page-header text-3xl">Settings</h1>
 
-      <div className="flex gap-1 border-b border-gold-700/40">
+      <div className="flex gap-1 border-b border-slate-200 dark:border-zinc-800">
         {["General", "System"].map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
               tab === t
-                ? "border-gold-500 text-gold-300"
-                : "border-transparent text-stone-500 hover:text-stone-300"
+                ? "border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400"
+                : "border-transparent text-slate-500 hover:text-slate-800 dark:text-zinc-500 dark:hover:text-zinc-300"
             }`}
           >
             {t}
@@ -34,6 +35,47 @@ export default function Settings() {
 }
 
 // ── General tab ──────────────────────────────────────────────────────────
+
+function AppearanceSection() {
+  const [theme, setThemeState] = useState(() => getTheme());
+
+  function choose(next) {
+    setTheme(next);
+    setThemeState(next);
+  }
+
+  return (
+    <section className="card-frame p-4">
+      <h2 className="section-header mb-3">Appearance</h2>
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-slate-700 dark:text-zinc-300">Theme</span>
+        <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
+          <button
+            onClick={() => choose("light")}
+            aria-pressed={theme === "light"}
+            className={`segmented-btn px-3 py-1.5 flex items-center gap-1.5 text-sm ${
+              theme === "light" ? "is-active" : ""
+            }`}
+          >
+            <Sun size={14} /> Light
+          </button>
+          <button
+            onClick={() => choose("dark")}
+            aria-pressed={theme === "dark"}
+            className={`segmented-btn px-3 py-1.5 flex items-center gap-1.5 text-sm border-l border-slate-200 dark:border-zinc-800 ${
+              theme === "dark" ? "is-active" : ""
+            }`}
+          >
+            <Moon size={14} /> Dark
+          </button>
+        </div>
+      </div>
+      <p className="text-xs text-slate-400 dark:text-zinc-500 mt-2">
+        Stored in this browser only — other devices keep their own setting.
+      </p>
+    </section>
+  );
+}
 
 function GeneralTab() {
   const [settings, setSettings] = useState(null);
@@ -93,22 +135,27 @@ function GeneralTab() {
   }
 
   if (loading) {
-    return <Loader2 className="animate-spin text-gold-500" size={24} />;
+    return <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400" size={24} />;
   }
 
   return (
     <div className="flex flex-col gap-6">
+      <AppearanceSection />
+
       <section className="card-frame p-4">
         <h2 className="section-header mb-3">Stores</h2>
         <div className="flex flex-col gap-2">
           {settings.stores.map((s) => (
-            <label key={s.key} className="flex items-center justify-between py-1.5 text-sm">
+            <label
+              key={s.key}
+              className="flex items-center justify-between py-1.5 text-sm text-slate-700 dark:text-zinc-300"
+            >
               <span>{s.store_name}</span>
               <input
                 type="checkbox"
                 checked={s.enabled}
                 onChange={(e) => toggleStore(s.key, e.target.checked)}
-                className="accent-gold-500 w-4 h-4"
+                className="accent-indigo-600 w-4 h-4"
               />
             </label>
           ))}
@@ -117,9 +164,13 @@ function GeneralTab() {
 
       <section className="card-frame p-4">
         <h2 className="section-header mb-3">VPN Proxy</h2>
-        <p className="text-xs text-stone-500 mb-3">
+        <p className="text-xs text-slate-500 dark:text-zinc-500 mb-3">
           Optional HTTP proxy for scraper requests, e.g. an existing gluetun sidecar
-          exposed at <code className="text-gold-400">http://host.docker.internal:8888</code>.
+          exposed at{" "}
+          <code className="text-indigo-600 dark:text-indigo-400">
+            http://host.docker.internal:8888
+          </code>
+          .
         </p>
         <div className="flex gap-2">
           <input
@@ -127,33 +178,29 @@ function GeneralTab() {
             value={proxyUrl}
             onChange={(e) => setProxyUrl(e.target.value)}
             placeholder="http://host.docker.internal:8888"
-            className="flex-1 px-3 py-2 rounded-lg bg-ink-950 border border-gold-700/40 text-stone-100 text-sm placeholder:text-stone-600 focus:outline-none focus:border-gold-500"
+            className="input-field flex-1 px-3 py-2 text-sm"
           />
-          <button
-            onClick={saveProxyUrl}
-            disabled={saving}
-            className="px-4 py-2 rounded-lg bg-gold-600 hover:bg-gold-500 disabled:opacity-50 text-ink-950 text-sm font-semibold"
-          >
+          <button onClick={saveProxyUrl} disabled={saving} className="btn-primary px-4 py-2 text-sm">
             {saving ? "Saving…" : "Save"}
           </button>
         </div>
-        {saveMsg && <p className="text-xs text-emerald-400 mt-2">{saveMsg}</p>}
+        {saveMsg && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">{saveMsg}</p>}
 
         <div className="mt-3 flex items-center gap-3">
           <button
             onClick={testProxy}
             disabled={testing || !proxyUrl}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gold-600/60 hover:border-gold-400 disabled:opacity-50 text-sm text-gold-300"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-indigo-300 hover:border-indigo-500 disabled:opacity-50 text-sm text-indigo-600 dark:border-indigo-500/60 dark:hover:border-indigo-400 dark:text-indigo-300"
           >
             {testing ? <Loader2 size={14} className="animate-spin" /> : <Wifi size={14} />}
             Test Proxy
           </button>
           {testResult && (
-            <span className="text-xs text-emerald-400">
+            <span className="text-xs text-emerald-600 dark:text-emerald-400">
               {testResult.ip} · {testResult.city || "?"}, {testResult.country || "?"} ({testResult.org || "unknown"})
             </span>
           )}
-          {testError && <span className="text-xs text-red-400">{testError}</span>}
+          {testError && <span className="text-xs text-red-500 dark:text-red-400">{testError}</span>}
         </div>
       </section>
     </div>
@@ -168,12 +215,12 @@ function SystemTab() {
       <section className="card-frame p-4">
         <h2 className="section-header mb-3">About</h2>
         <div className="flex items-center justify-between text-sm">
-          <span className="text-stone-300">Cardsniffer v{__APP_VERSION__}</span>
+          <span className="text-slate-700 dark:text-zinc-300">Cardsniffer v{__APP_VERSION__}</span>
           <a
             href={GITHUB_URL}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 text-gold-400 hover:text-gold-300"
+            className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
           >
             <Github size={16} /> GitHub
           </a>
@@ -220,10 +267,10 @@ function LogViewer() {
   return (
     <div
       ref={containerRef}
-      className="bg-ink-950 rounded-lg border border-gold-700/30 p-3 h-64 overflow-y-auto font-mono text-xs text-stone-400 whitespace-pre-wrap"
+      className="bg-slate-50 dark:bg-zinc-950 rounded-xl border border-slate-200 dark:border-zinc-800 p-3 h-64 overflow-y-auto font-mono text-xs text-slate-600 dark:text-zinc-400 whitespace-pre-wrap"
     >
       {lines.length === 0 ? (
-        <span className="text-stone-600">No log lines yet.</span>
+        <span className="text-slate-400 dark:text-zinc-600">No log lines yet.</span>
       ) : (
         lines.map((line, i) => <div key={i}>{line}</div>)
       )}

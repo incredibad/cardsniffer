@@ -24,7 +24,7 @@ export default function ResultCard({ result }) {
   return (
     <div className="card-frame flex flex-col">
       <div className="p-2.5 pb-0">
-        <div className="aspect-[5/7] rounded-lg overflow-hidden bg-ink-950">
+        <div className="aspect-[5/7] rounded-xl overflow-hidden bg-slate-100 dark:bg-zinc-800">
           {image_url ? (
             <img
               src={image_url}
@@ -33,7 +33,7 @@ export default function ResultCard({ result }) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-stone-600 text-sm">
+            <div className="w-full h-full flex items-center justify-center text-slate-400 dark:text-zinc-600 text-sm">
               No image
             </div>
           )}
@@ -43,13 +43,13 @@ export default function ResultCard({ result }) {
       <div className="p-3.5 flex flex-col gap-2.5 flex-1">
         <div>
           <h3
-            className="font-display font-semibold text-gold-200 text-sm leading-snug truncate"
+            className="font-semibold text-slate-900 dark:text-zinc-50 text-sm leading-snug truncate"
             title={card_name}
           >
             {card_name}
           </h3>
           {set_name && (
-            <p className="text-xs text-stone-500 truncate mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-zinc-500 truncate mt-0.5">
               {set_name}
               {collector_number && ` · #${collector_number}`}
             </p>
@@ -57,9 +57,11 @@ export default function ResultCard({ result }) {
         </div>
 
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="chip bg-gold-500/15 text-gold-300 uppercase">{condition}</span>
+          <span className="chip bg-slate-100 text-slate-600 uppercase dark:bg-zinc-800 dark:text-zinc-300">
+            {condition}
+          </span>
           {foil && (
-            <span className="chip bg-violet-500/15 text-violet-300 inline-flex items-center gap-1">
+            <span className="chip bg-violet-100 text-violet-700 inline-flex items-center gap-1 dark:bg-violet-500/15 dark:text-violet-300">
               <Sparkles size={11} /> Foil
             </span>
           )}
@@ -67,10 +69,10 @@ export default function ResultCard({ result }) {
 
         <div className="mt-auto flex items-end justify-between gap-2 pt-1">
           <div className="min-w-0">
-            <div className="text-lg font-semibold text-stone-100 leading-tight">
+            <div className="text-lg font-semibold text-slate-900 dark:text-zinc-50 leading-tight">
               {formatPrice(price, currency)}
             </div>
-            <div className="text-xs text-stone-500 truncate flex items-center gap-1.5">
+            <div className="text-xs text-slate-500 dark:text-zinc-500 truncate flex items-center gap-1.5">
               <span
                 className="chip shrink-0 font-semibold text-white"
                 style={{ backgroundColor: storeMeta.color }}
@@ -85,7 +87,7 @@ export default function ResultCard({ result }) {
             href={product_url}
             target="_blank"
             rel="noreferrer"
-            className="shrink-0 inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-gold-600 hover:bg-gold-500 text-ink-950 font-semibold transition-colors"
+            className="shrink-0 inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors dark:bg-indigo-500 dark:hover:bg-indigo-400"
           >
             Buy <ExternalLink size={12} />
           </a>

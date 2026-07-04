@@ -10,7 +10,7 @@ export default function ResultTable({ results }) {
     <div className="card-frame overflow-hidden">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-gold-700/30 text-left">
+          <tr className="border-b border-slate-200 dark:border-zinc-800 text-left">
             <th className="p-3 w-14"></th>
             <th className="p-3 section-header font-normal">Card</th>
             <th className="p-3 section-header font-normal">Condition</th>
@@ -25,10 +25,10 @@ export default function ResultTable({ results }) {
             return (
             <tr
               key={`${r.product_url}-${r.condition}-${i}`}
-              className="border-b border-gold-700/10 last:border-0 hover:bg-ink-900/60 transition-colors"
+              className="border-b border-slate-100 dark:border-zinc-800/60 last:border-0 hover:bg-slate-50 dark:hover:bg-zinc-800/40 transition-colors"
             >
               <td className="p-2">
-                <div className="w-10 h-14 rounded overflow-hidden bg-ink-950 shrink-0">
+                <div className="w-10 h-14 rounded-lg overflow-hidden bg-slate-100 dark:bg-zinc-800 shrink-0">
                   {r.image_url ? (
                     <img
                       src={r.image_url}
@@ -40,11 +40,11 @@ export default function ResultTable({ results }) {
                 </div>
               </td>
               <td className="p-3">
-                <div className="font-display font-semibold text-gold-200 leading-snug">
+                <div className="font-semibold text-slate-900 dark:text-zinc-50 leading-snug">
                   {r.card_name}
                 </div>
                 {r.set_name && (
-                  <div className="text-xs text-stone-500 mt-0.5">
+                  <div className="text-xs text-slate-500 dark:text-zinc-500 mt-0.5">
                     {r.set_name}
                     {r.collector_number && ` · #${r.collector_number}`}
                   </div>
@@ -52,18 +52,24 @@ export default function ResultTable({ results }) {
               </td>
               <td className="p-3">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="chip bg-gold-500/15 text-gold-300 uppercase">{r.condition}</span>
+                  <span className="chip bg-slate-100 text-slate-600 uppercase dark:bg-zinc-800 dark:text-zinc-300">
+                    {r.condition}
+                  </span>
                   {r.foil && (
-                    <span className="chip bg-violet-500/15 text-violet-300 inline-flex items-center gap-1">
+                    <span className="chip bg-violet-100 text-violet-700 inline-flex items-center gap-1 dark:bg-violet-500/15 dark:text-violet-300">
                       <Sparkles size={11} /> Foil
                     </span>
                   )}
                 </div>
               </td>
               <td className="p-3 text-right">
-                <div className="text-stone-100 font-semibold">{formatPrice(r.price, r.currency)}</div>
+                <div className="text-slate-900 dark:text-zinc-50 font-semibold">
+                  {formatPrice(r.price, r.currency)}
+                </div>
                 {r.quantity_available != null && (
-                  <div className="text-xs text-stone-500">{r.quantity_available} in stock</div>
+                  <div className="text-xs text-slate-500 dark:text-zinc-500">
+                    {r.quantity_available} in stock
+                  </div>
                 )}
               </td>
               <td className="p-3">
@@ -80,7 +86,7 @@ export default function ResultTable({ results }) {
                   href={r.product_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-gold-600 hover:bg-gold-500 text-ink-950 font-semibold transition-colors whitespace-nowrap"
+                  className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors whitespace-nowrap dark:bg-indigo-500 dark:hover:bg-indigo-400"
                 >
                   Buy <ExternalLink size={12} />
                 </a>

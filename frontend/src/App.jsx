@@ -6,15 +6,15 @@ import Settings from "./pages/Settings";
 export default function App() {
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b border-gold-700/40 bg-ink-900/80 backdrop-blur">
+      <header className="border-b border-slate-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
         <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-3">
           <Link to="/" className="logo-wordmark text-xl flex items-center gap-2">
-            <img src="/logo-mark.png" alt="" className="h-7 w-7" />
+            <img src="/favicon.png" alt="" className="h-8 w-8 rounded-lg" />
             Cardsniffer
           </Link>
           <Link
             to="/settings"
-            className="text-stone-400 hover:text-gold-400 transition-colors"
+            className="text-slate-400 hover:text-indigo-600 transition-colors dark:text-zinc-500 dark:hover:text-indigo-400"
             aria-label="Settings"
           >
             <SettingsIcon size={22} />
