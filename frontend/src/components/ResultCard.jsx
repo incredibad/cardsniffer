@@ -5,7 +5,7 @@ function formatPrice(price, currency) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(price);
 }
 
-export default function ResultCard({ result }) {
+export default function ResultCard({ result, pricingMode = "aud" }) {
   const {
     card_name,
     set_name,
@@ -14,12 +14,16 @@ export default function ResultCard({ result }) {
     condition,
     price,
     currency,
+    price_original,
+    currency_original,
     quantity_available,
     image_url,
     product_url,
     store_name,
   } = result;
   const storeMeta = getStoreMeta(store_name);
+  const displayPrice = pricingMode === "original" ? price_original : price;
+  const displayCurrency = pricingMode === "original" ? currency_original : currency;
 
   return (
     <div className="card-frame flex flex-col overflow-hidden">
@@ -68,7 +72,7 @@ export default function ResultCard({ result }) {
         <div className="mt-auto flex items-end justify-between gap-2 pt-1">
           <div className="min-w-0">
             <div className="text-lg font-semibold text-slate-900 dark:text-zinc-50 leading-tight">
-              {formatPrice(price, currency)}
+              {formatPrice(displayPrice, displayCurrency)}
             </div>
             <div className="text-xs text-slate-500 dark:text-zinc-500 truncate flex items-center gap-1.5">
               <span

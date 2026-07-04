@@ -3,10 +3,12 @@ import { Search as SearchIcon, Loader2, X, LayoutGrid, Table as TableIcon, Arrow
 import { api } from "../api";
 import ResultCard from "../components/ResultCard";
 import ResultTable from "../components/ResultTable";
+import InfoTooltip from "../components/InfoTooltip";
 
 const SORT_ORDER_KEY = "cardsniffer.sortOrder";
 const SHOW_ART_KEY = "cardsniffer.showArtCards";
 const SHOW_FOREIGN_KEY = "cardsniffer.showForeignCards";
+const PRICING_MODE_KEY = "cardsniffer.pricingMode";
 const SUGGEST_DEBOUNCE_MS = 150;
 const SUGGEST_MIN_LENGTH = 2;
 
@@ -28,6 +30,9 @@ export default function Search() {
   const [showForeignCards, setShowForeignCards] = useState(
     () => localStorage.getItem(SHOW_FOREIGN_KEY) === "true"
   );
+  const [pricingMode, setPricingMode] = useState(
+    () => localStorage.getItem(PRICING_MODE_KEY) || "aud"
+  ); // aud | original
 
   const [suggestions, setSuggestions] = useState([]);
   const [suggestOpen, setSuggestOpen] = useState(false);
@@ -48,6 +53,11 @@ export default function Search() {
   function updateShowForeignCards(value) {
     setShowForeignCards(value);
     localStorage.setItem(SHOW_FOREIGN_KEY, String(value));
+  }
+
+  function updatePricingMode(mode) {
+    setPricingMode(mode);
+    localStorage.setItem(PRICING_MODE_KEY, mode);
   }
 
   const filteredResults = useMemo(() => {
@@ -192,7 +202,7 @@ export default function Search() {
         </button>
       </form>
 
-      <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-zinc-400">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-600 dark:text-zinc-400">
         <span className="section-header">Search Options</span>
         <label className="inline-flex items-center gap-1.5 cursor-pointer">
           <input
@@ -212,6 +222,32 @@ export default function Search() {
           />
           Show foreign cards
         </label>
+        <div className="inline-flex items-center gap-1.5">
+          <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => updatePricingMode("aud")}
+              aria-pressed={pricingMode === "aud"}
+              className={`segmented-btn px-3 py-1 text-sm ${pricingMode === "aud" ? "is-active" : ""}`}
+            >
+              AUD
+            </button>
+            <button
+              type="button"
+              onClick={() => updatePricingMode("original")}
+              aria-pressed={pricingMode === "original"}
+              className={`segmented-btn px-3 py-1 text-sm border-l border-slate-200 dark:border-zinc-800 ${
+                pricingMode === "original" ? "is-active" : ""
+              }`}
+            >
+              Original
+            </button>
+          </div>
+          <InfoTooltip>
+            When shown in AUD, Australian GST is applied for stores where it isn't already included in
+            the listed price.
+          </InfoTooltip>
+        </div>
       </div>
 
       {status === "error" && (
@@ -307,11 +343,11 @@ export default function Search() {
           {viewMode === "grid" ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
               {sortedResults.map((r, i) => (
-                <ResultCard key={`${r.product_url}-${r.condition}-${i}`} result={r} />
+                <ResultCard key={`${r.product_url}-${r.condition}-${i}`} result={r} pricingMode={pricingMode} />
               ))}
             </div>
           ) : (
-            <ResultTable results={sortedResults} />
+            <ResultTable results={sortedResults} pricingMode={pricingMode} />
           )}
         </>
       )}

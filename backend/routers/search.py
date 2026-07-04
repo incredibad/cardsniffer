@@ -64,6 +64,8 @@ async def search(q: str = Query(..., min_length=1), db: Session = Depends(get_db
     results = []
     for r in in_stock:
         d = asdict(r)
+        d["price_original"] = r.price
+        d["currency_original"] = r.currency
         rate = rates.get(r.currency)
         if rate is not None:
             d["price"] = round(r.price * rate, 2)

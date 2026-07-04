@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.17.0] - 2026-07-04
+
+### Added
+- Search Options: AUD/Original pricing toggle, with an (i) icon (hover or tap) explaining that GST is added on top of the AUD figure for stores where it isn't already included. The API now returns both the original store price/currency and the converted AUD figure on every result, so switching is instant with no re-search — same pattern as the art/foreign toggles
+
 ## [0.16.0] - 2026-07-04
 
 ### Added
