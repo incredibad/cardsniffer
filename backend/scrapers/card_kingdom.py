@@ -100,7 +100,14 @@ class CardKingdomScraper(BaseScraper):
         if collector_el:
             collector_number = collector_el.get_text(strip=True).replace("Collector #:", "").strip() or None
 
-        foil = force_foil or "foil" in full_title.lower()
+        # "foil" in full_title.lower() alone false-positives on "(Non-Foil)"/
+        # "(Nonfoil)" titles (e.g. Secret Lair prints that spell out the
+        # finish) — "foil" is literally a substring of "non-foil". Strip
+        # those out first so only a genuine foil mention counts.
+        title_lower = full_title.lower()
+        for non_foil_phrase in ("non-foil", "non foil", "nonfoil"):
+            title_lower = title_lower.replace(non_foil_phrase, "")
+        foil = force_foil or "foil" in title_lower
 
         image_el = block.find("mtg-card-image")
         image_url = image_el.get("src") if image_el else None
