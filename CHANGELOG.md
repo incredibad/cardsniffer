@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.36.5] - 2026-07-04
+
+### Fixed
+- Grid view's foil ribbon used fixed pixel dimensions sized for larger cards, disproportionately large on small cards (especially mobile's 2-column layout), making it look like it spilled past the card. Ribbon geometry is now responsive (smaller on mobile, larger on desktop), matching the rest of the card's own responsive sizing
+- Also dropped the length-based font shrinking, which was counterproductive — smaller text made long names *more* likely to fit on one line, not wrap. A single, larger font size now wraps long names naturally
+
 ## [0.36.4] - 2026-07-04
 
 ### Fixed

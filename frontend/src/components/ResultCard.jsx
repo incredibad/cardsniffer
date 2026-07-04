@@ -47,16 +47,12 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
           // doesn't clip symmetrically around the diagonal it's supposed to
           // sit on, which throws off centering. A dedicated square wrapper
           // sized/centered on just the corner clips it symmetrically instead.
-          <div className="absolute top-0 right-0 w-20 h-20 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 right-0 w-12 h-12 sm:w-16 sm:h-16 overflow-hidden pointer-events-none">
             <div
-              className="absolute top-[15px] -right-[28px] w-[113px] rotate-45 text-center"
+              className="absolute top-[8px] -right-[14px] w-[68px] sm:top-[11px] sm:-right-[19px] sm:w-[90px] rotate-45 text-center"
               title={foil_treatment || "Foil"}
             >
-              <span
-                className={`block w-full break-words bg-violet-600 text-white font-semibold uppercase leading-tight py-1 shadow-sm ${
-                  (foil_treatment || "").length > 12 ? "text-[7px]" : "text-[9px]"
-                }`}
-              >
+              <span className="block w-full break-words bg-violet-600 text-white font-semibold uppercase text-[7px] sm:text-[9px] leading-tight py-1 shadow-sm">
                 {foil_treatment || "Foil"}
               </span>
             </div>
