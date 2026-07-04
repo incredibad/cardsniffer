@@ -43,17 +43,23 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
         )}
         {foil && storeMeta.foilOverlay && <FoilOverlay />}
         {foil && (
-          <div
-            className="absolute top-[10px] -right-[30px] w-[120px] rotate-45 overflow-hidden text-center"
-            title={foil_treatment || "Foil"}
-          >
-            <span
-              className={`block bg-violet-600 text-white font-semibold uppercase leading-tight py-1.5 shadow-sm ${
-                (foil_treatment || "").length > 12 ? "text-[7px]" : "text-[9px]"
-              }`}
+          // A ribbon clipped by the whole (non-square) image's overflow-hidden
+          // doesn't clip symmetrically around the diagonal it's supposed to
+          // sit on, which throws off centering. A dedicated square wrapper
+          // sized/centered on just the corner clips it symmetrically instead.
+          <div className="absolute top-0 right-0 w-20 h-20 overflow-hidden pointer-events-none">
+            <div
+              className="absolute top-[15px] -right-[28px] w-[113px] rotate-45 text-center"
+              title={foil_treatment || "Foil"}
             >
-              {foil_treatment || "Foil"}
-            </span>
+              <span
+                className={`block w-full break-words bg-violet-600 text-white font-semibold uppercase leading-tight py-1 shadow-sm ${
+                  (foil_treatment || "").length > 12 ? "text-[7px]" : "text-[9px]"
+                }`}
+              >
+                {foil_treatment || "Foil"}
+              </span>
+            </div>
           </div>
         )}
       </div>
