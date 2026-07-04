@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.24.1] - 2026-07-04
+
+### Changed
+- Grid card footer (below condition) is now a 2x2 layout: store badge top-left, Qty top-right, price bottom-left, Buy button bottom-right. Price font bumped up a size
+
 ## [0.24.0] - 2026-07-04
 
 ### Added

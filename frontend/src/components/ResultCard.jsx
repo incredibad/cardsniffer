@@ -70,27 +70,25 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
           )}
         </div>
 
-        <div className="mt-auto flex items-end justify-between gap-2 pt-1">
-          <div className="min-w-0">
-            <div className="text-lg font-semibold text-slate-900 dark:text-zinc-50 leading-tight">
-              {formatPrice(displayPrice, displayCurrency)}
-            </div>
-            <div className="text-xs text-slate-500 dark:text-zinc-500 truncate flex items-center gap-1.5">
-              <span
-                className="chip shrink-0 font-semibold text-white"
-                style={{ backgroundColor: storeMeta.color }}
-                title={store_name}
-              >
-                {storeMeta.code}
-              </span>
-              {quantity_available != null && <span>{quantity_available} in stock</span>}
-            </div>
+        <div className="mt-auto grid grid-cols-2 items-center gap-x-2 gap-y-1.5 pt-1">
+          <span
+            className="chip shrink-0 font-semibold text-white w-fit"
+            style={{ backgroundColor: storeMeta.color }}
+            title={store_name}
+          >
+            {storeMeta.code}
+          </span>
+          <span className="text-xs text-slate-500 dark:text-zinc-500 justify-self-end">
+            {quantity_available != null && `Qty: ${quantity_available}`}
+          </span>
+          <div className="text-xl font-semibold text-slate-900 dark:text-zinc-50 leading-tight">
+            {formatPrice(displayPrice, displayCurrency)}
           </div>
           <a
             href={product_url}
             target="_blank"
             rel="noreferrer"
-            className="shrink-0 inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors dark:bg-indigo-500 dark:hover:bg-indigo-400"
+            className="justify-self-end shrink-0 inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors dark:bg-indigo-500 dark:hover:bg-indigo-400"
           >
             Buy <ExternalLink size={12} />
           </a>
