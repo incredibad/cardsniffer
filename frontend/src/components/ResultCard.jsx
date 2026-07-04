@@ -1,5 +1,6 @@
 import { Sparkles, ExternalLink } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
+import { formatQty } from "../formatQty";
 import TruncatedTooltip from "./TruncatedTooltip";
 
 function formatPrice(price, currency) {
@@ -72,7 +73,7 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
 
         <div className="mt-auto grid grid-cols-2 items-center gap-x-2 gap-y-1.5 pt-1">
           <span className="text-xs text-slate-500 dark:text-zinc-500">
-            {quantity_available != null && `Qty: ${quantity_available}`}
+            Qty: {formatQty(quantity_available)}
           </span>
           <span
             className="chip shrink-0 font-semibold text-white w-fit justify-self-end"
