@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.52.1] - 2026-07-05
+
+### Fixed
+- Running a search from the sticky search bar now scrolls back to the top of the page, instead of leaving you scrolled down mid-results
+- Removed the sticky search bar's bottom padding, which showed as a visible dark strip under it in dark mode
+
 ## [0.52.0] - 2026-07-05
 
 ### Added
