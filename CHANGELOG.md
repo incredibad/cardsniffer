@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.20.1] - 2026-07-04
+
+### Changed
+- Mobile table view: name/set now get the full row width on their own line instead of being squeezed beside the thumbnail (which left a dead gap next to short names). Image and the rest of the details (condition, price, store, buy) form a two-column row underneath, with the thumbnail sized up now that it isn't competing with the text for width
+
 ## [0.20.0] - 2026-07-04
 
 ### Changed
