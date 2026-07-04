@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.51.1] - 2026-07-05
+
+### Changed
+- eBay listing date shortened: no year, always-3-letter month ("4 Jul, 12:48" instead of "4 Jul 2026, 12:48"). Month abbreviations are now hardcoded rather than using `Intl`'s locale-dependent `month: "short"`, which isn't reliably 3 letters (en-AU renders September as "Sept")
+
 ## [0.51.0] - 2026-07-05
 
 ### Added
