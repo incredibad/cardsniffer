@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, event, text
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey, event, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import NullPool
@@ -44,6 +44,35 @@ class Setting(Base):
 
     key = Column(String, primary_key=True)
     value = Column(String, nullable=True)
+
+
+class User(Base):
+    """An account. is_admin gates store/proxy/log settings and user
+    management; the app itself (search, theme) stays public/unauthenticated.
+    General user structure now so saved lists etc. have somewhere to hang
+    off later, not just a single admin flag."""
+
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, nullable=False, index=True)
+    password_hash = Column(String, nullable=False)
+    is_admin = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    last_seen_at = Column(DateTime, nullable=True)
+
+
+class AuthSession(Base):
+    """Server-side session — an opaque bearer token set as an HttpOnly
+    cookie, not a JWT, so a session can be revoked (logout, user deleted)
+    just by deleting this row."""
+
+    __tablename__ = "auth_sessions"
+
+    token = Column(String, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=False)
 
 
 def get_db():

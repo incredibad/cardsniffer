@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 from database import init_db
-from routers import search, settings, logs as logs_router
+from routers import auth as auth_router, search, settings, logs as logs_router, users as users_router
 from log_buffer import LogBufferHandler
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "frontend")
@@ -50,6 +50,8 @@ app.add_middleware(
 )
 
 api = APIRouter(prefix="/api")
+api.include_router(auth_router.router)
+api.include_router(users_router.router)
 api.include_router(search.router)
 api.include_router(settings.router)
 api.include_router(logs_router.router)
