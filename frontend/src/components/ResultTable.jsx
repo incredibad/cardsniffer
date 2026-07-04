@@ -95,7 +95,12 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
                   )}
                 </div>
                 <div className="flex items-center justify-between gap-2">
-                  {conditionChips}
+                  <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                    {conditionChips}
+                    <span className="text-xs text-slate-500 dark:text-zinc-500 whitespace-nowrap">
+                      Qty: {formatQty(r.quantity_available)}
+                    </span>
+                  </div>
                   {storeBadge}
                 </div>
                 <div className="flex items-center justify-between gap-2">
@@ -105,12 +110,7 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
                     </div>
                     {postageEl}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500 dark:text-zinc-500">
-                      Qty: {formatQty(r.quantity_available)}
-                    </span>
-                    {buyButton}
-                  </div>
+                  {buyButton}
                 </div>
               </div>
             </div>

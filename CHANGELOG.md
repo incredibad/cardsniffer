@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.42.2] - 2026-07-04
+
+### Changed
+- Table view, mobile layout: Qty moved from the price row up to the condition/foil row (right of the foil badge), leaving the price row as just price+postage / Buy button
+
 ## [0.42.1] - 2026-07-04
 
 ### Fixed
