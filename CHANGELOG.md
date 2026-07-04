@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.42.3] - 2026-07-04
+
+### Fixed
+- Hareruya scraper returned every raw hit from their Solr search unfiltered — since that search also matches on set name and artist (e.g. "Kang Dynasty" hit "Lizard Blades": "Kang" is that card's artist, "Dynasty" is part of the Kamigawa: Neon Dynasty set name), unrelated cards could show up. Filtered down to actual card-name matches, same defense Card Kingdom/GUF/Good Games/eBay already have
+
 ## [0.42.2] - 2026-07-04
 
 ### Changed

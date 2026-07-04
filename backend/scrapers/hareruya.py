@@ -58,6 +58,10 @@ _CONDITION_ABBRS = {"nm", "sp", "sp+", "mp", "mp+", "hp", "hp+", "poor", "ex"}
 _CONDITIONS = {"1": "NM", "2": "SP", "3": "MP", "4": "HP"}
 
 
+def _normalize(text: str) -> str:
+    return re.sub(r"\s+", " ", text or "").strip().lower()
+
+
 def _parse_title(title: str, card_name: str) -> tuple[str | None, str | None, list[str]]:
     """Returns (set_name, collector_number, treatments) parsed from product_name_en.
 
@@ -108,6 +112,16 @@ class HareruyaScraper(BaseScraper):
         response.raise_for_status()
         data = response.json()
         docs = data.get("response", {}).get("docs", [])
+
+        # Hareruya's Solr-backed search matches on set name and artist as
+        # well as card name — confirmed live: "Kang Dynasty" hits "Lizard
+        # Blades" because "Kang" is that card's artist and "Dynasty" is part
+        # of the Kamigawa: Neon Dynasty set name, and the same happens
+        # searching directly on their own site. Filtered down to actual
+        # card-name matches only, same defense as Card Kingdom/GUF/Good
+        # Games/eBay.
+        needle = _normalize(query)
+        docs = [d for d in docs if needle in _normalize(d.get("card_name", ""))]
 
         accurate_stock = await self._fetch_accurate_stock(docs)
 
