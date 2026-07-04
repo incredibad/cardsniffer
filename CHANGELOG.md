@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented here.
 
+## [0.39.0] - 2026-07-04
+
+### Added
+- New store: **eBay**, via the Buy Browse API (`backend/scrapers/ebay.py`). Restricted to Australian-located listings and Buy It Now only (`itemLocationCountry:AU,buyingOptions:{FIXED_PRICE}`), with "MTG" appended to every query to cut false positives. OAuth application tokens (client-credentials grant) are cached in-process for their ~2h lifetime rather than re-fetched per search
+- Condition (NM/LP/MP/HP/DMG) is parsed from listing title text, since eBay's own `condition` field comes back as "Ungraded" for essentially every MTG single
+- Filters out non-single listings (lots, pins, playmats) using eBay's "CCG Individual Cards" category id plus a title keyword check, since some lot/bundle listings are mis-categorized as individual cards by the seller
+
+### Changed
+- `vpn_proxy_url`-style settings extended with `ebay_app_id`/`ebay_cert_id`: the Cert ID (Client Secret) is encrypted at rest (Fernet, via `backend/crypto.py`) rather than stored in plaintext, using a new `SECRET_KEY` env var kept out of the data volume
+
+## [0.38.0] - 2026-07-04
+
+### Added
+- eBay API credentials (App ID + Cert ID) as admin-configurable settings, laying groundwork for the eBay Browse API scraper. The Cert ID is encrypted at rest with Fernet before being stored, using a `SECRET_KEY` sourced from a new env var (kept out of the data volume so a DB copy alone can't decrypt it) rather than stored in plaintext like `vpn_proxy_url`
+
 ## [0.37.0] - 2026-07-04
 
 ### Changed

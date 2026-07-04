@@ -7,3 +7,4 @@ lxml==5.2.2
 pydantic==2.7.1
 aiofiles==23.2.1
 curl-cffi==0.15.0
+cryptography==42.0.7

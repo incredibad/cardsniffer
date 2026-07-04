@@ -9,6 +9,7 @@ services:
       - cardsniffer_data:/data
     environment:
       - PYTHONUNBUFFERED=1
+      - SECRET_KEY=${SECRET_KEY}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:

@@ -98,6 +98,10 @@ function GeneralTab({ isAdmin }) {
 function StoresAndProxySection() {
   const [settings, setSettings] = useState(null);
   const [proxyUrl, setProxyUrl] = useState("");
+  const [ebayAppId, setEbayAppId] = useState("");
+  const [ebayCertId, setEbayCertId] = useState("");
+  const [savingEbay, setSavingEbay] = useState(false);
+  const [ebaySaveMsg, setEbaySaveMsg] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
@@ -115,8 +119,25 @@ function StoresAndProxySection() {
       const data = await api.getSettings();
       setSettings(data);
       setProxyUrl(data.vpn_proxy_url || "");
+      setEbayAppId(data.ebay_app_id || "");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function saveEbayCredentials() {
+    setSavingEbay(true);
+    setEbaySaveMsg("");
+    try {
+      const payload = { ebay_app_id: ebayAppId };
+      if (ebayCertId) payload.ebay_cert_id = ebayCertId;
+      const updated = await api.updateSettings(payload);
+      setSettings(updated);
+      setEbayCertId("");
+      setEbaySaveMsg("Saved");
+      setTimeout(() => setEbaySaveMsg(""), 2000);
+    } finally {
+      setSavingEbay(false);
     }
   }
 
@@ -218,6 +239,40 @@ function StoresAndProxySection() {
           )}
           {testError && <span className="text-xs text-red-500 dark:text-red-400">{testError}</span>}
         </div>
+      </section>
+
+      <section className="card-frame p-4">
+        <h2 className="section-header mb-3">eBay API</h2>
+        <p className="text-xs text-slate-500 dark:text-zinc-500 mb-3">
+          Production keyset credentials from the eBay Developer Program, used for the Browse API.
+        </p>
+        <div className="flex flex-col gap-2">
+          <input
+            type="text"
+            value={ebayAppId}
+            onChange={(e) => setEbayAppId(e.target.value)}
+            placeholder="App ID / Client ID"
+            className="input-field px-3 py-2 text-sm"
+          />
+          <input
+            type="password"
+            value={ebayCertId}
+            onChange={(e) => setEbayCertId(e.target.value)}
+            placeholder={
+              settings.ebay_cert_id_configured ? "Cert ID (Client Secret) — set, leave blank to keep" : "Cert ID (Client Secret)"
+            }
+            autoComplete="off"
+            className="input-field px-3 py-2 text-sm"
+          />
+          <button
+            onClick={saveEbayCredentials}
+            disabled={savingEbay}
+            className="btn-primary px-4 py-2 text-sm self-start"
+          >
+            {savingEbay ? "Saving…" : "Save"}
+          </button>
+        </div>
+        {ebaySaveMsg && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">{ebaySaveMsg}</p>}
       </section>
     </>
   );

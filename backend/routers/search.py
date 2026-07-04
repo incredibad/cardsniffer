@@ -5,6 +5,7 @@ from dataclasses import asdict
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+import crypto
 from currency import get_rate_to_aud
 from database import SearchLog, get_db, get_setting
 from scrapers import SCRAPERS, get_scraper
@@ -42,7 +43,12 @@ async def search(q: str = Query(..., min_length=1), db: Session = Depends(get_db
 
     async def run_one(key: str):
         try:
-            async with get_scraper(key, proxy_url=proxy_url) as scraper:
+            kwargs = {"proxy_url": proxy_url}
+            if key == "ebay":
+                cert_encrypted = get_setting(db, "ebay_cert_id_encrypted", "")
+                kwargs["app_id"] = get_setting(db, "ebay_app_id", "")
+                kwargs["cert_id"] = crypto.decrypt(cert_encrypted) if cert_encrypted else ""
+            async with get_scraper(key, **kwargs) as scraper:
                 return await scraper.search(q)
         except Exception as e:
             logger.warning(f"Scraper '{key}' failed for query {q!r}: {e}")
