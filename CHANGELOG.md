@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.14.4] - 2026-07-04
+
+### Fixed
+- Grid card image/content corners really were still square in some browsers — the `rounded-t-2xl`/`rounded-b-2xl` Tailwind classes on those two divs weren't taking effect despite being present in the built CSS, but an inline `border-radius` style does. Switched both to inline styles, which take precedence over any conflicting rule regardless of cascade order
+
 ## [0.14.3] - 2026-07-04
 
 ### Fixed
