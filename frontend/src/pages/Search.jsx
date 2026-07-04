@@ -13,6 +13,17 @@ import ResultCard from "../components/ResultCard";
 import ResultTable from "../components/ResultTable";
 import InfoTooltip from "../components/InfoTooltip";
 import FilterDropdown, { FilterDropdownOption } from "../components/FilterDropdown";
+import { STORE_META } from "../storeMeta";
+
+// Static rather than derived from the current results, so the filter bar's
+// option list doesn't shrink/grow between searches — same set of checkboxes
+// every time, matching how filter state itself now persists across searches.
+const STORE_OPTIONS = Object.keys(STORE_META).sort();
+// Best-to-worst condition order rather than alphabetical, since this is now
+// a fixed list a human reads top to bottom. SP (Hareruya's "Slightly
+// Played") sits alongside LP as a roughly-equivalent second tier — every
+// other store uses one or the other, never both.
+const CONDITION_OPTIONS = ["NM", "SP", "LP", "MP", "HP", "DMG"];
 
 const SORT_ORDER_KEY = "cardsniffer.sortOrder";
 const VIEW_MODE_KEY = "cardsniffer.viewMode";
@@ -132,15 +143,6 @@ export default function Search() {
       return next;
     });
   }
-
-  const barStoreOptions = useMemo(
-    () => [...new Set(results.map((r) => r.store_name))].sort(),
-    [results]
-  );
-  const barConditionOptions = useMemo(
-    () => [...new Set(results.map((r) => r.condition))].sort(),
-    [results]
-  );
 
   const filteredResults = useMemo(() => {
     const needle = lastQuery.trim().toLowerCase();
@@ -403,14 +405,14 @@ export default function Search() {
                 label="Store"
                 className={stretch ? "flex-1" : ""}
                 badgeCount={
-                  barStoreOptions.length - barHiddenStores.size < barStoreOptions.length
-                    ? barStoreOptions.length - barHiddenStores.size
+                  STORE_OPTIONS.length - barHiddenStores.size < STORE_OPTIONS.length
+                    ? STORE_OPTIONS.length - barHiddenStores.size
                     : null
                 }
                 onSelectAll={() => setBarHiddenStores(new Set())}
-                onSelectNone={() => setBarHiddenStores(new Set(barStoreOptions))}
+                onSelectNone={() => setBarHiddenStores(new Set(STORE_OPTIONS))}
               >
-                {barStoreOptions.map((option) => (
+                {STORE_OPTIONS.map((option) => (
                   <FilterDropdownOption
                     key={option}
                     label={option}
@@ -426,14 +428,14 @@ export default function Search() {
                 label="Condition"
                 className={stretch ? "flex-1" : ""}
                 badgeCount={
-                  barConditionOptions.length - barHiddenConditions.size < barConditionOptions.length
-                    ? barConditionOptions.length - barHiddenConditions.size
+                  CONDITION_OPTIONS.length - barHiddenConditions.size < CONDITION_OPTIONS.length
+                    ? CONDITION_OPTIONS.length - barHiddenConditions.size
                     : null
                 }
                 onSelectAll={() => setBarHiddenConditions(new Set())}
-                onSelectNone={() => setBarHiddenConditions(new Set(barConditionOptions))}
+                onSelectNone={() => setBarHiddenConditions(new Set(CONDITION_OPTIONS))}
               >
-                {barConditionOptions.map((option) => (
+                {CONDITION_OPTIONS.map((option) => (
                   <FilterDropdownOption
                     key={option}
                     label={option}

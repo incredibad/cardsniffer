@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.45.0] - 2026-07-04
+
+### Changed
+- Store and Condition filter dropdowns are now static lists instead of being derived from the current search's results, so the option set no longer shrinks/grows between searches. Store options come from `storeMeta.js`'s registry (all 8 known stores); Condition options are a fixed best-to-worst list (NM, SP, LP, MP, HP, DMG)
+
 ## [0.44.0] - 2026-07-04
 
 ### Changed
