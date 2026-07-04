@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.39.1] - 2026-07-04
+
+### Added
+- Store badge colour/code for eBay (`#FFBD14`, "EBAY") in `storeMeta.js`
+
 ## [0.39.0] - 2026-07-04
 
 ### Added
