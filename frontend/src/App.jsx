@@ -7,7 +7,7 @@ import AuthMenu from "./components/AuthMenu";
 export default function App() {
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b border-slate-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
+      <header className="relative z-40 border-b border-slate-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
         <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-3">
           <Link to="/" className="logo-wordmark text-xl flex items-center gap-2">
             <img src="/favicon.png" alt="" className="h-8 w-8 rounded-lg" />

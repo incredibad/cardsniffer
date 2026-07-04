@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.43.1] - 2026-07-04
+
+### Fixed
+- Login form popover was rendering behind the results grid — `<header>`'s `backdrop-blur` creates its own stacking context, but the header had no `position`/`z-index` of its own, so it painted below `<main>` (later in DOM order) regardless of the popover's own `z-30`. Giving `<header>` `relative z-40` fixes it, since the fix has to raise the header's whole stacking context, not just the popover inside it
+
 ## [0.43.0] - 2026-07-04
 
 ### Fixed
