@@ -61,6 +61,14 @@ class SearchResult:
     # shown as the badge label in place of generic "Foil" when set. None
     # (the default) just falls back to "Foil" for any foil=True result.
     foil_treatment: Optional[str] = None
+    # Postage cost, shown informationally next to the price — deliberately
+    # NOT folded into `price`/GST/currency conversion, since it isn't part of
+    # what you pay for the card itself and stores quote it inconsistently
+    # (free, flat-rate, calculated-at-checkout). None (the default) means the
+    # store doesn't expose a per-listing shipping cost. Always in the same
+    # currency as `price` — no separate currency field needed since every
+    # scraper that sets this only ever operates in one currency (eBay: AUD).
+    shipping_price: Optional[float] = None
 
 
 class BaseScraper(ABC):

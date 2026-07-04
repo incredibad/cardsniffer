@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.41.0] - 2026-07-04
+
+### Added
+- Postage cost shown next to the price for eBay listings (small muted text with an envelope icon, "Free postage" when $0). New `SearchResult.shipping_price` field, populated from the Browse API's `shippingOptions`, only ever set for eBay — deliberately excluded from GST/currency conversion and the orderable total, since it's informational only
+
 ## [0.40.0] - 2026-07-04
 
 ### Added

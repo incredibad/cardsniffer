@@ -1,4 +1,4 @@
-import { Sparkles, ExternalLink } from "lucide-react";
+import { Sparkles, ExternalLink, Mail } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import { formatPrice } from "../formatPrice";
@@ -21,6 +21,7 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
     image_url,
     product_url,
     store_name,
+    shipping_price,
   } = result;
   const storeMeta = getStoreMeta(store_name);
   const displayPrice = pricingMode === "original" ? price_original : price;
@@ -92,14 +93,22 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
           >
             {storeMeta.code}
           </span>
-          <div
-            className={`text-base sm:text-xl font-semibold leading-tight ${
-              displayCurrency === "AUD"
-                ? "text-slate-900 dark:text-zinc-50"
-                : "text-amber-700 dark:text-amber-400"
-            }`}
-          >
-            {formatPrice(displayPrice, displayCurrency)}
+          <div className="flex items-baseline gap-1.5 flex-wrap">
+            <div
+              className={`text-base sm:text-xl font-semibold leading-tight ${
+                displayCurrency === "AUD"
+                  ? "text-slate-900 dark:text-zinc-50"
+                  : "text-amber-700 dark:text-amber-400"
+              }`}
+            >
+              {formatPrice(displayPrice, displayCurrency)}
+            </div>
+            {shipping_price != null && (
+              <span className="inline-flex items-center gap-0.5 text-[10px] sm:text-[11px] text-slate-400 dark:text-zinc-500">
+                <Mail size={10} />
+                {shipping_price === 0 ? "Free postage" : `+${formatPrice(shipping_price, "AUD")} postage`}
+              </span>
+            )}
           </div>
           <a
             href={product_url}
