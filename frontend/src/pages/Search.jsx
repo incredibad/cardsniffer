@@ -109,6 +109,8 @@ export default function Search() {
     setDismissedErrors(false);
     setSuggestOpen(false);
     setSuggestions([]);
+    clearTimeout(debounceRef.current);
+    suggestRequestId.current++; // invalidate any pending autocomplete fetch still in flight
     inputRef.current?.blur();
     try {
       const data = await api.search(q);
