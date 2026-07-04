@@ -43,7 +43,7 @@ This is non-negotiable — no commit should go out without a changelog entry.
 - Backend: Python 3.12 / FastAPI / SQLAlchemy / uvicorn
 - Frontend: React 18 / Vite / Tailwind CSS / Lucide icons
 - Container: single container, uvicorn serves both API and built static files
-- **No auth in v1** — this is a single-user/local tool. Don't add a login screen unless the user asks; auth is planned for when saved lists become multi-user.
+- **Auth**: user accounts with admin/regular roles (`backend/auth.py`, `backend/routers/auth.py`, `backend/routers/users.py`). Session-based via an HttpOnly cookie backed by a server-side `auth_sessions` table (not a JWT — revocable on logout/deletion). First load with no accounts prompts to create the initial admin (Settings → Admin tab). Search and the theme toggle are fully public/unauthenticated; Stores, VPN Proxy, Logs, and Users management are admin-only.
 - **No bundled VPN sidecar** — this host already runs `tightarse-gluetun` (HTTP proxy on host port 8888). Cardsniffer routes scraper requests through it via the `vpn_proxy_url` setting (Settings → General) rather than running its own gluetun container.
 
 ## Scraper sources
