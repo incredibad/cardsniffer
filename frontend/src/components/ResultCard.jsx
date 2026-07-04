@@ -38,7 +38,7 @@ export default function ResultCard({ result }) {
         )}
       </div>
 
-      <div className="p-3.5 flex flex-col gap-2.5 flex-1 rounded-b-2xl">
+      <div className="p-3.5 flex flex-col gap-2.5 flex-1 rounded-b-2xl overflow-hidden bg-white dark:bg-zinc-900">
         <div>
           <h3
             className="font-semibold text-slate-900 dark:text-zinc-50 text-sm leading-snug truncate"
