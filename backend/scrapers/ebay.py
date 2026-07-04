@@ -87,7 +87,15 @@ class EbayScraper(BaseScraper):
         _token_cache[self.app_id] = (token, time.monotonic() + data.get("expires_in", 7200) - 60)
         return token
 
-    async def search(self, query: str) -> list[SearchResult]:
+    async def search(self, query: str, exact: bool = False) -> list[SearchResult]:
+        """`exact=True` is the "eBay Snipe" mode: the raw query text is sent
+        to eBay verbatim (no "MTG" appended, no card-name substring check
+        against the title) so a free-text term search like "Marvel Foil"
+        isn't narrowed down as if it were a specific card name. AU-only,
+        Buy-It-Now-only, single-card-category, and lot/bundle exclusion still
+        apply — same noise filtering as a normal search, just without the two
+        defenses that assume the query names one specific card.
+        """
         token = await self._get_token()
 
         response = await self.client.get(
@@ -99,8 +107,9 @@ class EbayScraper(BaseScraper):
             params={
                 # "MTG" appended to cut down false positives from unrelated
                 # items merely sharing a card's name (matches the user's own
-                # manual eBay search habit).
-                "q": f"{query} MTG",
+                # manual eBay search habit) — skipped in exact mode, where the
+                # query is already a deliberate free-text term.
+                "q": query if exact else f"{query} MTG",
                 # Buyer requirements agreed up front: Australian listings only
                 # (not just AU postage — the item's actual location) and Buy
                 # It Now only. FIXED_PRICE is already the default buying
@@ -116,12 +125,13 @@ class EbayScraper(BaseScraper):
         # Same defense as Card Kingdom/GUF/Good Games: eBay's search matches
         # anywhere in the title, so a query can pull in items that only
         # happen to mention the card name in passing. Keep only titles that
-        # actually contain it.
+        # actually contain it — skipped in exact mode, since there's no
+        # single card name to check the title against.
         needle = _normalize(query)
         results = []
         for item in items:
             title = item.get("title", "")
-            if needle not in _normalize(title):
+            if not exact and needle not in _normalize(title):
                 continue
             if _NON_SINGLE_RE.search(title):
                 continue

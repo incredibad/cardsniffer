@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.50.0] - 2026-07-05
+
+### Added
+- "eBay Snipe": the Search button is now a split button with a dropdown for an alternate search mode. eBay Snipe searches eBay only, using the exact query text (no "MTG" appended, no card-name matching against the title — still AU-only/Buy-It-Now-only/single-card-category/no-lots), fetches up to 200 listings, and force-sorts them newest-first. The button turns eBay yellow while in this mode and stays that way (sticky across searches) until "Search" is chosen again from the dropdown or the page reloads
+- Backend: `GET /search` accepts optional `store`/`exact` params to power this — `EbayScraper.search()` takes a new `exact` flag
+
 ## [0.49.0] - 2026-07-04
 
 ### Changed

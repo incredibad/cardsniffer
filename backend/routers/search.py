@@ -2,7 +2,7 @@ import asyncio
 import logging
 from dataclasses import asdict
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 import crypto
@@ -32,12 +32,28 @@ def _is_art(result) -> bool:
 
 
 @router.get("")
-async def search(q: str = Query(..., min_length=1), db: Session = Depends(get_db)):
+async def search(
+    q: str = Query(..., min_length=1),
+    store: str | None = Query(None),
+    exact: bool = Query(False),
+    db: Session = Depends(get_db),
+):
     proxy_url = get_setting(db, "vpn_proxy_url", "")
-    enabled_keys = [
-        key for key in SCRAPERS
-        if get_setting(db, f"store_{key}_enabled", "true") != "false"
-    ]
+
+    if store:
+        # "eBay Snipe": a single-store, exact-query search rather than the
+        # usual all-enabled-stores aggregate — still respects the store
+        # being disabled in Settings, same as the normal search.
+        if store not in SCRAPERS:
+            raise HTTPException(status_code=400, detail=f"Unknown store: {store}")
+        if get_setting(db, f"store_{store}_enabled", "true") == "false":
+            raise HTTPException(status_code=400, detail=f"{SCRAPERS[store].store_name} is disabled in Settings")
+        enabled_keys = [store]
+    else:
+        enabled_keys = [
+            key for key in SCRAPERS
+            if get_setting(db, f"store_{key}_enabled", "true") != "false"
+        ]
 
     errors: list[dict] = []
 
@@ -49,6 +65,8 @@ async def search(q: str = Query(..., min_length=1), db: Session = Depends(get_db
                 kwargs["app_id"] = get_setting(db, "ebay_app_id", "")
                 kwargs["cert_id"] = crypto.decrypt(cert_encrypted) if cert_encrypted else ""
             async with get_scraper(key, **kwargs) as scraper:
+                if key == "ebay" and exact:
+                    return await scraper.search(q, exact=True)
                 return await scraper.search(q)
         except Exception as e:
             logger.warning(f"Scraper '{key}' failed for query {q!r}: {e}")

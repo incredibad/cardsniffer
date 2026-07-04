@@ -19,6 +19,7 @@ function postJSON(path, payload) {
 
 export const api = {
   search: (q) => request(`/search?q=${encodeURIComponent(q)}`),
+  searchEbaySnipe: (q) => request(`/search?q=${encodeURIComponent(q)}&store=ebay&exact=true`),
   listStores: () => request("/stores"),
   getSettings: () => request("/settings"),
   updateSettings: (payload) =>
