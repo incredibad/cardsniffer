@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.32.1] - 2026-07-04
+
+### Fixed
+- Card Kingdom was flagging some non-foil listings (e.g. Secret Lair prints titled "(Non-Foil)") as foil — the title-text check for "foil" was matching the substring inside "non-foil". Non-foil phrasing is now stripped out before checking
+
 ## [0.32.0] - 2026-07-04
 
 ### Added
