@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented here.
 
+## [0.34.1] - 2026-07-04
+
+### Fixed
+- Known-treatment matching required an exact-spaced substring, so store-specific spelling variants were silently missing: Hareruya's "SurgeFoil"/"RetroF" (Surge Foil/Retro Foil with no space or truncated) and MTGMintCard's "Foil-etched" (hyphenated) all fell through to a plain "Foil" badge. Each treatment now matches multiple known raw spellings, not just one
+
+### Added
+- Retro Foil, Silver Screen Foil, and Neon Ink to the known-treatment list, confirmed via live Hareruya/MTGMintCard title text. Also added Invisible Ink Foil and Ampersand Foil off general knowledge, unconfirmed against a live listing yet
+
 ## [0.34.0] - 2026-07-04
 
 ### Changed
