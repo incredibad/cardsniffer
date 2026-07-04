@@ -20,8 +20,19 @@ const SHOW_ART_KEY = "cardsniffer.showArtCards";
 const SHOW_FOREIGN_KEY = "cardsniffer.showForeignCards";
 const EXACT_MATCH_KEY = "cardsniffer.exactMatchOnly";
 const PRICING_MODE_KEY = "cardsniffer.pricingMode";
+const HIDDEN_STORES_KEY = "cardsniffer.hiddenStores";
+const HIDDEN_CONDITIONS_KEY = "cardsniffer.hiddenConditions";
+const FOIL_FILTER_KEY = "cardsniffer.foilFilter";
 const SUGGEST_DEBOUNCE_MS = 150;
 const SUGGEST_MIN_LENGTH = 2;
+
+function readStoredSet(key) {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(key)) || []);
+  } catch {
+    return new Set();
+  }
+}
 
 export default function Search() {
   const [query, setQuery] = useState("");
@@ -50,11 +61,27 @@ export default function Search() {
     () => localStorage.getItem(PRICING_MODE_KEY) || "aud"
   ); // aud | original
 
-  // Live filter bar (results row) — ephemeral, not browser-persisted, reset
-  // on every new search.
-  const [barHiddenStores, setBarHiddenStores] = useState(() => new Set());
-  const [barHiddenConditions, setBarHiddenConditions] = useState(() => new Set());
-  const [foilFilter, setFoilFilter] = useState("all"); // all | foil | nonfoil
+  // Live filter bar (results row) — browser-persisted and carried over
+  // between searches, same as the Show toggles below, rather than resetting
+  // every time (a store/condition/foil preference is usually about the
+  // person searching, not the specific query).
+  const [barHiddenStores, setBarHiddenStores] = useState(() => readStoredSet(HIDDEN_STORES_KEY));
+  const [barHiddenConditions, setBarHiddenConditions] = useState(() => readStoredSet(HIDDEN_CONDITIONS_KEY));
+  const [foilFilter, setFoilFilter] = useState(
+    () => localStorage.getItem(FOIL_FILTER_KEY) || "all"
+  ); // all | foil | nonfoil
+
+  useEffect(() => {
+    localStorage.setItem(HIDDEN_STORES_KEY, JSON.stringify([...barHiddenStores]));
+  }, [barHiddenStores]);
+
+  useEffect(() => {
+    localStorage.setItem(HIDDEN_CONDITIONS_KEY, JSON.stringify([...barHiddenConditions]));
+  }, [barHiddenConditions]);
+
+  useEffect(() => {
+    localStorage.setItem(FOIL_FILTER_KEY, foilFilter);
+  }, [foilFilter]);
 
   const [suggestions, setSuggestions] = useState([]);
   const [suggestOpen, setSuggestOpen] = useState(false);
@@ -151,9 +178,6 @@ export default function Search() {
     clearTimeout(debounceRef.current);
     suggestRequestId.current++; // invalidate any pending autocomplete fetch still in flight
     inputRef.current?.blur();
-    setBarHiddenStores(new Set());
-    setBarHiddenConditions(new Set());
-    setFoilFilter("all");
     try {
       const data = await api.search(q);
       setResults(data.results);

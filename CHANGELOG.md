@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.43.0] - 2026-07-04
+
+### Fixed
+- Store, Condition, and Foil filters now persist to localStorage and carry over between searches, matching the Show toggles — previously they were explicitly reset back to "nothing hidden"/"all" at the start of every new search, and weren't saved across page reloads at all
+
 ## [0.42.3] - 2026-07-04
 
 ### Fixed
