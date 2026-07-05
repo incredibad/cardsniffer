@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.61.0] - 2026-07-05
+
+### Added
+- `VPN_PROXY_URL` environment variable in `docker-compose.yml` to set the default scraper proxy without opening Settings — same seed-once-then-admin-wins pattern as `TZ`
+- Commented-out gluetun sidecar service in `docker-compose.yml`, for a fresh install with no existing proxy to point at — uncomment, fill in provider credentials, and set `VPN_PROXY_URL=http://gluetun:8888` to wire it up automatically
+
 ## [0.60.0] - 2026-07-05
 
 ### Added
