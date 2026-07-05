@@ -27,6 +27,7 @@ DETAIL_URL = f"{BASE_URL}/en/products/detail"
 _ROWS = 1000
 
 _STOCK_RE = re.compile(r"Stock:(\d+)")
+_PRICE_RE = re.compile(r"[\d,]+")
 
 # language codes from the site's own `languages` JS map; only ones actually
 # seen in results matter for the product URL's `lang` query param.
@@ -52,9 +53,12 @@ _COLLECTOR_RE = re.compile(r"\(([^()]+)\)")
 _TREATMENT_TAG_RE = re.compile(r"【([^【】]*)】|■([^■]*)■")
 _CONDITION_ABBRS = {"nm", "sp", "sp+", "mp", "mp+", "hp", "hp+", "poor", "ex"}
 
-# card_condition on regular catalog items is always "1" (Hareruya only stocks
-# NM new singles), but secondhand "Consignment Item" listings genuinely vary
-# across this scale.
+# card_condition on the unisearch_api doc itself is always "1" (NM) for
+# regular catalog items — but the site does stock SP/MP/HP for the same
+# product behind a per-product "Show All Conditions" table (see
+# _fetch_stock_and_conditions below), so this only maps the one condition
+# Solr happens to index as the doc's own. Secondhand "Consignment Item"
+# listings are the one case where the doc's own card_condition itself varies.
 _CONDITIONS = {"1": "NM", "2": "SP", "3": "MP", "4": "HP"}
 
 
@@ -123,23 +127,43 @@ class HareruyaScraper(BaseScraper):
         needle = _normalize(query)
         docs = [d for d in docs if needle in _normalize(d.get("card_name", ""))]
 
-        accurate_stock = await self._fetch_accurate_stock(docs)
+        stock_info = await self._fetch_stock_and_conditions(docs)
 
         results: list[SearchResult] = []
-        for doc, stock in zip(docs, accurate_stock):
-            result = self._parse_doc(doc, stock)
+        for doc, info in zip(docs, stock_info):
+            result = self._parse_doc(doc, info["stock"])
             if result is not None:
                 results.append(result)
+            for other in info["other_conditions"]:
+                other_result = self._parse_doc(
+                    doc,
+                    other["stock"],
+                    condition_override=other["condition"],
+                    price_override=other["price"],
+                    product_class_override=other["product_class"],
+                )
+                if other_result is not None:
+                    results.append(other_result)
         return results
 
-    async def _fetch_accurate_stock(self, docs: list[dict]) -> list[int | None]:
+    async def _fetch_stock_and_conditions(self, docs: list[dict]) -> list[dict]:
         """The unisearch_api response's own `stock` field is a decoy (see
-        _parse_doc) — the real per-listing count only shows up in the
+        _parse_doc) — the real per-listing count, and any *other* condition
+        this same product is separately stocked in, only show up in the
         rendered markup from the site's own second-stage AJAX call, which
         takes the very same docs and server-renders them (batching every doc
         from a search into one call here — confirmed this holds even for
         Sol Ring's 760-listing case, ~7s but correct and in the same order
-        as the input docs, so results zip back up by index)."""
+        as the input docs, so results zip back up by index).
+
+        A regular catalog item isn't NM-only the way the doc's own
+        card_condition implies — confirmed live: product 14844 class 110065
+        (Anointed Procession) is indexed as NM, but its own "Show All
+        Conditions" table lists SP/MP/HP with real, separate stock. That
+        table (.tableHere.product, hidden until clicked) is already present
+        in this same rendered response, so it's parsed here for free rather
+        than needing a per-product detail-page fetch."""
+        empty = [{"stock": None, "other_conditions": []} for _ in docs]
         if not docs:
             return []
 
@@ -157,24 +181,62 @@ class HareruyaScraper(BaseScraper):
             )
             response.raise_for_status()
         except Exception:
-            return [None] * len(docs)
+            return empty
 
         soup = BeautifulSoup(response.text, "lxml")
-        stocks: list[int | None] = []
-        for item in soup.select("li.itemList"):
-            stock_el = item.select_one(".itemDetail__stock")
-            match = _STOCK_RE.search(stock_el.get_text()) if stock_el else None
-            stocks.append(int(match.group(1)) if match else None)
+        items = soup.select("li.itemList")
 
         # If the rendered count doesn't line up 1:1 with what was sent,
         # bail out to "unknown for everything" rather than risk mis-zipping
-        # a stock count onto the wrong listing.
-        if len(stocks) != len(docs):
-            return [None] * len(docs)
-        return stocks
+        # a result onto the wrong listing.
+        if len(items) != len(docs):
+            return empty
 
-    def _parse_doc(self, doc: dict, accurate_stock: int | None = None) -> SearchResult | None:
-        price = doc.get("price")
+        results: list[dict] = []
+        for item, doc in zip(items, docs):
+            stock_el = item.select_one(".itemDetail__stock")
+            match = _STOCK_RE.search(stock_el.get_text()) if stock_el else None
+            stock = int(match.group(1)) if match else None
+
+            own_class = doc.get("product_class")
+            other_conditions = []
+            table = item.select_one("div.tableHere.product")
+            for row in (table.find_all("div", class_="row", recursive=False) if table else []):
+                cells = row.find_all("div", recursive=False)
+                if len(cells) < 3:
+                    continue
+                condition_el = cells[0].find("strong")
+                class_el = row.select_one("[data-productclass]")
+                product_class = class_el.get("data-productclass") if class_el else None
+                price_match = _PRICE_RE.search(cells[1].get_text())
+                stock_match = re.search(r"\d+", cells[2].get_text())
+                if not condition_el or not product_class or product_class == own_class:
+                    continue
+                if not price_match or not stock_match:
+                    continue
+                row_stock = int(stock_match.group())
+                if row_stock <= 0:
+                    continue
+                other_conditions.append({
+                    "condition": condition_el.get_text(strip=True),
+                    "price": float(price_match.group().replace(",", "")),
+                    "stock": row_stock,
+                    "product_class": product_class,
+                })
+
+            results.append({"stock": stock, "other_conditions": other_conditions})
+        return results
+
+    def _parse_doc(
+        self,
+        doc: dict,
+        accurate_stock: int | None = None,
+        *,
+        condition_override: str | None = None,
+        price_override: float | None = None,
+        product_class_override: str | None = None,
+    ) -> SearchResult | None:
+        price = price_override if price_override is not None else doc.get("price")
         if price is None:
             return None
 
@@ -193,15 +255,16 @@ class HareruyaScraper(BaseScraper):
         foil_treatment = extract_foil_treatment(*treatments) if foil else None
 
         lang_code = _LANGUAGES.get(doc.get("language", ""))
+        product_class = product_class_override or doc.get("product_class", "")
         product_url = (
             f"{DETAIL_URL}/{doc.get('product', '')}?"
-            + urlencode({"lang": lang_code or "EN", "class": doc.get("product_class", "")})
+            + urlencode({"lang": lang_code or "EN", "class": product_class})
         )
 
         # `stock` on the doc itself is a decoy — cross-checked against the
         # real per-listing count (only exposed by the site's second-stage
-        # render, see _fetch_accurate_stock), it's inflated by a factor that
-        # varies per listing (6x-24x, not fixed), while zero-vs-nonzero
+        # render, see _fetch_stock_and_conditions), it's inflated by a factor
+        # that varies per listing (6x-24x, not fixed), while zero-vs-nonzero
         # matched the real figure in every case. So it's only used as a
         # fallback if fetching the accurate count failed outright.
         if accurate_stock is not None:
@@ -211,13 +274,15 @@ class HareruyaScraper(BaseScraper):
             in_stock = int(doc.get("stock") or 0) > 0
             quantity_available = None
 
+        condition = condition_override or _CONDITIONS.get(doc.get("card_condition", ""), "NM")
+
         return SearchResult(
             card_name=card_name,
             set_name=set_name,
             collector_number=collector_number,
             foil=foil,
             foil_treatment=foil_treatment,
-            condition=_CONDITIONS.get(doc.get("card_condition", ""), "NM"),
+            condition=condition,
             price=float(price),
             currency="JPY",
             in_stock=in_stock,

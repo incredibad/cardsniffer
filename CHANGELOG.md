@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.64.0] - 2026-07-05
+
+### Fixed
+- Hareruya only ever showed NM copies of a card, even when SP/MP/HP copies were genuinely in stock (e.g. a card whose search-indexed listing is NM still has separate stocked SP/MP/HP listings under the same product) — the site's own "Show All Conditions" table for each item was already present in a response we were fetching anyway (for accurate stock), just not parsed. Now parsed for free, no extra requests
+
 ## [0.63.1] - 2026-07-05
 
 ### Changed
