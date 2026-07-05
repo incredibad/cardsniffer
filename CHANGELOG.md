@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.61.1] - 2026-07-05
+
+### Changed
+- Removed references to an unrelated personal project from code comments and docs; trimmed the `docker-compose.yml` comments down to be more succinct
+
 ## [0.61.0] - 2026-07-05
 
 ### Added

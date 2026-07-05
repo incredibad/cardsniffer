@@ -174,7 +174,7 @@ def init_db():
 def _migrate_db():
     """Idempotent list of ALTER/CREATE statements for schema changes made after
     the initial release. Each is wrapped in try/except so already-applied
-    migrations silently no-op — mirrors the tightarse pattern."""
+    migrations silently no-op."""
     migrations: list[str] = [
         "ALTER TABLE search_logs ADD COLUMN user_id INTEGER REFERENCES users(id)",
         "ALTER TABLE search_logs ADD COLUMN search_type VARCHAR NOT NULL DEFAULT 'search'",

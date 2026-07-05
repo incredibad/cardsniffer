@@ -10,17 +10,9 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - SECRET_KEY=${SECRET_KEY}
-      # Default display/log timezone (e.g. Australia/Sydney) — only takes
-      # effect until an admin sets one in Settings → Admin → System, which
-      # then wins from then on regardless of this value. Also sets the
-      # container's own local time, so log rotation timing matches it too.
+      # Display/log timezone — Settings → Admin → System overrides this once set.
       - TZ=${TZ:-UTC}
-      # Optional default VPN/HTTP proxy for scraper requests (e.g.
-      # http://host.docker.internal:8888 for an existing external gluetun
-      # like tightarse-gluetun, or http://gluetun:8888 if you uncomment the
-      # sidecar service below) — only takes effect until an admin sets one
-      # in Settings → Admin → Network, which then wins from then on
-      # regardless of this value. Leave unset for no proxy.
+      # Optional scraper HTTP proxy — Settings → Admin → Network overrides this once set.
       - VPN_PROXY_URL=${VPN_PROXY_URL:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -33,13 +25,9 @@ services:
       retries: 3
       start_period: 15s
 
-  # Optional self-contained VPN sidecar for a fresh install with no existing
-  # proxy to point at (this host already has one — tightarse-gluetun — so
-  # it stays commented out here). Uncomment, fill in VPN_SERVICE_PROVIDER and
-  # your provider's auth vars below (see
-  # https://github.com/qdm12/gluetun-wiki/tree/main/setup/providers for the
-  # exact vars per provider), then set VPN_PROXY_URL=http://gluetun:8888 in
-  # .env so cardsniffer picks it up automatically on first boot.
+  # Optional VPN sidecar — uncomment, set your provider below (see
+  # https://github.com/qdm12/gluetun-wiki/tree/main/setup/providers), then
+  # set VPN_PROXY_URL=http://gluetun:8888 above.
   # gluetun:
   #   container_name: cardsniffer-gluetun
   #   image: qmcgaw/gluetun
