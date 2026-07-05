@@ -6,14 +6,18 @@ from curl_cffi.requests import AsyncSession
 
 from .base import BaseScraper, SearchResult
 
-BASE_URL = "https://mtgdb.timhedley.com"
 STORE_URL = "https://www.mtgmate.com.au"
 
-# MTGDude is a personal tool (Tim's own) that scrapes MTG Mate (an Australian
-# store, mtgmate.com.au) and re-serves the results. It's rate-limited to
-# 1000 requests/month on their end — one search here is one request there,
-# so don't add retries, pagination follow-up requests, or anything else that
-# multiplies calls per search.
+# This scraper doesn't talk to MTGMate directly — it hits a personal relay
+# tool (base_url, Settings → Admin → Stores → MTGMate Relay) that scrapes MTG
+# Mate (an Australian store, mtgmate.com.au) and re-serves the results in its
+# own specific format (see _extract_props below). That format is unique to
+# this one relay, not a generic MTGMate integration, so there's no fallback
+# for scraping the store directly if base_url isn't configured — the store
+# is force-disabled system-wide instead (database.is_store_globally_enabled).
+# The relay is rate-limited to 1000 requests/month on its own end — one
+# search here is one request there, so don't add retries, pagination
+# follow-up requests, or anything else that multiplies calls per search.
 #
 # It's Cloudflare-fronted and plain httpx connections to it fail outright
 # (not an HTTP error — the connection itself is refused/dropped) on roughly
@@ -66,7 +70,8 @@ def _extract_props(html_text: str) -> dict:
 class MtgMateScraper(BaseScraper):
     store_name = "MTGMate"
 
-    def __init__(self, proxy_url: str = ""):
+    def __init__(self, proxy_url: str = "", base_url: str = ""):
+        self.base_url = base_url
         self.client = AsyncSession(
             impersonate="chrome124",
             timeout=15.0,
@@ -78,7 +83,10 @@ class MtgMateScraper(BaseScraper):
         await self.client.close()
 
     async def search(self, query: str) -> list[SearchResult]:
-        response = await self.client.get(BASE_URL, params={"q": query})
+        if not self.base_url:
+            raise RuntimeError("MTGMate relay URL not configured (Settings → Admin → Stores)")
+
+        response = await self.client.get(self.base_url, params={"q": query})
         response.raise_for_status()
 
         try:

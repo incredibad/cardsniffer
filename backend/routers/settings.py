@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 import crypto
 import tz
 from auth import require_admin
-from database import count_ebay_api_calls_24h, get_db, get_setting, set_setting
+from database import count_ebay_api_calls_24h, get_db, get_setting, is_store_globally_enabled, set_setting
 from scrapers import SCRAPERS
 
 router = APIRouter(prefix="/settings", tags=["settings"], dependencies=[Depends(require_admin)])
@@ -25,6 +25,7 @@ class SettingsOut(BaseModel):
     ebay_app_id: str
     ebay_cert_id_configured: bool
     ebay_api_calls_24h: int
+    mtgmate_relay_url: str
     timezone: str
     stores: list[StoreSetting]
 
@@ -33,6 +34,7 @@ class SettingsUpdate(BaseModel):
     vpn_proxy_url: str | None = None
     ebay_app_id: str | None = None
     ebay_cert_id: str | None = None  # None = leave unchanged, "" = clear
+    mtgmate_relay_url: str | None = None
     timezone: str | None = None
     stores: dict[str, bool] | None = None  # scraper key -> enabled
 
@@ -44,12 +46,13 @@ def get_settings(db: Session = Depends(get_db)):
         ebay_app_id=get_setting(db, "ebay_app_id", ""),
         ebay_cert_id_configured=bool(get_setting(db, "ebay_cert_id_encrypted", "")),
         ebay_api_calls_24h=count_ebay_api_calls_24h(db),
+        mtgmate_relay_url=get_setting(db, "mtgmate_relay_url", ""),
         timezone=get_setting(db, "timezone", "UTC"),
         stores=[
             StoreSetting(
                 key=key,
                 store_name=cls.store_name,
-                enabled=get_setting(db, f"store_{key}_enabled", "true") != "false",
+                enabled=is_store_globally_enabled(db, key),
             )
             for key, cls in SCRAPERS.items()
         ],
@@ -64,6 +67,8 @@ def update_settings(payload: SettingsUpdate, db: Session = Depends(get_db)):
         set_setting(db, "ebay_app_id", payload.ebay_app_id)
     if payload.ebay_cert_id is not None:
         set_setting(db, "ebay_cert_id_encrypted", crypto.encrypt(payload.ebay_cert_id) if payload.ebay_cert_id else "")
+    if payload.mtgmate_relay_url is not None:
+        set_setting(db, "mtgmate_relay_url", payload.mtgmate_relay_url)
     if payload.timezone is not None:
         try:
             tz.set_timezone(payload.timezone)

@@ -78,6 +78,13 @@ async def lifespan(app: FastAPI):
         if not get_setting(db, "vpn_proxy_url", "") and os.environ.get("VPN_PROXY_URL"):
             set_setting(db, "vpn_proxy_url", os.environ["VPN_PROXY_URL"])
             db.commit()
+
+        # Same pattern again — MTGMATE_RELAY_URL only matters for whoever
+        # already has a personal relay to point at; a fresh install with
+        # nothing set here just leaves MTGMate force-disabled.
+        if not get_setting(db, "mtgmate_relay_url", "") and os.environ.get("MTGMATE_RELAY_URL"):
+            set_setting(db, "mtgmate_relay_url", os.environ["MTGMATE_RELAY_URL"])
+            db.commit()
     finally:
         db.close()
     yield

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 import crypto
 from auth import get_current_user
 from currency import get_rate_to_aud
-from database import SearchLog, User, get_db, get_setting, get_user_store_enabled
+from database import SearchLog, User, get_db, get_setting, get_user_store_enabled, is_store_globally_enabled
 from scrapers import SCRAPERS, get_scraper
 
 logger = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ async def search(
         # being disabled globally or by this user, same as the normal search.
         if store not in SCRAPERS:
             raise HTTPException(status_code=400, detail=f"Unknown store: {store}")
-        if get_setting(db, f"store_{store}_enabled", "true") == "false":
+        if not is_store_globally_enabled(db, store):
             raise HTTPException(status_code=400, detail=f"{SCRAPERS[store].store_name} is disabled in Settings")
         if user and not get_user_store_enabled(db, user.id, store):
             raise HTTPException(
@@ -59,7 +59,7 @@ async def search(
     else:
         enabled_keys = [
             key for key in SCRAPERS
-            if get_setting(db, f"store_{key}_enabled", "true") != "false"
+            if is_store_globally_enabled(db, key)
             and (user is None or get_user_store_enabled(db, user.id, key))
         ]
 
@@ -72,6 +72,8 @@ async def search(
                 cert_encrypted = get_setting(db, "ebay_cert_id_encrypted", "")
                 kwargs["app_id"] = get_setting(db, "ebay_app_id", "")
                 kwargs["cert_id"] = crypto.decrypt(cert_encrypted) if cert_encrypted else ""
+            if key == "mtgmate":
+                kwargs["base_url"] = get_setting(db, "mtgmate_relay_url", "")
             async with get_scraper(key, **kwargs) as scraper:
                 if key == "ebay" and exact:
                     return await scraper.search(q, exact=True)
