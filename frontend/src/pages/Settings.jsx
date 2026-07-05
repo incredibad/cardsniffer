@@ -246,6 +246,10 @@ function StoresAndProxySection() {
         <p className="text-xs text-slate-500 dark:text-zinc-500 mb-3">
           Production keyset credentials from the eBay Developer Program, used for the Browse API.
         </p>
+        <div className="flex items-center justify-between text-sm mb-3">
+          <span className="text-slate-700 dark:text-zinc-300">API calls (last 24h)</span>
+          <span className="font-medium text-slate-900 dark:text-zinc-100">{settings.ebay_api_calls_24h}</span>
+        </div>
         <div className="flex flex-col gap-2">
           <input
             type="text"

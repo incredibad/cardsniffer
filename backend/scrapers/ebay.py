@@ -2,6 +2,8 @@ import base64
 import re
 import time
 
+from database import SessionLocal, record_ebay_api_call
+
 from .base import BaseScraper, SearchResult
 from .foil_treatment import extract_foil_treatment
 
@@ -56,6 +58,17 @@ def _normalize(text: str) -> str:
     return re.sub(r"\s+", " ", text or "").strip().lower()
 
 
+def _log_api_call():
+    """Scrapers aren't handed the request-scoped db session, so this opens
+    its own short-lived one — same tradeoff as SearchLog, just per-store
+    instead of per-user-search."""
+    db = SessionLocal()
+    try:
+        record_ebay_api_call(db)
+    finally:
+        db.close()
+
+
 class EbayScraper(BaseScraper):
     store_name = "eBay"
 
@@ -73,6 +86,7 @@ class EbayScraper(BaseScraper):
             return cached[0]
 
         credentials = base64.b64encode(f"{self.app_id}:{self.cert_id}".encode()).decode()
+        _log_api_call()
         response = await self.client.post(
             TOKEN_URL,
             headers={
@@ -98,6 +112,7 @@ class EbayScraper(BaseScraper):
         """
         token = await self._get_token()
 
+        _log_api_call()
         response = await self.client.get(
             SEARCH_URL,
             headers={

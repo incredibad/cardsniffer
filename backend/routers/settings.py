@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 import crypto
 from auth import require_admin
-from database import Setting, get_db, get_setting
+from database import Setting, count_ebay_api_calls_24h, get_db, get_setting
 from scrapers import SCRAPERS
 
 router = APIRouter(prefix="/settings", tags=["settings"], dependencies=[Depends(require_admin)])
@@ -21,6 +21,7 @@ class SettingsOut(BaseModel):
     vpn_proxy_url: str
     ebay_app_id: str
     ebay_cert_id_configured: bool
+    ebay_api_calls_24h: int
     stores: list[StoreSetting]
 
 
@@ -45,6 +46,7 @@ def get_settings(db: Session = Depends(get_db)):
         vpn_proxy_url=get_setting(db, "vpn_proxy_url", ""),
         ebay_app_id=get_setting(db, "ebay_app_id", ""),
         ebay_cert_id_configured=bool(get_setting(db, "ebay_cert_id_encrypted", "")),
+        ebay_api_calls_24h=count_ebay_api_calls_24h(db),
         stores=[
             StoreSetting(
                 key=key,

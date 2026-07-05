@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.54.0] - 2026-07-05
+
+### Added
+- Admin-only "API calls (last 24h)" count in Settings → General → eBay API, tracking actual outbound requests to eBay's API (OAuth token fetches and Browse searches) over a rolling 24h window
+
 ## [0.53.1] - 2026-07-05
 
 ### Changed
