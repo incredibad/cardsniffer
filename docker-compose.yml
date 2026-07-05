@@ -8,7 +8,6 @@ services:
     volumes:
       - cardsniffer_data:/data
     environment:
-      - PYTHONUNBUFFERED=1
       - SECRET_KEY=${SECRET_KEY}
       # Display/log timezone — Settings → Admin → System overrides this once set.
       - TZ=${TZ:-UTC}
