@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.57.0] - 2026-07-05
+
+### Changed
+- Settings → Admin now has its own sub-tabs: Stores (Global System Stores + eBay API), System (About + Logs, moved in from the old top-level System tab), Network (VPN Proxy), and Users (moved in from the old top-level Users tab)
+
 ## [0.56.1] - 2026-07-05
 
 ### Changed
