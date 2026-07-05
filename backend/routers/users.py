@@ -4,9 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from auth import hash_password, require_admin, require_user
+from auth import hash_password, require_admin, require_user, verify_password
 from database import (
     AuthSession,
+    SearchLog,
     User,
     UserStoreSetting,
     get_db,
@@ -50,6 +51,20 @@ class MyStoreSetting(BaseModel):
 
 class MyStoreUpdate(BaseModel):
     stores: dict[str, bool]  # scraper key -> enabled
+
+
+class ChangePassword(BaseModel):
+    current_password: str = Field(min_length=1, max_length=256)
+    new_password: str = Field(min_length=8, max_length=256)
+
+
+class SearchHistoryItem(BaseModel):
+    query: str
+    result_count: int
+    searched_at: datetime
+
+    class Config:
+        from_attributes = True
 
 
 @router.get("", response_model=list[UserOut])
@@ -96,6 +111,26 @@ def update_my_stores(payload: MyStoreUpdate, db: Session = Depends(get_db), user
     return get_my_stores(db, user)
 
 
+@router.put("/me/password")
+def change_my_password(payload: ChangePassword, db: Session = Depends(get_db), user: User = Depends(require_user)):
+    if not verify_password(payload.current_password, user.password_hash):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    user.password_hash = hash_password(payload.new_password)
+    db.commit()
+    return {"ok": True}
+
+
+@router.get("/me/searches", response_model=list[SearchHistoryItem])
+def get_my_searches(db: Session = Depends(get_db), user: User = Depends(require_user)):
+    return (
+        db.query(SearchLog)
+        .filter(SearchLog.user_id == user.id)
+        .order_by(SearchLog.searched_at.desc())
+        .limit(20)
+        .all()
+    )
+
+
 @router.patch("/{user_id}", response_model=UserOut)
 def update_user(
     user_id: int,
@@ -138,6 +173,7 @@ def delete_user(user_id: int, db: Session = Depends(get_db), admin: User = Depen
 
     db.query(AuthSession).filter(AuthSession.user_id == user.id).delete()
     db.query(UserStoreSetting).filter(UserStoreSetting.user_id == user.id).delete()
+    db.query(SearchLog).filter(SearchLog.user_id == user.id).update({SearchLog.user_id: None})
     db.delete(user)
     db.commit()
     return {"ok": True}
