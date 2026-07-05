@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.62.0] - 2026-07-05
+
+### Added
+- MTGMate's relay URL (previously hardcoded) is now a Settings → Admin → Stores → MTGMate Relay field, seedable via the `MTGMATE_RELAY_URL` env var — MTGMate is force-disabled system-wide (in Global System Stores, per-account Stores, and search itself) whenever it's unset, since the relay's response format is specific to that one personal tool with no generic fallback
+
 ## [0.61.2] - 2026-07-05
 
 ### Changed

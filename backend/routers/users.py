@@ -11,8 +11,8 @@ from database import (
     User,
     UserStoreSetting,
     get_db,
-    get_setting,
     get_user_store_enabled,
+    is_store_globally_enabled,
     set_user_store_enabled,
 )
 from scrapers import SCRAPERS
@@ -102,7 +102,7 @@ def get_my_stores(db: Session = Depends(get_db), user: User = Depends(require_us
             enabled=get_user_store_enabled(db, user.id, key),
         )
         for key, cls in SCRAPERS.items()
-        if get_setting(db, f"store_{key}_enabled", "true") != "false"
+        if is_store_globally_enabled(db, key)
     ]
 
 

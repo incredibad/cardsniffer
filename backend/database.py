@@ -132,6 +132,18 @@ def set_setting(db, key: str, value: str):
         db.add(Setting(key=key, value=value))
 
 
+def is_store_globally_enabled(db, key: str) -> bool:
+    """The admin on/off toggle, plus any store-specific hard requirement —
+    currently just MTGMate, which can't function at all without its relay
+    URL configured (Settings → Admin → Stores) and so is force-disabled
+    system-wide until that's set, regardless of the toggle's own value."""
+    if get_setting(db, f"store_{key}_enabled", "true") == "false":
+        return False
+    if key == "mtgmate" and not get_setting(db, "mtgmate_relay_url", ""):
+        return False
+    return True
+
+
 def get_user_store_enabled(db, user_id: int, store_key: str) -> bool:
     row = db.query(UserStoreSetting).filter(
         UserStoreSetting.user_id == user_id, UserStoreSetting.store_key == store_key

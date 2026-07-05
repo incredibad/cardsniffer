@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from auth import get_current_user
-from database import User, get_db, get_setting, get_user_store_enabled
+from database import User, get_db, get_user_store_enabled, is_store_globally_enabled
 from scrapers import SCRAPERS
 
 router = APIRouter(prefix="/stores", tags=["stores"])
@@ -18,6 +18,6 @@ def list_stores(db: Session = Depends(get_db), user: User | None = Depends(get_c
     return [
         {"key": key, "store_name": cls.store_name}
         for key, cls in SCRAPERS.items()
-        if get_setting(db, f"store_{key}_enabled", "true") != "false"
+        if is_store_globally_enabled(db, key)
         and (user is None or get_user_store_enabled(db, user.id, key))
     ]

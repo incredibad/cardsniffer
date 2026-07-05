@@ -350,6 +350,7 @@ function AdminTab({ currentUsername }) {
       {subTab === "Stores" && (
         <>
           <GlobalStoresSection />
+          <MtgMateRelaySection />
           <EbayApiSection />
         </>
       )}
@@ -387,21 +388,88 @@ function GlobalStoresSection() {
         search it, regardless of their own per-account preference in Settings → General.
       </p>
       <div className="flex flex-col gap-2">
-        {settings.stores.map((s) => (
-          <label
-            key={s.key}
-            className="flex items-center justify-between py-1.5 text-sm text-slate-700 dark:text-zinc-300"
-          >
-            <span>{s.store_name}</span>
-            <input
-              type="checkbox"
-              checked={s.enabled}
-              onChange={(e) => toggleStore(s.key, e.target.checked)}
-              className="accent-indigo-600 w-4 h-4"
-            />
-          </label>
-        ))}
+        {settings.stores.map((s) => {
+          const needsRelay = s.key === "mtgmate" && !settings.mtgmate_relay_url;
+          return (
+            <label
+              key={s.key}
+              className={`flex items-center justify-between py-1.5 text-sm ${
+                needsRelay ? "text-slate-400 dark:text-zinc-600" : "text-slate-700 dark:text-zinc-300"
+              }`}
+            >
+              <span>
+                {s.store_name}
+                {needsRelay && <span className="ml-1.5 text-xs">(requires relay URL below)</span>}
+              </span>
+              <input
+                type="checkbox"
+                checked={s.enabled}
+                disabled={needsRelay}
+                onChange={(e) => toggleStore(s.key, e.target.checked)}
+                className="accent-indigo-600 w-4 h-4 disabled:opacity-40"
+              />
+            </label>
+          );
+        })}
       </div>
+    </section>
+  );
+}
+
+function MtgMateRelaySection() {
+  const [settings, setSettings] = useState(null);
+  const [relayUrl, setRelayUrl] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState("");
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function load() {
+    const data = await api.getSettings();
+    setSettings(data);
+    setRelayUrl(data.mtgmate_relay_url || "");
+  }
+
+  async function save() {
+    setSaving(true);
+    setSaveMsg("");
+    try {
+      const updated = await api.updateSettings({ mtgmate_relay_url: relayUrl });
+      setSettings(updated);
+      setSaveMsg("Saved");
+      setTimeout(() => setSaveMsg(""), 2000);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (settings === null) {
+    return <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400" size={24} />;
+  }
+
+  return (
+    <section className="card-frame p-4">
+      <h2 className="section-header mb-3">MTGMate Relay</h2>
+      <p className="text-xs text-slate-500 dark:text-zinc-500 mb-3">
+        A personal relay tool with its own specific response format — not a generic MTGMate
+        integration, so no other URL will work here. MTGMate is disabled system-wide until this
+        is set.
+      </p>
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={relayUrl}
+          onChange={(e) => setRelayUrl(e.target.value)}
+          placeholder="https://your-relay.example.com"
+          className="input-field flex-1 px-3 py-2 text-sm"
+        />
+        <button onClick={save} disabled={saving} className="btn-primary px-4 py-2 text-sm">
+          {saving ? "Saving…" : "Save"}
+        </button>
+      </div>
+      {saveMsg && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">{saveMsg}</p>}
     </section>
   );
 }

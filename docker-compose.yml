@@ -13,6 +13,10 @@ services:
       - TZ=${TZ:-UTC}
       # Optional scraper HTTP proxy — Settings → Admin → Network overrides this once set.
       - VPN_PROXY_URL=${VPN_PROXY_URL:-}
+      # Personal MTGMate relay URL (see backend/scrapers/mtgmate.py) — MTGMate
+      # stays force-disabled without one. Settings → Admin → Stores overrides
+      # this once set.
+      - MTGMATE_RELAY_URL=${MTGMATE_RELAY_URL:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
