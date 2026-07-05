@@ -13,8 +13,7 @@ export default function Settings() {
   const tabs = [
     "General",
     ...(user ? ["Account"] : []),
-    "System",
-    ...(isAdmin ? ["Admin", "Users"] : []),
+    ...(isAdmin ? ["System", "Admin", "Users"] : []),
   ];
 
   useEffect(() => {
@@ -43,7 +42,7 @@ export default function Settings() {
 
       {tab === "General" && <GeneralTab user={user} />}
       {tab === "Account" && user && <AccountTab />}
-      {tab === "System" && <SystemTab isAdmin={isAdmin} />}
+      {tab === "System" && isAdmin && <SystemTab isAdmin={isAdmin} />}
       {tab === "Admin" && isAdmin && <AdminTab />}
       {tab === "Users" && isAdmin && <UserManagement currentUsername={user.username} />}
     </div>
