@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.63.1] - 2026-07-05
+
+### Changed
+- eBay results no longer get our synthetic rainbow foil sheen overlay — eBay listing photos are real seller photos that already show genuine foil shine, so it was doubling up
+
 ## [0.63.0] - 2026-07-05
 
 ### Added
