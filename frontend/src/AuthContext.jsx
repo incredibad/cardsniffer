@@ -4,14 +4,19 @@ import { api } from "./api";
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [state, setState] = useState({ loading: true, setupRequired: false, user: null });
+  const [state, setState] = useState({ loading: true, setupRequired: false, user: null, timezone: "UTC" });
 
   async function refresh() {
     try {
       const data = await api.authStatus();
-      setState({ loading: false, setupRequired: data.setup_required, user: data.user });
+      setState({
+        loading: false,
+        setupRequired: data.setup_required,
+        user: data.user,
+        timezone: data.timezone || "UTC",
+      });
     } catch {
-      setState({ loading: false, setupRequired: false, user: null });
+      setState({ loading: false, setupRequired: false, user: null, timezone: "UTC" });
     }
   }
 

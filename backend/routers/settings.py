@@ -1,9 +1,12 @@
+from zoneinfo import ZoneInfoNotFoundError
+
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 import crypto
+import tz
 from auth import require_admin
 from database import Setting, count_ebay_api_calls_24h, get_db, get_setting
 from scrapers import SCRAPERS
@@ -22,6 +25,7 @@ class SettingsOut(BaseModel):
     ebay_app_id: str
     ebay_cert_id_configured: bool
     ebay_api_calls_24h: int
+    timezone: str
     stores: list[StoreSetting]
 
 
@@ -29,6 +33,7 @@ class SettingsUpdate(BaseModel):
     vpn_proxy_url: str | None = None
     ebay_app_id: str | None = None
     ebay_cert_id: str | None = None  # None = leave unchanged, "" = clear
+    timezone: str | None = None
     stores: dict[str, bool] | None = None  # scraper key -> enabled
 
 
@@ -47,6 +52,7 @@ def get_settings(db: Session = Depends(get_db)):
         ebay_app_id=get_setting(db, "ebay_app_id", ""),
         ebay_cert_id_configured=bool(get_setting(db, "ebay_cert_id_encrypted", "")),
         ebay_api_calls_24h=count_ebay_api_calls_24h(db),
+        timezone=get_setting(db, "timezone", "UTC"),
         stores=[
             StoreSetting(
                 key=key,
@@ -66,6 +72,12 @@ def update_settings(payload: SettingsUpdate, db: Session = Depends(get_db)):
         _set(db, "ebay_app_id", payload.ebay_app_id)
     if payload.ebay_cert_id is not None:
         _set(db, "ebay_cert_id_encrypted", crypto.encrypt(payload.ebay_cert_id) if payload.ebay_cert_id else "")
+    if payload.timezone is not None:
+        try:
+            tz.set_timezone(payload.timezone)
+        except ZoneInfoNotFoundError:
+            raise HTTPException(status_code=400, detail=f"Unknown timezone: {payload.timezone}")
+        _set(db, "timezone", payload.timezone)
     if payload.stores:
         for key, enabled in payload.stores.items():
             if key not in SCRAPERS:

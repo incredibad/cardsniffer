@@ -24,6 +24,7 @@ class UserOut(BaseModel):
     id: int
     username: str
     is_admin: bool
+    is_active: bool
     created_at: datetime
     last_seen_at: datetime | None
 
@@ -40,6 +41,7 @@ class UserCreate(BaseModel):
 class UserUpdate(BaseModel):
     password: str | None = Field(default=None, min_length=8, max_length=256)
     is_admin: bool | None = None
+    is_active: bool | None = None
 
 
 class MyStoreSetting(BaseModel):
@@ -148,14 +150,30 @@ def update_user(
     if payload.is_admin is False and user.is_admin and user.id == admin.id:
         raise HTTPException(status_code=400, detail="Can't remove your own admin access")
     if payload.is_admin is False and user.is_admin:
-        remaining_admins = db.query(User).filter(User.is_admin.is_(True), User.id != user.id).count()
+        remaining_admins = db.query(User).filter(
+            User.is_admin.is_(True), User.is_active.is_(True), User.id != user.id
+        ).count()
         if remaining_admins == 0:
             raise HTTPException(status_code=400, detail="Can't remove the last admin")
+
+    if payload.is_active is False and user.id == admin.id:
+        raise HTTPException(status_code=400, detail="Can't disable your own account")
+    if payload.is_active is False and user.is_admin:
+        remaining_admins = db.query(User).filter(
+            User.is_admin.is_(True), User.is_active.is_(True), User.id != user.id
+        ).count()
+        if remaining_admins == 0:
+            raise HTTPException(status_code=400, detail="Can't disable the last admin")
 
     if payload.password is not None:
         user.password_hash = hash_password(payload.password)
     if payload.is_admin is not None:
         user.is_admin = payload.is_admin
+    if payload.is_active is not None:
+        user.is_active = payload.is_active
+        if not payload.is_active:
+            # Kick out any session logged in right now, not just future logins.
+            db.query(AuthSession).filter(AuthSession.user_id == user.id).delete()
 
     db.commit()
     db.refresh(user)
@@ -170,7 +188,9 @@ def delete_user(user_id: int, db: Session = Depends(get_db), admin: User = Depen
     if user.id == admin.id:
         raise HTTPException(status_code=400, detail="Can't delete your own account")
     if user.is_admin:
-        remaining_admins = db.query(User).filter(User.is_admin.is_(True), User.id != user.id).count()
+        remaining_admins = db.query(User).filter(
+            User.is_admin.is_(True), User.is_active.is_(True), User.id != user.id
+        ).count()
         if remaining_admins == 0:
             raise HTTPException(status_code=400, detail="Can't delete the last admin")
 
