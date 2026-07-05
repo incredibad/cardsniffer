@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey, event, text
 from sqlalchemy.orm import declarative_base, sessionmaker
@@ -35,6 +35,16 @@ class SearchLog(Base):
     query = Column(String, nullable=False)
     result_count = Column(Integer, nullable=False, default=0)
     searched_at = Column(DateTime, default=datetime.utcnow)
+
+
+class EbayApiCall(Base):
+    """One row per outbound request to eBay's API (OAuth token fetch or Browse
+    search) — powers the rolling 24h call count shown to admins in Settings."""
+
+    __tablename__ = "ebay_api_calls"
+
+    id = Column(Integer, primary_key=True, index=True)
+    called_at = Column(DateTime, default=datetime.utcnow, index=True)
 
 
 class Setting(Base):
@@ -86,6 +96,23 @@ def get_db():
 def get_setting(db, key: str, default: str = "") -> str:
     row = db.query(Setting).filter(Setting.key == key).first()
     return row.value if row and row.value is not None else default
+
+
+def record_ebay_api_call(db):
+    """Called once per actual outbound request to eBay (token fetch or
+    search), not per user search — a cached token means a search can make
+    zero eBay requests. Prunes rows older than the rolling window on every
+    write so the table never grows unbounded."""
+    db.add(EbayApiCall())
+    db.query(EbayApiCall).filter(
+        EbayApiCall.called_at < datetime.utcnow() - timedelta(hours=24)
+    ).delete()
+    db.commit()
+
+
+def count_ebay_api_calls_24h(db) -> int:
+    cutoff = datetime.utcnow() - timedelta(hours=24)
+    return db.query(EbayApiCall).filter(EbayApiCall.called_at >= cutoff).count()
 
 
 def init_db():
