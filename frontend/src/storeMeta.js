@@ -15,7 +15,7 @@ export const STORE_META = {
   "GUF": { code: "GUF", color: "#351675", country: "AU", currency: "AUD", foilOverlay: true },
   "Hareruya": { code: "HARE", color: "#E60012", country: "JP", currency: "JPY", foilOverlay: true },
   "Card Stars": { code: "CS", color: "#0E1D34", country: "AU", currency: "AUD", foilOverlay: true },
-  "eBay": { code: "EBAY", color: "#FFBD14", country: "AU", currency: "AUD", foilOverlay: true },
+  "eBay": { code: "EBAY", color: "#FFBD14", country: "AU", currency: "AUD", foilOverlay: false },
 };
 
 const FALLBACK_COLOR = "#57534e";
