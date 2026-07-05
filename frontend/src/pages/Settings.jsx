@@ -10,11 +10,7 @@ export default function Settings() {
   const [tab, setTab] = useState("General");
   const { user } = useAuth();
   const isAdmin = user?.is_admin ?? false;
-  const tabs = [
-    "General",
-    ...(user ? ["Account"] : []),
-    ...(isAdmin ? ["System", "Admin", "Users"] : []),
-  ];
+  const tabs = ["General", ...(user ? ["Account"] : []), ...(isAdmin ? ["Admin"] : [])];
 
   useEffect(() => {
     if (!tabs.includes(tab)) setTab("General");
@@ -42,9 +38,7 @@ export default function Settings() {
 
       {tab === "General" && <GeneralTab user={user} />}
       {tab === "Account" && user && <AccountTab />}
-      {tab === "System" && isAdmin && <SystemTab isAdmin={isAdmin} />}
-      {tab === "Admin" && isAdmin && <AdminTab />}
-      {tab === "Users" && isAdmin && <UserManagement currentUsername={user.username} />}
+      {tab === "Admin" && isAdmin && <AdminTab currentUsername={user.username} />}
     </div>
   );
 }
@@ -323,13 +317,167 @@ function SignOutSection() {
 
 // ── Admin tab ────────────────────────────────────────────────────────────
 
-function AdminTab() {
+function AdminTab({ currentUsername }) {
+  const [subTab, setSubTab] = useState("Stores");
+  const subTabs = ["Stores", "System", "Network", "Users"];
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex gap-1 border-b border-slate-200 dark:border-zinc-800">
+        {subTabs.map((t) => (
+          <button
+            key={t}
+            onClick={() => setSubTab(t)}
+            className={`px-3 py-1.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              subTab === t
+                ? "border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400"
+                : "border-transparent text-slate-500 hover:text-slate-800 dark:text-zinc-500 dark:hover:text-zinc-300"
+            }`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
+      {subTab === "Stores" && (
+        <>
+          <GlobalStoresSection />
+          <EbayApiSection />
+        </>
+      )}
+      {subTab === "System" && <SystemTab />}
+      {subTab === "Network" && <VpnProxySection />}
+      {subTab === "Users" && <UserManagement currentUsername={currentUsername} />}
+    </div>
+  );
+}
+
+function GlobalStoresSection() {
   const [settings, setSettings] = useState(null);
-  const [proxyUrl, setProxyUrl] = useState("");
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function load() {
+    setSettings(await api.getSettings());
+  }
+
+  async function toggleStore(key, enabled) {
+    setSettings(await api.updateSettings({ stores: { [key]: enabled } }));
+  }
+
+  if (settings === null) {
+    return <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400" size={24} />;
+  }
+
+  return (
+    <section className="card-frame p-4">
+      <h2 className="section-header mb-3">Global System Stores</h2>
+      <p className="text-xs text-slate-500 dark:text-zinc-500 mb-3">
+        Enables or disables a store for the entire system — when disabled here, no user can
+        search it, regardless of their own per-account preference in Settings → General.
+      </p>
+      <div className="flex flex-col gap-2">
+        {settings.stores.map((s) => (
+          <label
+            key={s.key}
+            className="flex items-center justify-between py-1.5 text-sm text-slate-700 dark:text-zinc-300"
+          >
+            <span>{s.store_name}</span>
+            <input
+              type="checkbox"
+              checked={s.enabled}
+              onChange={(e) => toggleStore(s.key, e.target.checked)}
+              className="accent-indigo-600 w-4 h-4"
+            />
+          </label>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function EbayApiSection() {
+  const [settings, setSettings] = useState(null);
   const [ebayAppId, setEbayAppId] = useState("");
   const [ebayCertId, setEbayCertId] = useState("");
-  const [savingEbay, setSavingEbay] = useState(false);
-  const [ebaySaveMsg, setEbaySaveMsg] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState("");
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function load() {
+    const data = await api.getSettings();
+    setSettings(data);
+    setEbayAppId(data.ebay_app_id || "");
+  }
+
+  async function saveEbayCredentials() {
+    setSaving(true);
+    setSaveMsg("");
+    try {
+      const payload = { ebay_app_id: ebayAppId };
+      if (ebayCertId) payload.ebay_cert_id = ebayCertId;
+      const updated = await api.updateSettings(payload);
+      setSettings(updated);
+      setEbayCertId("");
+      setSaveMsg("Saved");
+      setTimeout(() => setSaveMsg(""), 2000);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (settings === null) {
+    return <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400" size={24} />;
+  }
+
+  return (
+    <section className="card-frame p-4">
+      <h2 className="section-header mb-3">eBay API</h2>
+      <p className="text-xs text-slate-500 dark:text-zinc-500 mb-3">
+        Production keyset credentials from the eBay Developer Program, used for the Browse API.
+      </p>
+      <div className="flex items-center justify-between text-sm mb-3">
+        <span className="text-slate-700 dark:text-zinc-300">API calls (last 24h)</span>
+        <span className="font-medium text-slate-900 dark:text-zinc-100">{settings.ebay_api_calls_24h}</span>
+      </div>
+      <div className="flex flex-col gap-2">
+        <input
+          type="text"
+          value={ebayAppId}
+          onChange={(e) => setEbayAppId(e.target.value)}
+          placeholder="App ID / Client ID"
+          className="input-field px-3 py-2 text-sm"
+        />
+        <input
+          type="password"
+          value={ebayCertId}
+          onChange={(e) => setEbayCertId(e.target.value)}
+          placeholder={
+            settings.ebay_cert_id_configured ? "Cert ID (Client Secret) — set, leave blank to keep" : "Cert ID (Client Secret)"
+          }
+          autoComplete="off"
+          className="input-field px-3 py-2 text-sm"
+        />
+        <button
+          onClick={saveEbayCredentials}
+          disabled={saving}
+          className="btn-primary px-4 py-2 text-sm self-start"
+        >
+          {saving ? "Saving…" : "Save"}
+        </button>
+      </div>
+      {saveMsg && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">{saveMsg}</p>}
+    </section>
+  );
+}
+
+function VpnProxySection() {
+  const [proxyUrl, setProxyUrl] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
@@ -345,41 +493,17 @@ function AdminTab() {
     setLoading(true);
     try {
       const data = await api.getSettings();
-      setSettings(data);
       setProxyUrl(data.vpn_proxy_url || "");
-      setEbayAppId(data.ebay_app_id || "");
     } finally {
       setLoading(false);
     }
-  }
-
-  async function saveEbayCredentials() {
-    setSavingEbay(true);
-    setEbaySaveMsg("");
-    try {
-      const payload = { ebay_app_id: ebayAppId };
-      if (ebayCertId) payload.ebay_cert_id = ebayCertId;
-      const updated = await api.updateSettings(payload);
-      setSettings(updated);
-      setEbayCertId("");
-      setEbaySaveMsg("Saved");
-      setTimeout(() => setEbaySaveMsg(""), 2000);
-    } finally {
-      setSavingEbay(false);
-    }
-  }
-
-  async function toggleStore(key, enabled) {
-    const updated = await api.updateSettings({ stores: { [key]: enabled } });
-    setSettings(updated);
   }
 
   async function saveProxyUrl() {
     setSaving(true);
     setSaveMsg("");
     try {
-      const updated = await api.updateSettings({ vpn_proxy_url: proxyUrl });
-      setSettings(updated);
+      await api.updateSettings({ vpn_proxy_url: proxyUrl });
       setSaveMsg("Saved");
       setTimeout(() => setSaveMsg(""), 2000);
     } finally {
@@ -406,117 +530,53 @@ function AdminTab() {
   }
 
   return (
-    <>
-      <section className="card-frame p-4">
-        <h2 className="section-header mb-3">Global System Stores</h2>
-        <p className="text-xs text-slate-500 dark:text-zinc-500 mb-3">
-          Enables or disables a store for the entire system — when disabled here, no user can
-          search it, regardless of their own per-account preference in Settings → General.
-        </p>
-        <div className="flex flex-col gap-2">
-          {settings.stores.map((s) => (
-            <label
-              key={s.key}
-              className="flex items-center justify-between py-1.5 text-sm text-slate-700 dark:text-zinc-300"
-            >
-              <span>{s.store_name}</span>
-              <input
-                type="checkbox"
-                checked={s.enabled}
-                onChange={(e) => toggleStore(s.key, e.target.checked)}
-                className="accent-indigo-600 w-4 h-4"
-              />
-            </label>
-          ))}
-        </div>
-      </section>
+    <section className="card-frame p-4">
+      <h2 className="section-header mb-3">VPN Proxy</h2>
+      <p className="text-xs text-slate-500 dark:text-zinc-500 mb-3">
+        Optional HTTP proxy for scraper requests, e.g. an existing gluetun sidecar
+        exposed at{" "}
+        <code className="text-indigo-600 dark:text-indigo-400">
+          http://host.docker.internal:8888
+        </code>
+        .
+      </p>
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={proxyUrl}
+          onChange={(e) => setProxyUrl(e.target.value)}
+          placeholder="http://host.docker.internal:8888"
+          className="input-field flex-1 px-3 py-2 text-sm"
+        />
+        <button onClick={saveProxyUrl} disabled={saving} className="btn-primary px-4 py-2 text-sm">
+          {saving ? "Saving…" : "Save"}
+        </button>
+      </div>
+      {saveMsg && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">{saveMsg}</p>}
 
-      <section className="card-frame p-4">
-        <h2 className="section-header mb-3">VPN Proxy</h2>
-        <p className="text-xs text-slate-500 dark:text-zinc-500 mb-3">
-          Optional HTTP proxy for scraper requests, e.g. an existing gluetun sidecar
-          exposed at{" "}
-          <code className="text-indigo-600 dark:text-indigo-400">
-            http://host.docker.internal:8888
-          </code>
-          .
-        </p>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={proxyUrl}
-            onChange={(e) => setProxyUrl(e.target.value)}
-            placeholder="http://host.docker.internal:8888"
-            className="input-field flex-1 px-3 py-2 text-sm"
-          />
-          <button onClick={saveProxyUrl} disabled={saving} className="btn-primary px-4 py-2 text-sm">
-            {saving ? "Saving…" : "Save"}
-          </button>
-        </div>
-        {saveMsg && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">{saveMsg}</p>}
-
-        <div className="mt-3 flex items-center gap-3">
-          <button
-            onClick={testProxy}
-            disabled={testing || !proxyUrl}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-indigo-300 hover:border-indigo-500 disabled:opacity-50 text-sm text-indigo-600 dark:border-indigo-500/60 dark:hover:border-indigo-400 dark:text-indigo-300"
-          >
-            {testing ? <Loader2 size={14} className="animate-spin" /> : <Wifi size={14} />}
-            Test Proxy
-          </button>
-          {testResult && (
-            <span className="text-xs text-emerald-600 dark:text-emerald-400">
-              {testResult.ip} · {testResult.city || "?"}, {testResult.country || "?"} ({testResult.org || "unknown"})
-            </span>
-          )}
-          {testError && <span className="text-xs text-red-500 dark:text-red-400">{testError}</span>}
-        </div>
-      </section>
-
-      <section className="card-frame p-4">
-        <h2 className="section-header mb-3">eBay API</h2>
-        <p className="text-xs text-slate-500 dark:text-zinc-500 mb-3">
-          Production keyset credentials from the eBay Developer Program, used for the Browse API.
-        </p>
-        <div className="flex items-center justify-between text-sm mb-3">
-          <span className="text-slate-700 dark:text-zinc-300">API calls (last 24h)</span>
-          <span className="font-medium text-slate-900 dark:text-zinc-100">{settings.ebay_api_calls_24h}</span>
-        </div>
-        <div className="flex flex-col gap-2">
-          <input
-            type="text"
-            value={ebayAppId}
-            onChange={(e) => setEbayAppId(e.target.value)}
-            placeholder="App ID / Client ID"
-            className="input-field px-3 py-2 text-sm"
-          />
-          <input
-            type="password"
-            value={ebayCertId}
-            onChange={(e) => setEbayCertId(e.target.value)}
-            placeholder={
-              settings.ebay_cert_id_configured ? "Cert ID (Client Secret) — set, leave blank to keep" : "Cert ID (Client Secret)"
-            }
-            autoComplete="off"
-            className="input-field px-3 py-2 text-sm"
-          />
-          <button
-            onClick={saveEbayCredentials}
-            disabled={savingEbay}
-            className="btn-primary px-4 py-2 text-sm self-start"
-          >
-            {savingEbay ? "Saving…" : "Save"}
-          </button>
-        </div>
-        {ebaySaveMsg && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">{ebaySaveMsg}</p>}
-      </section>
-    </>
+      <div className="mt-3 flex items-center gap-3">
+        <button
+          onClick={testProxy}
+          disabled={testing || !proxyUrl}
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-indigo-300 hover:border-indigo-500 disabled:opacity-50 text-sm text-indigo-600 dark:border-indigo-500/60 dark:hover:border-indigo-400 dark:text-indigo-300"
+        >
+          {testing ? <Loader2 size={14} className="animate-spin" /> : <Wifi size={14} />}
+          Test Proxy
+        </button>
+        {testResult && (
+          <span className="text-xs text-emerald-600 dark:text-emerald-400">
+            {testResult.ip} · {testResult.city || "?"}, {testResult.country || "?"} ({testResult.org || "unknown"})
+          </span>
+        )}
+        {testError && <span className="text-xs text-red-500 dark:text-red-400">{testError}</span>}
+      </div>
+    </section>
   );
 }
 
-// ── System tab ────────────────────────────────────────────────────────────
+// ── System sub-tab (inside Admin) ───────────────────────────────────────
 
-function SystemTab({ isAdmin }) {
+function SystemTab() {
   return (
     <div className="flex flex-col gap-6">
       <section className="card-frame p-4">
@@ -534,12 +594,10 @@ function SystemTab({ isAdmin }) {
         </div>
       </section>
 
-      {isAdmin && (
-        <section className="card-frame p-4">
-          <h2 className="section-header mb-3">Logs</h2>
-          <LogViewer />
-        </section>
-      )}
+      <section className="card-frame p-4">
+        <h2 className="section-header mb-3">Logs</h2>
+        <LogViewer />
+      </section>
     </div>
   );
 }
@@ -587,7 +645,7 @@ function LogViewer() {
   );
 }
 
-// ── Users tab (admin only) ──────────────────────────────────────────────────
+// ── Users sub-tab (inside Admin) ────────────────────────────────────────
 
 function UserManagement({ currentUsername }) {
   const [users, setUsers] = useState(null);
