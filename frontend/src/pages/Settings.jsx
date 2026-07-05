@@ -10,7 +10,7 @@ export default function Settings() {
   const [tab, setTab] = useState("General");
   const { user } = useAuth();
   const isAdmin = user?.is_admin ?? false;
-  const tabs = isAdmin ? ["General", "System", "Users"] : ["General", "System"];
+  const tabs = isAdmin ? ["General", "System", "Admin", "Users"] : ["General", "System"];
 
   useEffect(() => {
     if (!tabs.includes(tab)) setTab("General");
@@ -36,8 +36,9 @@ export default function Settings() {
         ))}
       </div>
 
-      {tab === "General" && <GeneralTab isAdmin={isAdmin} />}
+      {tab === "General" && <GeneralTab user={user} />}
       {tab === "System" && <SystemTab isAdmin={isAdmin} />}
+      {tab === "Admin" && isAdmin && <AdminTab />}
       {tab === "Users" && isAdmin && <UserManagement currentUsername={user.username} />}
     </div>
   );
@@ -86,16 +87,83 @@ function AppearanceSection() {
   );
 }
 
-function GeneralTab({ isAdmin }) {
+function GeneralTab({ user }) {
   return (
     <div className="flex flex-col gap-6">
       <AppearanceSection />
-      {isAdmin && <StoresAndProxySection />}
+      {user && <UserStoresSection />}
     </div>
   );
 }
 
-function StoresAndProxySection() {
+function UserStoresSection() {
+  const [stores, setStores] = useState(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function load() {
+    try {
+      setStores(await api.getMyStores());
+    } catch (err) {
+      setError(err.message || "Failed to load stores");
+    }
+  }
+
+  async function toggle(key, enabled) {
+    setError("");
+    try {
+      setStores(await api.updateMyStores({ [key]: enabled }));
+    } catch (err) {
+      setError(err.message || "Failed to update store");
+    }
+  }
+
+  return (
+    <section className="card-frame p-4">
+      <h2 className="section-header mb-3">Stores</h2>
+      <p className="text-xs text-slate-500 dark:text-zinc-500 mb-3">
+        Enable or disable which stores your own searches check. This only affects your account —
+        it doesn't change what other users see.
+      </p>
+      {error && <p className="text-xs text-red-500 dark:text-red-400 mb-2">{error}</p>}
+      {stores === null ? (
+        <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400" size={20} />
+      ) : (
+        <div className="flex flex-col gap-2">
+          {stores.map((s) => (
+            <label
+              key={s.key}
+              className={`flex items-center justify-between py-1.5 text-sm ${
+                s.globally_enabled
+                  ? "text-slate-700 dark:text-zinc-300"
+                  : "text-slate-400 dark:text-zinc-600"
+              }`}
+            >
+              <span>
+                {s.store_name}
+                {!s.globally_enabled && <span className="ml-1.5 text-xs">(disabled system-wide)</span>}
+              </span>
+              <input
+                type="checkbox"
+                checked={s.enabled}
+                disabled={!s.globally_enabled}
+                onChange={(e) => toggle(s.key, e.target.checked)}
+                className="accent-indigo-600 w-4 h-4 disabled:opacity-40"
+              />
+            </label>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+// ── Admin tab ────────────────────────────────────────────────────────────
+
+function AdminTab() {
   const [settings, setSettings] = useState(null);
   const [proxyUrl, setProxyUrl] = useState("");
   const [ebayAppId, setEbayAppId] = useState("");
@@ -180,7 +248,11 @@ function StoresAndProxySection() {
   return (
     <>
       <section className="card-frame p-4">
-        <h2 className="section-header mb-3">Stores</h2>
+        <h2 className="section-header mb-3">Global System Stores</h2>
+        <p className="text-xs text-slate-500 dark:text-zinc-500 mb-3">
+          Enables or disables a store for the entire system — when disabled here, no user can
+          search it, regardless of their own per-account preference in Settings → General.
+        </p>
         <div className="flex flex-col gap-2">
           {settings.stores.map((s) => (
             <label

@@ -72,6 +72,20 @@ class User(Base):
     last_seen_at = Column(DateTime, nullable=True)
 
 
+class UserStoreSetting(Base):
+    """Per-user store enable/disable — layered on top of (and can only
+    narrow) the global toggles in Setting. A store disabled globally stays
+    disabled for every user regardless of this table; this only lets a user
+    additionally opt out of a store that's globally enabled. Absence of a
+    row means enabled, same default-on convention as the global toggles."""
+
+    __tablename__ = "user_store_settings"
+
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    store_key = Column(String, primary_key=True)
+    enabled = Column(Boolean, nullable=False, default=True)
+
+
 class AuthSession(Base):
     """Server-side session — an opaque bearer token set as an HttpOnly
     cookie, not a JWT, so a session can be revoked (logout, user deleted)
@@ -96,6 +110,23 @@ def get_db():
 def get_setting(db, key: str, default: str = "") -> str:
     row = db.query(Setting).filter(Setting.key == key).first()
     return row.value if row and row.value is not None else default
+
+
+def get_user_store_enabled(db, user_id: int, store_key: str) -> bool:
+    row = db.query(UserStoreSetting).filter(
+        UserStoreSetting.user_id == user_id, UserStoreSetting.store_key == store_key
+    ).first()
+    return row.enabled if row else True
+
+
+def set_user_store_enabled(db, user_id: int, store_key: str, enabled: bool):
+    row = db.query(UserStoreSetting).filter(
+        UserStoreSetting.user_id == user_id, UserStoreSetting.store_key == store_key
+    ).first()
+    if row:
+        row.enabled = enabled
+    else:
+        db.add(UserStoreSetting(user_id=user_id, store_key=store_key, enabled=enabled))
 
 
 def record_ebay_api_call(db):
