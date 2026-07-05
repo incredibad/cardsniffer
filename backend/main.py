@@ -3,6 +3,7 @@ import logging
 import os
 from contextlib import asynccontextmanager
 from logging.handlers import TimedRotatingFileHandler
+from zoneinfo import ZoneInfoNotFoundError
 
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 import tz
-from database import SessionLocal, get_setting, init_db
+from database import SessionLocal, get_setting, init_db, set_setting
 from routers import auth as auth_router, search, settings, logs as logs_router, users as users_router, stores as stores_router
 from log_buffer import LogBufferHandler
 
@@ -51,7 +52,24 @@ async def lifespan(app: FastAPI):
     init_db()
     db = SessionLocal()
     try:
-        tz.set_timezone(get_setting(db, "timezone", "UTC"))
+        configured = get_setting(db, "timezone", "")
+        if configured:
+            # An admin has set this in Settings → Admin → System before —
+            # that always wins over the container's TZ env var from here on.
+            tz.set_timezone(configured)
+        else:
+            # Nothing set yet — fall back to the docker-compose TZ env var
+            # (defaults to UTC if that isn't set either), and persist it so
+            # Settings shows the real effective value from first boot.
+            env_tz = os.environ.get("TZ", "UTC")
+            try:
+                tz.set_timezone(env_tz)
+            except ZoneInfoNotFoundError:
+                logger.warning(f"Invalid TZ env var {env_tz!r}, falling back to UTC")
+                env_tz = "UTC"
+                tz.set_timezone(env_tz)
+            set_setting(db, "timezone", env_tz)
+            db.commit()
     finally:
         db.close()
     yield

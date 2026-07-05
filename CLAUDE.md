@@ -44,7 +44,8 @@ This is non-negotiable — no commit should go out without a changelog entry.
 - Frontend: React 18 / Vite / Tailwind CSS / Lucide icons
 - Container: single container, uvicorn serves both API and built static files
 - **Auth**: user accounts with admin/regular roles (`backend/auth.py`, `backend/routers/auth.py`, `backend/routers/users.py`). Session-based via an HttpOnly cookie backed by a server-side `auth_sessions` table (not a JWT — revocable on logout/deletion). First load with no accounts prompts to create the initial admin (Settings → Admin tab). Search and the theme toggle are fully public/unauthenticated; Stores, VPN Proxy, Logs, and Users management are admin-only.
-- **No bundled VPN sidecar** — this host already runs `tightarse-gluetun` (HTTP proxy on host port 8888). Cardsniffer routes scraper requests through it via the `vpn_proxy_url` setting (Settings → General) rather than running its own gluetun container.
+- **No bundled VPN sidecar** — this host already runs `tightarse-gluetun` (HTTP proxy on host port 8888). Cardsniffer routes scraper requests through it via the `vpn_proxy_url` setting (Settings → Admin → Network) rather than running its own gluetun container.
+- **Timezone**: display timezone (Last Seen, search history, log lines) is admin-configurable at Settings → Admin → System, backed by a `timezone` row in the `settings` table. The compose `TZ` env var (`docker-compose.yml`) only seeds that setting on first boot (or whenever the setting is otherwise unset) and also sets the container's own local time (so log *rotation* timing matches); once an admin sets it via Settings, that stored value wins from then on regardless of `TZ`.
 
 ## Scraper sources
 

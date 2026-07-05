@@ -124,6 +124,14 @@ def get_setting(db, key: str, default: str = "") -> str:
     return row.value if row and row.value is not None else default
 
 
+def set_setting(db, key: str, value: str):
+    row = db.query(Setting).filter(Setting.key == key).first()
+    if row:
+        row.value = value
+    else:
+        db.add(Setting(key=key, value=value))
+
+
 def get_user_store_enabled(db, user_id: int, store_key: str) -> bool:
     row = db.query(UserStoreSetting).filter(
         UserStoreSetting.user_id == user_id, UserStoreSetting.store_key == store_key
