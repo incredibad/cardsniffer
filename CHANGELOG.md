@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.61.2] - 2026-07-05
+
+### Changed
+- Moved `PYTHONUNBUFFERED=1` into the Dockerfile (`ENV`) instead of `docker-compose.yml` — it's a fixed property of how this image runs Python, not a per-deployment setting like `TZ`/`VPN_PROXY_URL`
+
 ## [0.61.1] - 2026-07-05
 
 ### Changed
