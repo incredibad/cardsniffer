@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.54.1] - 2026-07-05
+
+### Fixed
+- Card Kingdom search intermittently failing with a TLS handshake error (curl error 35, "WRONG_VERSION_NUMBER") through the VPN proxy — retried once on a connection-level failure, since it's a dropped connection rather than an actual response from Card Kingdom/Cloudflare
+
 ## [0.54.0] - 2026-07-05
 
 ### Added

@@ -4,6 +4,7 @@ from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 from curl_cffi.requests import AsyncSession
+from curl_cffi.requests import exceptions as curl_exceptions
 
 from .base import BaseScraper, SearchResult
 from .foil_treatment import extract_foil_treatment
@@ -32,6 +33,15 @@ SEARCH_URL = f"{BASE_URL}/catalog/search"
 # Title text still matters for foil-only promo prints (e.g. "Prerelease
 # Foil") that live on the Singles tab because they have no nonfoil version.
 _TABS = ["mtg_card", "mtg_foil"]
+
+# The VPN proxy connection occasionally drops mid-TLS-handshake (curl error 35,
+# "WRONG_VERSION_NUMBER") — a connection-level failure, not a real response
+# from Card Kingdom/Cloudflare (that would come back as an actual HTTP status,
+# e.g. a Managed Challenge, which retrying wouldn't fix anyway). A second
+# attempt clears it in practice, unlike MTGMate which deliberately has no
+# retries due to its own 1000-request/month ceiling — Card Kingdom has no
+# such limit.
+_MAX_ATTEMPTS = 2
 
 _PRICE_RE = re.compile(r"([\d,]+\.\d{2})")
 _RARITY_SUFFIX_RE = re.compile(r"\s*\([A-Z]\)\s*$")
@@ -112,12 +122,18 @@ class CardKingdomScraper(BaseScraper):
         return [r for r in results if needle in _normalize(r.card_name)]
 
     async def _fetch_tab(self, query: str, tab: str):
-        response = await self.client.get(
-            SEARCH_URL,
-            params={"search": "header", "filter[name]": query, "filter[tab]": tab},
-        )
-        response.raise_for_status()
-        return response
+        for attempt in range(_MAX_ATTEMPTS):
+            try:
+                response = await self.client.get(
+                    SEARCH_URL,
+                    params={"search": "header", "filter[name]": query, "filter[tab]": tab},
+                )
+                response.raise_for_status()
+                return response
+            except (curl_exceptions.ConnectionError, curl_exceptions.Timeout):
+                if attempt == _MAX_ATTEMPTS - 1:
+                    raise
+                await asyncio.sleep(0.5)
 
     def _parse_product_block(self, block, force_foil: bool = False) -> list[SearchResult]:
         title_el = block.select_one(".productDetailTitle a")
