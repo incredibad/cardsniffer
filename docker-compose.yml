@@ -10,6 +10,11 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - SECRET_KEY=${SECRET_KEY}
+      # Default display/log timezone (e.g. Australia/Sydney) — only takes
+      # effect until an admin sets one in Settings → Admin → System, which
+      # then wins from then on regardless of this value. Also sets the
+      # container's own local time, so log rotation timing matches it too.
+      - TZ=${TZ:-UTC}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:

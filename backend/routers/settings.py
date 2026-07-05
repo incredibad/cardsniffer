@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 import crypto
 import tz
 from auth import require_admin
-from database import Setting, count_ebay_api_calls_24h, get_db, get_setting
+from database import count_ebay_api_calls_24h, get_db, get_setting, set_setting
 from scrapers import SCRAPERS
 
 router = APIRouter(prefix="/settings", tags=["settings"], dependencies=[Depends(require_admin)])
@@ -37,14 +37,6 @@ class SettingsUpdate(BaseModel):
     stores: dict[str, bool] | None = None  # scraper key -> enabled
 
 
-def _set(db: Session, key: str, value: str):
-    row = db.query(Setting).filter(Setting.key == key).first()
-    if row:
-        row.value = value
-    else:
-        db.add(Setting(key=key, value=value))
-
-
 @router.get("", response_model=SettingsOut)
 def get_settings(db: Session = Depends(get_db)):
     return SettingsOut(
@@ -67,22 +59,22 @@ def get_settings(db: Session = Depends(get_db)):
 @router.put("", response_model=SettingsOut)
 def update_settings(payload: SettingsUpdate, db: Session = Depends(get_db)):
     if payload.vpn_proxy_url is not None:
-        _set(db, "vpn_proxy_url", payload.vpn_proxy_url)
+        set_setting(db, "vpn_proxy_url", payload.vpn_proxy_url)
     if payload.ebay_app_id is not None:
-        _set(db, "ebay_app_id", payload.ebay_app_id)
+        set_setting(db, "ebay_app_id", payload.ebay_app_id)
     if payload.ebay_cert_id is not None:
-        _set(db, "ebay_cert_id_encrypted", crypto.encrypt(payload.ebay_cert_id) if payload.ebay_cert_id else "")
+        set_setting(db, "ebay_cert_id_encrypted", crypto.encrypt(payload.ebay_cert_id) if payload.ebay_cert_id else "")
     if payload.timezone is not None:
         try:
             tz.set_timezone(payload.timezone)
         except ZoneInfoNotFoundError:
             raise HTTPException(status_code=400, detail=f"Unknown timezone: {payload.timezone}")
-        _set(db, "timezone", payload.timezone)
+        set_setting(db, "timezone", payload.timezone)
     if payload.stores:
         for key, enabled in payload.stores.items():
             if key not in SCRAPERS:
                 continue
-            _set(db, f"store_{key}_enabled", "true" if enabled else "false")
+            set_setting(db, f"store_{key}_enabled", "true" if enabled else "false")
     db.commit()
     return get_settings(db)
 

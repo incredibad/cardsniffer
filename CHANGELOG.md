@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.60.0] - 2026-07-05
+
+### Added
+- `TZ` environment variable in `docker-compose.yml` to set the default system timezone (e.g. `Australia/Sydney`) without needing to open Settings — only seeds the timezone the first time (or whenever it's otherwise unset); once an admin sets it via Settings → Admin → System, that stored value wins from then on regardless of `TZ`. Also sets the container's own local time, so log rotation timing follows it too
+
 ## [0.59.0] - 2026-07-05
 
 ### Added
