@@ -36,6 +36,14 @@ export const api = {
   authLogin: (username, password) => postJSON("/auth/login", { username, password }),
   authLogout: () => request("/auth/logout", { method: "POST" }),
 
+  getMyStores: () => request("/users/me/stores"),
+  updateMyStores: (stores) =>
+    request("/users/me/stores", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ stores }),
+    }),
+
   listUsers: () => request("/users"),
   createUser: (payload) => postJSON("/users", payload),
   updateUser: (id, payload) =>

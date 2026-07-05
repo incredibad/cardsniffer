@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented here.
 
+## [0.55.0] - 2026-07-05
+
+### Added
+- Per-account store enable/disable in Settings → General ("Stores") — any logged-in user, including admins, can now opt their own searches out of individual stores without affecting other users
+- Settings → Admin tab (admin-only), consolidating what used to sit under General: the store toggles (renamed "Global System Stores", with an explanation that disabling here overrides every user's own preference), VPN Proxy, and eBay API
+
+### Changed
+- The old system-wide store toggle list is now labelled "Global System Stores" and lives in the new Admin tab instead of General
+
 ## [0.54.1] - 2026-07-05
 
 ### Fixed

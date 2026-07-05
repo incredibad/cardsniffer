@@ -4,8 +4,17 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from auth import hash_password, require_admin
-from database import AuthSession, User, get_db
+from auth import hash_password, require_admin, require_user
+from database import (
+    AuthSession,
+    User,
+    UserStoreSetting,
+    get_db,
+    get_setting,
+    get_user_store_enabled,
+    set_user_store_enabled,
+)
+from scrapers import SCRAPERS
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -32,6 +41,17 @@ class UserUpdate(BaseModel):
     is_admin: bool | None = None
 
 
+class MyStoreSetting(BaseModel):
+    key: str
+    store_name: str
+    globally_enabled: bool
+    enabled: bool  # this user's own preference — only meaningful when globally_enabled
+
+
+class MyStoreUpdate(BaseModel):
+    stores: dict[str, bool]  # scraper key -> enabled
+
+
 @router.get("", response_model=list[UserOut])
 def list_users(db: Session = Depends(get_db), _admin: User = Depends(require_admin)):
     return db.query(User).order_by(User.username).all()
@@ -51,6 +71,29 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db), _admin: User
     db.commit()
     db.refresh(user)
     return user
+
+
+@router.get("/me/stores", response_model=list[MyStoreSetting])
+def get_my_stores(db: Session = Depends(get_db), user: User = Depends(require_user)):
+    return [
+        MyStoreSetting(
+            key=key,
+            store_name=cls.store_name,
+            globally_enabled=get_setting(db, f"store_{key}_enabled", "true") != "false",
+            enabled=get_user_store_enabled(db, user.id, key),
+        )
+        for key, cls in SCRAPERS.items()
+    ]
+
+
+@router.put("/me/stores", response_model=list[MyStoreSetting])
+def update_my_stores(payload: MyStoreUpdate, db: Session = Depends(get_db), user: User = Depends(require_user)):
+    for key, enabled in payload.stores.items():
+        if key not in SCRAPERS:
+            continue
+        set_user_store_enabled(db, user.id, key, enabled)
+    db.commit()
+    return get_my_stores(db, user)
 
 
 @router.patch("/{user_id}", response_model=UserOut)
@@ -94,6 +137,7 @@ def delete_user(user_id: int, db: Session = Depends(get_db), admin: User = Depen
             raise HTTPException(status_code=400, detail="Can't delete the last admin")
 
     db.query(AuthSession).filter(AuthSession.user_id == user.id).delete()
+    db.query(UserStoreSetting).filter(UserStoreSetting.user_id == user.id).delete()
     db.delete(user)
     db.commit()
     return {"ok": True}
