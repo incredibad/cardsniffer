@@ -35,6 +35,10 @@ class SearchLog(Base):
     query = Column(String, nullable=False)
     result_count = Column(Integer, nullable=False, default=0)
     searched_at = Column(DateTime, default=datetime.utcnow)
+    # Null for anonymous searches (the app itself stays usable without an
+    # account) — only set when a logged-in user's session made the request,
+    # so their Account tab can show their own recent search history.
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
 
 class EbayApiCall(Base):
@@ -156,7 +160,7 @@ def _migrate_db():
     the initial release. Each is wrapped in try/except so already-applied
     migrations silently no-op — mirrors the tightarse pattern."""
     migrations: list[str] = [
-        # empty for v1 — append here as the schema evolves
+        "ALTER TABLE search_logs ADD COLUMN user_id INTEGER REFERENCES users(id)",
     ]
     with engine.connect() as conn:
         for sql in migrations:

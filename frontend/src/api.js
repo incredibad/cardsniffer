@@ -43,6 +43,13 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ stores }),
     }),
+  changeMyPassword: (current_password, new_password) =>
+    request("/users/me/password", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ current_password, new_password }),
+    }),
+  getMySearches: () => request("/users/me/searches"),
 
   listUsers: () => request("/users"),
   createUser: (payload) => postJSON("/users", payload),

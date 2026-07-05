@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Loader2, Wifi, Github, Sun, Moon, Trash2, ShieldCheck, Shield } from "lucide-react";
+import { Loader2, Wifi, Github, Sun, Moon, Trash2, ShieldCheck, Shield, LogOut } from "lucide-react";
 import { api } from "../api";
 import { getTheme, setTheme } from "../theme";
 import { useAuth } from "../AuthContext";
@@ -10,7 +10,12 @@ export default function Settings() {
   const [tab, setTab] = useState("General");
   const { user } = useAuth();
   const isAdmin = user?.is_admin ?? false;
-  const tabs = isAdmin ? ["General", "System", "Admin", "Users"] : ["General", "System"];
+  const tabs = [
+    "General",
+    ...(user ? ["Account"] : []),
+    "System",
+    ...(isAdmin ? ["Admin", "Users"] : []),
+  ];
 
   useEffect(() => {
     if (!tabs.includes(tab)) setTab("General");
@@ -37,6 +42,7 @@ export default function Settings() {
       </div>
 
       {tab === "General" && <GeneralTab user={user} />}
+      {tab === "Account" && user && <AccountTab />}
       {tab === "System" && <SystemTab isAdmin={isAdmin} />}
       {tab === "Admin" && isAdmin && <AdminTab />}
       {tab === "Users" && isAdmin && <UserManagement currentUsername={user.username} />}
@@ -157,6 +163,161 @@ function UserStoresSection() {
           ))}
         </div>
       )}
+    </section>
+  );
+}
+
+// ── Account tab ──────────────────────────────────────────────────────────
+
+function AccountTab() {
+  return (
+    <div className="flex flex-col gap-6">
+      <ChangePasswordSection />
+      <SearchHistorySection />
+      <SignOutSection />
+    </div>
+  );
+}
+
+function ChangePasswordSection() {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    setMessage("");
+    if (newPassword !== confirmPassword) {
+      setError("New passwords don't match");
+      return;
+    }
+    setSaving(true);
+    try {
+      await api.changeMyPassword(currentPassword, newPassword);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setMessage("Password updated");
+      setTimeout(() => setMessage(""), 2000);
+    } catch (err) {
+      setError(err.message || "Failed to update password");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="card-frame p-4">
+      <h2 className="section-header mb-3">Change Password</h2>
+      <form onSubmit={submit} className="flex flex-col gap-2 max-w-sm">
+        <input
+          type="password"
+          value={currentPassword}
+          onChange={(e) => setCurrentPassword(e.target.value)}
+          placeholder="Current password"
+          autoComplete="current-password"
+          required
+          className="input-field px-3 py-2 text-sm"
+        />
+        <input
+          type="password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          placeholder="New password (min. 8 characters)"
+          autoComplete="new-password"
+          minLength={8}
+          required
+          className="input-field px-3 py-2 text-sm"
+        />
+        <input
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          placeholder="Confirm new password"
+          autoComplete="new-password"
+          minLength={8}
+          required
+          className="input-field px-3 py-2 text-sm"
+        />
+        {error && <p className="text-xs text-red-500 dark:text-red-400">{error}</p>}
+        {message && <p className="text-xs text-emerald-600 dark:text-emerald-400">{message}</p>}
+        <button type="submit" disabled={saving} className="btn-primary px-4 py-2 text-sm self-start">
+          {saving ? "Saving…" : "Update Password"}
+        </button>
+      </form>
+    </section>
+  );
+}
+
+function SearchHistorySection() {
+  const [searches, setSearches] = useState(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    api
+      .getMySearches()
+      .then(setSearches)
+      .catch((err) => setError(err.message || "Failed to load search history"));
+  }, []);
+
+  return (
+    <section className="card-frame p-4">
+      <h2 className="section-header mb-3">Recent Searches</h2>
+      <p className="text-xs text-slate-500 dark:text-zinc-500 mb-3">Your last 20 searches.</p>
+      {error && <p className="text-xs text-red-500 dark:text-red-400 mb-2">{error}</p>}
+      {searches === null ? (
+        <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400" size={20} />
+      ) : searches.length === 0 ? (
+        <p className="text-xs text-slate-400 dark:text-zinc-500">No searches yet.</p>
+      ) : (
+        <div className="flex flex-col gap-1">
+          {searches.map((s, i) => (
+            <div
+              key={i}
+              className="flex items-center justify-between gap-3 py-1.5 border-b border-slate-100 dark:border-zinc-800/60 last:border-0 text-sm"
+            >
+              <span className="text-slate-700 dark:text-zinc-300 truncate">{s.query}</span>
+              <span className="text-xs text-slate-400 dark:text-zinc-500 shrink-0">
+                {s.result_count} result{s.result_count === 1 ? "" : "s"} ·{" "}
+                {new Date(s.searched_at).toLocaleString()}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function SignOutSection() {
+  const { refresh } = useAuth();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  async function signOut() {
+    setLoggingOut(true);
+    try {
+      await api.authLogout();
+      await refresh();
+    } finally {
+      setLoggingOut(false);
+    }
+  }
+
+  return (
+    <section className="card-frame p-4">
+      <h2 className="section-header mb-3">Session</h2>
+      <button
+        onClick={signOut}
+        disabled={loggingOut}
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-red-300 hover:border-red-500 disabled:opacity-50 text-sm text-red-600 dark:border-red-500/60 dark:hover:border-red-400 dark:text-red-400"
+      >
+        {loggingOut ? <Loader2 size={14} className="animate-spin" /> : <LogOut size={14} />}
+        Sign Out
+      </button>
     </section>
   );
 }

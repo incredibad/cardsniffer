@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.56.0] - 2026-07-05
+
+### Added
+- Settings → Account tab for any logged-in user: change your own password (requires current password), view your last 20 searches with timestamps and result counts, and sign out
+
 ## [0.55.0] - 2026-07-05
 
 ### Added
