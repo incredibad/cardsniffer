@@ -32,6 +32,14 @@ def _is_art(result) -> bool:
     return result.is_art or any(substr in set_name for substr in _ART_SET_SUBSTRINGS)
 
 
+# eBay "Playtest" listings are unofficial proxies (not real WotC Playtest
+# cards), identifiable only by the listing title since eBay has no separate
+# category/flag for them — same title-substring approach as art cards above,
+# and store-agnostic in case any other store's listing titles carry it too.
+def _is_playtest(result) -> bool:
+    return "playtest" in (result.card_name or "").lower()
+
+
 @router.get("")
 async def search(
     q: str = Query(..., min_length=1),
@@ -107,6 +115,7 @@ async def search(
         if r.store_name in _GST_STORE_NAMES:
             d["price"] = round(d["price"] * _GST_RATE, 2)
         d["is_art"] = _is_art(r)
+        d["is_playtest"] = _is_playtest(r)
         results.append(d)
 
     search_type = "ebay_snipe" if (store == "ebay" and exact) else "search"

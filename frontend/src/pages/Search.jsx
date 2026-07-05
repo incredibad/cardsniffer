@@ -41,6 +41,7 @@ const SORT_MODE_KEY = "cardsniffer.sortMode";
 const VIEW_MODE_KEY = "cardsniffer.viewMode";
 const SHOW_ART_KEY = "cardsniffer.showArtCards";
 const SHOW_FOREIGN_KEY = "cardsniffer.showForeignCards";
+const SHOW_PLAYTEST_KEY = "cardsniffer.showPlaytestCards";
 const EXACT_MATCH_KEY = "cardsniffer.exactMatchOnly";
 const PRICING_MODE_KEY = "cardsniffer.pricingMode";
 const HIDDEN_STORES_KEY = "cardsniffer.hiddenStores";
@@ -78,6 +79,9 @@ export default function Search() {
   );
   const [showForeignCards, setShowForeignCards] = useState(
     () => localStorage.getItem(SHOW_FOREIGN_KEY) === "true"
+  );
+  const [showPlaytestCards, setShowPlaytestCards] = useState(
+    () => localStorage.getItem(SHOW_PLAYTEST_KEY) === "true"
   );
   const [exactMatchOnly, setExactMatchOnly] = useState(
     () => localStorage.getItem(EXACT_MATCH_KEY) === "true"
@@ -162,6 +166,11 @@ export default function Search() {
     localStorage.setItem(SHOW_FOREIGN_KEY, String(value));
   }
 
+  function updateShowPlaytestCards(value) {
+    setShowPlaytestCards(value);
+    localStorage.setItem(SHOW_PLAYTEST_KEY, String(value));
+  }
+
   function updateExactMatchOnly(value) {
     setExactMatchOnly(value);
     localStorage.setItem(EXACT_MATCH_KEY, String(value));
@@ -197,6 +206,7 @@ export default function Search() {
       (r) =>
         (showArtCards || !r.is_art) &&
         (showForeignCards || !r.foreign) &&
+        (showPlaytestCards || !r.is_playtest) &&
         (!exactMatchOnly || r.card_name.trim().toLowerCase() === needle) &&
         !barHiddenStores.has(r.store_name) &&
         !barHiddenConditions.has(r.condition) &&
@@ -207,6 +217,7 @@ export default function Search() {
     lastQuery,
     showArtCards,
     showForeignCards,
+    showPlaytestCards,
     exactMatchOnly,
     barHiddenStores,
     barHiddenConditions,
@@ -591,6 +602,7 @@ export default function Search() {
             const showToggles = [
               { key: "art", label: "Art cards", checked: showArtCards, onChange: updateShowArtCards },
               { key: "foreign", label: "Foreign cards", checked: showForeignCards, onChange: updateShowForeignCards },
+              { key: "playtest", label: "Playtest cards", checked: showPlaytestCards, onChange: updateShowPlaytestCards },
               { key: "exact", label: "Exact match only", checked: exactMatchOnly, onChange: updateExactMatchOnly },
             ];
 
@@ -762,6 +774,7 @@ export default function Search() {
                 setFoilFilter("all");
                 updateShowArtCards(true);
                 updateShowForeignCards(true);
+                updateShowPlaytestCards(true);
                 updateExactMatchOnly(false);
               }}
               className="mt-2 text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium"
