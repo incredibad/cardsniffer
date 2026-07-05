@@ -70,6 +70,14 @@ async def lifespan(app: FastAPI):
                 tz.set_timezone(env_tz)
             set_setting(db, "timezone", env_tz)
             db.commit()
+
+        # Same seed-once pattern as timezone above: VPN_PROXY_URL only fills
+        # in vpn_proxy_url if nothing's configured yet — an admin's own edit
+        # in Settings → Admin → Network always wins after that, so this only
+        # matters for getting a fresh install working without opening the UI.
+        if not get_setting(db, "vpn_proxy_url", "") and os.environ.get("VPN_PROXY_URL"):
+            set_setting(db, "vpn_proxy_url", os.environ["VPN_PROXY_URL"])
+            db.commit()
     finally:
         db.close()
     yield
