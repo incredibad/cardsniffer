@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.56.1] - 2026-07-05
+
+### Changed
+- Settings → System tab is now admin-only (it was only ever About/version info plus admin-only Logs, so regular users had no reason to see it)
+
 ## [0.56.0] - 2026-07-05
 
 ### Added
