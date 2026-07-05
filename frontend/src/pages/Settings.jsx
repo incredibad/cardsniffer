@@ -130,27 +130,21 @@ function UserStoresSection() {
       {error && <p className="text-xs text-red-500 dark:text-red-400 mb-2">{error}</p>}
       {stores === null ? (
         <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400" size={20} />
+      ) : stores.length === 0 ? (
+        <p className="text-xs text-slate-400 dark:text-zinc-500">No stores currently enabled system-wide.</p>
       ) : (
         <div className="flex flex-col gap-2">
           {stores.map((s) => (
             <label
               key={s.key}
-              className={`flex items-center justify-between py-1.5 text-sm ${
-                s.globally_enabled
-                  ? "text-slate-700 dark:text-zinc-300"
-                  : "text-slate-400 dark:text-zinc-600"
-              }`}
+              className="flex items-center justify-between py-1.5 text-sm text-slate-700 dark:text-zinc-300"
             >
-              <span>
-                {s.store_name}
-                {!s.globally_enabled && <span className="ml-1.5 text-xs">(disabled system-wide)</span>}
-              </span>
+              <span>{s.store_name}</span>
               <input
                 type="checkbox"
                 checked={s.enabled}
-                disabled={!s.globally_enabled}
                 onChange={(e) => toggle(s.key, e.target.checked)}
-                className="accent-indigo-600 w-4 h-4 disabled:opacity-40"
+                className="accent-indigo-600 w-4 h-4"
               />
             </label>
           ))}
@@ -273,7 +267,18 @@ function SearchHistorySection() {
               key={i}
               className="flex items-center justify-between gap-3 py-1.5 border-b border-slate-100 dark:border-zinc-800/60 last:border-0 text-sm"
             >
-              <span className="text-slate-700 dark:text-zinc-300 truncate">{s.query}</span>
+              <span className="flex items-center gap-1.5 min-w-0">
+                <span
+                  className={`chip shrink-0 ${
+                    s.search_type === "ebay_snipe"
+                      ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"
+                      : "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400"
+                  }`}
+                >
+                  {s.search_type === "ebay_snipe" ? "eBay Snipe" : "Search"}
+                </span>
+                <span className="text-slate-700 dark:text-zinc-300 truncate">{s.query}</span>
+              </span>
               <span className="text-xs text-slate-400 dark:text-zinc-500 shrink-0">
                 {s.result_count} result{s.result_count === 1 ? "" : "s"} ·{" "}
                 {new Date(s.searched_at).toLocaleString()}

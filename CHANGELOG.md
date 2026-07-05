@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented here.
 
+## [0.58.0] - 2026-07-05
+
+### Added
+- Search history entries in Settings → Account now show whether each search was a regular Search or an eBay Snipe
+
+### Fixed
+- The search page's Store filter was a static list unrelated to actual store availability — it now fetches the real list of stores enabled for you (globally enabled, and not opted out of in your own account preference), so a disabled store can no longer appear as a checkbox that would never have any results
+
+### Changed
+- Settings → General → Stores no longer lists stores that are disabled system-wide; there's nothing for a per-account preference to do once the admin has turned a store off for everyone
+
 ## [0.57.0] - 2026-07-05
 
 ### Changed

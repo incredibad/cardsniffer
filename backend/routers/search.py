@@ -107,7 +107,8 @@ async def search(
         d["is_art"] = _is_art(r)
         results.append(d)
 
-    db.add(SearchLog(query=q, result_count=len(results), user_id=user.id if user else None))
+    search_type = "ebay_snipe" if (store == "ebay" and exact) else "search"
+    db.add(SearchLog(query=q, result_count=len(results), user_id=user.id if user else None, search_type=search_type))
     db.commit()
 
     logger.info(f"Search {q!r}: {len(results)} results from {len(enabled_keys)} store(s), {len(errors)} error(s)")

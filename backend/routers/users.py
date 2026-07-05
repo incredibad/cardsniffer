@@ -45,8 +45,7 @@ class UserUpdate(BaseModel):
 class MyStoreSetting(BaseModel):
     key: str
     store_name: str
-    globally_enabled: bool
-    enabled: bool  # this user's own preference — only meaningful when globally_enabled
+    enabled: bool  # this user's own preference
 
 
 class MyStoreUpdate(BaseModel):
@@ -62,6 +61,7 @@ class SearchHistoryItem(BaseModel):
     query: str
     result_count: int
     searched_at: datetime
+    search_type: str
 
     class Config:
         from_attributes = True
@@ -90,14 +90,17 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db), _admin: User
 
 @router.get("/me/stores", response_model=list[MyStoreSetting])
 def get_my_stores(db: Session = Depends(get_db), user: User = Depends(require_user)):
+    # Globally-disabled stores are omitted entirely — there's nothing for a
+    # per-account preference to do once the admin has already turned a store
+    # off for everyone.
     return [
         MyStoreSetting(
             key=key,
             store_name=cls.store_name,
-            globally_enabled=get_setting(db, f"store_{key}_enabled", "true") != "false",
             enabled=get_user_store_enabled(db, user.id, key),
         )
         for key, cls in SCRAPERS.items()
+        if get_setting(db, f"store_{key}_enabled", "true") != "false"
     ]
 
 
