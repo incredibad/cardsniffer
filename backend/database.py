@@ -75,6 +75,11 @@ class User(Base):
     username = Column(String, unique=True, nullable=False, index=True)
     password_hash = Column(String, nullable=False)
     is_admin = Column(Boolean, nullable=False, default=False)
+    # A disabled account can't log in and any existing session stops working
+    # immediately (auth.get_current_user checks this) — used instead of
+    # deletion when an admin wants to revoke access without losing the
+    # account's history (search log, store preferences, etc.).
+    is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     last_seen_at = Column(DateTime, nullable=True)
 
@@ -165,6 +170,7 @@ def _migrate_db():
     migrations: list[str] = [
         "ALTER TABLE search_logs ADD COLUMN user_id INTEGER REFERENCES users(id)",
         "ALTER TABLE search_logs ADD COLUMN search_type VARCHAR NOT NULL DEFAULT 'search'",
+        "ALTER TABLE users ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT 1",
     ]
     with engine.connect() as conn:
         for sql in migrations:

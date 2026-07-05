@@ -10,7 +10,7 @@ from auth import (
     hash_password,
     verify_password,
 )
-from database import User, get_db
+from database import User, get_db, get_setting
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -28,6 +28,10 @@ class UserOut(BaseModel):
 class StatusOut(BaseModel):
     setup_required: bool
     user: UserOut | None = None
+    # The admin-configured display timezone (Settings → Admin → System) —
+    # exposed here since every page loads this on mount regardless of login
+    # state, so any timestamp anywhere in the app can be rendered in it.
+    timezone: str = "UTC"
 
 
 @router.get("/status", response_model=StatusOut)
@@ -36,6 +40,7 @@ def status(db: Session = Depends(get_db), user: User | None = Depends(get_curren
     return StatusOut(
         setup_required=setup_required,
         user=UserOut(username=user.username, is_admin=user.is_admin) if user else None,
+        timezone=get_setting(db, "timezone", "UTC"),
     )
 
 
@@ -57,6 +62,8 @@ def login(payload: Credentials, response: Response, db: Session = Depends(get_db
     user = db.query(User).filter(User.username == payload.username).first()
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid username or password")
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="This account has been disabled")
 
     create_session(db, response, user)
     return UserOut(username=user.username, is_admin=user.is_admin)

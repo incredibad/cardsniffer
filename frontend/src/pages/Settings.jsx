@@ -1,8 +1,10 @@
-import { useState, useEffect, useRef } from "react";
-import { Loader2, Wifi, Github, Sun, Moon, Trash2, ShieldCheck, Shield, LogOut } from "lucide-react";
+import { useMemo, useState, useEffect, useRef } from "react";
+import { Loader2, Wifi, Github, Sun, Moon, Trash2, Cog, LogOut } from "lucide-react";
 import { api } from "../api";
 import { getTheme, setTheme } from "../theme";
 import { useAuth } from "../AuthContext";
+import { formatAccountDateTime } from "../formatDate";
+import Modal from "../components/Modal";
 
 const GITHUB_URL = "https://github.com/incredibad/cardsniffer";
 
@@ -241,6 +243,7 @@ function ChangePasswordSection() {
 }
 
 function SearchHistorySection() {
+  const { timezone } = useAuth();
   const [searches, setSearches] = useState(null);
   const [error, setError] = useState("");
 
@@ -281,7 +284,7 @@ function SearchHistorySection() {
               </span>
               <span className="text-xs text-slate-400 dark:text-zinc-500 shrink-0">
                 {s.result_count} result{s.result_count === 1 ? "" : "s"} ·{" "}
-                {new Date(s.searched_at).toLocaleString()}
+                {formatAccountDateTime(s.searched_at, timezone)}
               </span>
             </div>
           ))}
@@ -599,11 +602,89 @@ function SystemTab() {
         </div>
       </section>
 
+      <TimezoneSection />
+
       <section className="card-frame p-4">
         <h2 className="section-header mb-3">Logs</h2>
         <LogViewer />
       </section>
     </div>
+  );
+}
+
+function TimezoneSection() {
+  const { refresh } = useAuth();
+  const [timezone, setTimezoneState] = useState("UTC");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState("");
+
+  // Full IANA list, not a hardcoded subset — supported by every browser this
+  // app targets. Falls back to just the current value if a browser lacks it.
+  const zones = useMemo(() => {
+    try {
+      return Intl.supportedValuesOf("timeZone");
+    } catch {
+      return [timezone];
+    }
+  }, [timezone]);
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function load() {
+    setLoading(true);
+    try {
+      const data = await api.getSettings();
+      setTimezoneState(data.timezone || "UTC");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function save(tz) {
+    setTimezoneState(tz);
+    setSaving(true);
+    setSaveMsg("");
+    try {
+      await api.updateSettings({ timezone: tz });
+      await refresh(); // re-fetch /auth/status so the new tz applies app-wide immediately
+      setSaveMsg("Saved");
+      setTimeout(() => setSaveMsg(""), 2000);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading) {
+    return <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400" size={24} />;
+  }
+
+  return (
+    <section className="card-frame p-4">
+      <h2 className="section-header mb-3">Timezone</h2>
+      <p className="text-xs text-slate-500 dark:text-zinc-500 mb-3">
+        Controls how timestamps are displayed system-wide (last seen, search history, log lines)
+        for every user, regardless of their own device's timezone.
+      </p>
+      <div className="flex items-center gap-2">
+        <select
+          value={timezone}
+          onChange={(e) => save(e.target.value)}
+          disabled={saving}
+          className="input-field px-3 py-2 text-sm flex-1"
+        >
+          {zones.map((z) => (
+            <option key={z} value={z}>
+              {z}
+            </option>
+          ))}
+        </select>
+        {saving && <Loader2 size={16} className="animate-spin text-indigo-600 dark:text-indigo-400" />}
+      </div>
+      {saveMsg && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">{saveMsg}</p>}
+    </section>
   );
 }
 
@@ -653,12 +734,11 @@ function LogViewer() {
 // ── Users sub-tab (inside Admin) ────────────────────────────────────────
 
 function UserManagement({ currentUsername }) {
+  const { timezone } = useAuth();
   const [users, setUsers] = useState(null);
   const [error, setError] = useState("");
-  const [newUsername, setNewUsername] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [newIsAdmin, setNewIsAdmin] = useState(false);
-  const [creating, setCreating] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [manageUser, setManageUser] = useState(null);
 
   useEffect(() => {
     load();
@@ -666,60 +746,30 @@ function UserManagement({ currentUsername }) {
 
   async function load() {
     try {
-      setUsers(await api.listUsers());
+      const data = await api.listUsers();
+      setUsers(data);
+      // Keep an open Manage modal showing fresh data instead of a stale snapshot.
+      setManageUser((prev) => (prev ? data.find((u) => u.id === prev.id) || null : prev));
     } catch (err) {
       setError(err.message || "Failed to load users");
     }
   }
 
-  async function createUser(e) {
-    e.preventDefault();
-    setError("");
-    setCreating(true);
-    try {
-      await api.createUser({ username: newUsername, password: newPassword, is_admin: newIsAdmin });
-      setNewUsername("");
-      setNewPassword("");
-      setNewIsAdmin(false);
-      await load();
-    } catch (err) {
-      setError(err.message || "Failed to create user");
-    } finally {
-      setCreating(false);
-    }
-  }
-
-  async function toggleAdmin(u) {
-    setError("");
-    try {
-      await api.updateUser(u.id, { is_admin: !u.is_admin });
-      await load();
-    } catch (err) {
-      setError(err.message || "Failed to update user");
-    }
-  }
-
-  async function removeUser(u) {
-    if (!confirm(`Delete user "${u.username}"? This can't be undone.`)) return;
-    setError("");
-    try {
-      await api.deleteUser(u.id);
-      await load();
-    } catch (err) {
-      setError(err.message || "Failed to delete user");
-    }
-  }
-
   return (
     <section className="card-frame p-4">
-      <h2 className="section-header mb-3">Users</h2>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="section-header">Users</h2>
+        <button onClick={() => setAddOpen(true)} className="btn-primary px-3 py-1.5 text-sm">
+          Add User
+        </button>
+      </div>
 
       {error && <p className="text-xs text-red-500 dark:text-red-400 mb-3">{error}</p>}
 
       {users === null ? (
         <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400" size={20} />
       ) : (
-        <div className="flex flex-col gap-1.5 mb-4">
+        <div className="flex flex-col gap-1.5">
           {users.map((u) => (
             <div
               key={u.id}
@@ -733,70 +783,228 @@ function UserManagement({ currentUsername }) {
                       Admin
                     </span>
                   )}
+                  {!u.is_active && (
+                    <span className="chip bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300">
+                      Disabled
+                    </span>
+                  )}
                 </div>
                 <div className="text-xs text-slate-500 dark:text-zinc-500">
-                  Last seen: {u.last_seen_at ? new Date(u.last_seen_at).toLocaleString() : "Never"}
+                  Last seen: {u.last_seen_at ? formatAccountDateTime(u.last_seen_at, timezone) : "Never"}
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <button
-                  onClick={() => toggleAdmin(u)}
-                  title={u.is_admin ? "Remove admin access" : "Grant admin access"}
-                  className="p-1.5 rounded-full text-slate-400 hover:text-indigo-600 dark:text-zinc-500 dark:hover:text-indigo-400 transition-colors"
-                >
-                  {u.is_admin ? <ShieldCheck size={16} /> : <Shield size={16} />}
-                </button>
-                <button
-                  onClick={() => removeUser(u)}
-                  disabled={u.username === currentUsername}
-                  title={u.username === currentUsername ? "Can't delete your own account" : "Delete user"}
-                  className="p-1.5 rounded-full text-slate-400 hover:text-red-500 disabled:opacity-30 disabled:hover:text-slate-400 dark:text-zinc-500 dark:hover:text-red-400 transition-colors"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
+              <button
+                onClick={() => setManageUser(u)}
+                title="Manage user"
+                aria-label={`Manage ${u.username}`}
+                className="p-1.5 rounded-full text-slate-400 hover:text-indigo-600 dark:text-zinc-500 dark:hover:text-indigo-400 transition-colors shrink-0"
+              >
+                <Cog size={16} />
+              </button>
             </div>
           ))}
         </div>
       )}
 
-      <form onSubmit={createUser} className="flex flex-col gap-2 pt-2 border-t border-slate-200 dark:border-zinc-800">
-        <div className="flex gap-2">
+      {addOpen && <AddUserModal onClose={() => setAddOpen(false)} onCreated={load} />}
+      {manageUser && (
+        <ManageUserModal
+          user={manageUser}
+          currentUsername={currentUsername}
+          onClose={() => setManageUser(null)}
+          onChanged={load}
+        />
+      )}
+    </section>
+  );
+}
+
+function AddUserModal({ onClose, onCreated }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState("");
+
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    setCreating(true);
+    try {
+      await api.createUser({ username, password, is_admin: isAdmin });
+      await onCreated();
+      onClose();
+    } catch (err) {
+      setError(err.message || "Failed to create user");
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  return (
+    <Modal title="Add User" onClose={onClose}>
+      <form onSubmit={submit} className="flex flex-col gap-2">
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Username"
+          autoComplete="off"
+          autoFocus
+          required
+          className="input-field px-3 py-2 text-sm"
+        />
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password (min. 8 characters)"
+          autoComplete="new-password"
+          minLength={8}
+          required
+          className="input-field px-3 py-2 text-sm"
+        />
+        <label className="inline-flex items-center gap-1.5 text-sm text-slate-700 dark:text-zinc-300 cursor-pointer">
           <input
-            type="text"
-            value={newUsername}
-            onChange={(e) => setNewUsername(e.target.value)}
-            placeholder="New username"
-            autoComplete="off"
-            required
-            className="input-field flex-1 px-3 py-2 text-sm"
+            type="checkbox"
+            checked={isAdmin}
+            onChange={(e) => setIsAdmin(e.target.checked)}
+            className="accent-indigo-600 w-4 h-4"
           />
-          <input
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="Password (min. 8 characters)"
-            autoComplete="new-password"
-            minLength={8}
-            required
-            className="input-field flex-1 px-3 py-2 text-sm"
-          />
-        </div>
-        <div className="flex items-center justify-between">
-          <label className="inline-flex items-center gap-1.5 text-sm text-slate-700 dark:text-zinc-300 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={newIsAdmin}
-              onChange={(e) => setNewIsAdmin(e.target.checked)}
-              className="accent-indigo-600 w-4 h-4"
-            />
-            Grant admin access
-          </label>
+          Grant admin access
+        </label>
+        {error && <p className="text-xs text-red-500 dark:text-red-400">{error}</p>}
+        <div className="flex justify-end gap-2 mt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 text-sm text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+          >
+            Cancel
+          </button>
           <button type="submit" disabled={creating} className="btn-primary px-4 py-2 text-sm">
             {creating ? <Loader2 size={14} className="animate-spin" /> : "Add User"}
           </button>
         </div>
       </form>
-    </section>
+    </Modal>
+  );
+}
+
+function ManageUserModal({ user, currentUsername, onClose, onChanged }) {
+  const [error, setError] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [resettingPassword, setResettingPassword] = useState(false);
+  const [passwordMsg, setPasswordMsg] = useState("");
+  const isSelf = user.username === currentUsername;
+
+  async function toggleAdmin() {
+    setError("");
+    try {
+      await api.updateUser(user.id, { is_admin: !user.is_admin });
+      await onChanged();
+    } catch (err) {
+      setError(err.message || "Failed to update user");
+    }
+  }
+
+  async function toggleActive() {
+    setError("");
+    try {
+      await api.updateUser(user.id, { is_active: !user.is_active });
+      await onChanged();
+    } catch (err) {
+      setError(err.message || "Failed to update user");
+    }
+  }
+
+  async function resetPassword(e) {
+    e.preventDefault();
+    setError("");
+    setResettingPassword(true);
+    try {
+      await api.updateUser(user.id, { password: newPassword });
+      setNewPassword("");
+      setPasswordMsg("Password updated");
+      setTimeout(() => setPasswordMsg(""), 2000);
+    } catch (err) {
+      setError(err.message || "Failed to reset password");
+    } finally {
+      setResettingPassword(false);
+    }
+  }
+
+  async function removeUser() {
+    if (!confirm(`Delete user "${user.username}"? This can't be undone.`)) return;
+    setError("");
+    try {
+      await api.deleteUser(user.id);
+      await onChanged();
+      onClose();
+    } catch (err) {
+      setError(err.message || "Failed to delete user");
+    }
+  }
+
+  return (
+    <Modal title={`Manage ${user.username}`} onClose={onClose}>
+      <div className="flex flex-col gap-4">
+        {error && <p className="text-xs text-red-500 dark:text-red-400">{error}</p>}
+
+        <label className="flex items-center justify-between text-sm text-slate-700 dark:text-zinc-300">
+          Admin access
+          <input
+            type="checkbox"
+            checked={user.is_admin}
+            onChange={toggleAdmin}
+            className="accent-indigo-600 w-4 h-4"
+          />
+        </label>
+
+        <label className="flex items-center justify-between text-sm text-slate-700 dark:text-zinc-300">
+          Account enabled
+          <input
+            type="checkbox"
+            checked={user.is_active}
+            disabled={isSelf}
+            onChange={toggleActive}
+            className="accent-indigo-600 w-4 h-4 disabled:opacity-40"
+          />
+        </label>
+
+        <form onSubmit={resetPassword} className="flex flex-col gap-2 pt-3 border-t border-slate-200 dark:border-zinc-800">
+          <span className="text-sm text-slate-700 dark:text-zinc-300">Reset Password</span>
+          <input
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="New password (min. 8 characters)"
+            autoComplete="new-password"
+            minLength={8}
+            required
+            className="input-field px-3 py-2 text-sm"
+          />
+          {passwordMsg && <p className="text-xs text-emerald-600 dark:text-emerald-400">{passwordMsg}</p>}
+          <button type="submit" disabled={resettingPassword} className="btn-primary px-4 py-2 text-sm self-start">
+            {resettingPassword ? "Saving…" : "Reset Password"}
+          </button>
+        </form>
+
+        <div className="pt-3 border-t border-slate-200 dark:border-zinc-800">
+          <button
+            onClick={removeUser}
+            disabled={isSelf}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-red-300 hover:border-red-500 disabled:opacity-40 text-sm text-red-600 dark:border-red-500/60 dark:hover:border-red-400 dark:text-red-400"
+          >
+            <Trash2 size={14} /> Delete User
+          </button>
+          {isSelf && (
+            <p className="text-xs text-slate-400 dark:text-zinc-500 mt-1.5">
+              Can't disable or delete your own account.
+            </p>
+          )}
+        </div>
+      </div>
+    </Modal>
   );
 }

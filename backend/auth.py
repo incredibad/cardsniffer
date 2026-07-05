@@ -64,7 +64,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> Optiona
         return None
 
     user = db.query(User).filter(User.id == session.user_id).first()
-    if not user:
+    if not user or not user.is_active:
         return None
 
     user.last_seen_at = datetime.utcnow()

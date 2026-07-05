@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -8,7 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
-from database import init_db
+import tz
+from database import SessionLocal, get_setting, init_db
 from routers import auth as auth_router, search, settings, logs as logs_router, users as users_router, stores as stores_router
 from log_buffer import LogBufferHandler
 
@@ -18,7 +20,19 @@ logging.basicConfig(level=logging.INFO)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
-_LOG_FMT = logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+
+class _TzFormatter(logging.Formatter):
+    """Renders each line in the admin-configured display timezone (tz.py)
+    rather than the container's own local time — read fresh per line so a
+    timezone change (Settings → Admin → System) takes effect immediately,
+    without needing to recreate the handlers."""
+
+    def formatTime(self, record, datefmt=None):
+        ts = datetime.datetime.fromtimestamp(record.created, tz=tz.get_zoneinfo())
+        return ts.strftime(datefmt or "%Y-%m-%d %H:%M:%S")
+
+
+_LOG_FMT = _TzFormatter("%(asctime)s %(levelname)s %(name)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
 _buf_handler = LogBufferHandler()
 _buf_handler.setFormatter(_LOG_FMT)
@@ -35,6 +49,11 @@ logging.getLogger().addHandler(_file_handler)
 async def lifespan(app: FastAPI):
     logger.info("Initialising database…")
     init_db()
+    db = SessionLocal()
+    try:
+        tz.set_timezone(get_setting(db, "timezone", "UTC"))
+    finally:
+        db.close()
     yield
     logger.info("Shutting down…")
 

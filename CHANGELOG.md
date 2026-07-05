@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented here.
 
+## [0.59.0] - 2026-07-05
+
+### Added
+- Admins can now disable a user account (Settings → Admin → Users → cog icon → Account enabled) instead of only deleting it — a disabled account can't log in and any existing session is immediately kicked out. Protected the same way admin removal already was: can't disable your own account, can't disable the last remaining admin
+- Admin-configurable system Timezone (Settings → Admin → System) — controls how Last Seen, search history, and log lines are displayed for every user, instead of each browser's own local timezone
+- "Add User" is now a modal (previously an inline form at the bottom of the page), moved to a button at the top of the Users list
+- Each user row now has a single cog icon opening a "Manage User" modal with admin toggle, enable/disable, password reset, and delete — replacing the previous per-row admin/delete icon pair
+
+### Fixed
+- "Last Seen" (and other account timestamps) were being parsed as browser-local time despite being UTC under the hood, silently showing the wrong time — timestamps are now correctly interpreted as UTC and rendered in the configured system timezone
+
 ## [0.58.0] - 2026-07-05
 
 ### Added

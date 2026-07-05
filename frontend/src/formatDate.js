@@ -2,6 +2,26 @@ export function formatDateTime(isoString) {
   return new Date(isoString).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
 
+// For the app's own account/system timestamps (Last Seen, search history,
+// etc.) rather than store-sourced dates like listed_at/delivery_by above.
+// Those come from external stores as proper "Z"-suffixed instants and are
+// shown in the viewer's own browser time; these come from the backend as
+// naive UTC (datetime.utcnow(), no offset — see backend/database.py) and are
+// shown in the admin-configured display timezone (Settings → Admin →
+// System) instead, so every user sees the same wall-clock time regardless
+// of their own browser's timezone.
+export function formatAccountDateTime(isoString, timezone) {
+  if (!isoString) return null;
+  const hasZone = /[Zz]|[+-]\d{2}:?\d{2}$/.test(isoString);
+  const date = new Date(hasZone ? isoString : `${isoString}Z`);
+  if (Number.isNaN(date.getTime())) return isoString;
+  try {
+    return date.toLocaleString(undefined, { timeZone: timezone || "UTC" });
+  } catch {
+    return date.toLocaleString();
+  }
+}
+
 // Estimated-delivery-by dates are day-granularity (the time component isn't
 // meaningful), unlike listed_at's actual listing timestamp.
 export function formatDate(isoString) {
