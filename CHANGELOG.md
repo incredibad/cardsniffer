@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.63.0] - 2026-07-05
+
+### Added
+- New "Playtest cards" option in the Show filter dropdown, hidden by default — catches eBay's unofficial Playtest-style proxy listings (detected by "Playtest" in the listing title) so they don't clutter results unless explicitly shown
+
 ## [0.62.0] - 2026-07-05
 
 ### Added
