@@ -39,6 +39,9 @@ class SearchLog(Base):
     # account) — only set when a logged-in user's session made the request,
     # so their Account tab can show their own recent search history.
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    # "search" (normal, all enabled stores) or "ebay_snipe" (eBay-only, exact
+    # query) — mirrors the frontend's own searchMode values (Search.jsx).
+    search_type = Column(String, nullable=False, default="search")
 
 
 class EbayApiCall(Base):
@@ -161,6 +164,7 @@ def _migrate_db():
     migrations silently no-op — mirrors the tightarse pattern."""
     migrations: list[str] = [
         "ALTER TABLE search_logs ADD COLUMN user_id INTEGER REFERENCES users(id)",
+        "ALTER TABLE search_logs ADD COLUMN search_type VARCHAR NOT NULL DEFAULT 'search'",
     ]
     with engine.connect() as conn:
         for sql in migrations:

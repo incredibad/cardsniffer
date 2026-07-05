@@ -13,12 +13,7 @@ import ResultTable from "../components/ResultTable";
 import InfoTooltip from "../components/InfoTooltip";
 import FilterDropdown, { FilterDropdownOption } from "../components/FilterDropdown";
 import SelectDropdown from "../components/SelectDropdown";
-import { STORE_META } from "../storeMeta";
 
-// Static rather than derived from the current results, so the filter bar's
-// option list doesn't shrink/grow between searches — same set of checkboxes
-// every time, matching how filter state itself now persists across searches.
-const STORE_OPTIONS = Object.keys(STORE_META).sort();
 // Best-to-worst condition order rather than alphabetical, since this is now
 // a fixed list a human reads top to bottom. SP (Hareruya's "Slightly
 // Played") sits alongside LP as a roughly-equivalent second tier — every
@@ -100,6 +95,16 @@ export default function Search() {
   const [foilFilter, setFoilFilter] = useState(
     () => localStorage.getItem(FOIL_FILTER_KEY) || "all"
   ); // all | foil | nonfoil
+
+  // Stores actually enabled right now (globally, and per-account if logged
+  // in) — fetched rather than a static list, so a disabled store simply
+  // can't appear as a filter option instead of showing as a checkbox that
+  // will never have any results.
+  const [storeOptions, setStoreOptions] = useState([]);
+
+  useEffect(() => {
+    api.listStores().then((stores) => setStoreOptions(stores.map((s) => s.store_name).sort()));
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(HIDDEN_STORES_KEY, JSON.stringify([...barHiddenStores]));
@@ -539,14 +544,14 @@ export default function Search() {
                 label="Store"
                 className={stretch ? "flex-1" : ""}
                 badgeCount={
-                  STORE_OPTIONS.length - barHiddenStores.size < STORE_OPTIONS.length
-                    ? STORE_OPTIONS.length - barHiddenStores.size
+                  storeOptions.length - barHiddenStores.size < storeOptions.length
+                    ? storeOptions.length - barHiddenStores.size
                     : null
                 }
                 onSelectAll={() => setBarHiddenStores(new Set())}
-                onSelectNone={() => setBarHiddenStores(new Set(STORE_OPTIONS))}
+                onSelectNone={() => setBarHiddenStores(new Set(storeOptions))}
               >
-                {STORE_OPTIONS.map((option) => (
+                {storeOptions.map((option) => (
                   <FilterDropdownOption
                     key={option}
                     label={option}
