@@ -2,10 +2,24 @@ import { Routes, Route, Link } from "react-router-dom";
 import { Settings as SettingsIcon } from "lucide-react";
 import Search from "./pages/Search";
 import Settings from "./pages/Settings";
+import Login from "./pages/Login";
 import AuthMenu from "./components/AuthMenu";
 import BackToTopButton from "./components/BackToTopButton";
+import { useAuth } from "./AuthContext";
 
 export default function App() {
+  const { loading, user } = useAuth();
+
+  if (loading) return null;
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Login />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="relative z-40 border-b border-slate-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">

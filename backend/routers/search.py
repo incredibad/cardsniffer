@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 import crypto
-from auth import get_current_user
+from auth import require_user
 from currency import get_rate_to_aud
 from database import SearchLog, User, get_db, get_setting, get_user_store_enabled, is_store_globally_enabled
 from scrapers import SCRAPERS, get_scraper
@@ -46,7 +46,7 @@ async def search(
     store: str | None = Query(None),
     exact: bool = Query(False),
     db: Session = Depends(get_db),
-    user: User | None = Depends(get_current_user),
+    user: User = Depends(require_user),
 ):
     proxy_url = get_setting(db, "vpn_proxy_url", "")
 
@@ -58,7 +58,7 @@ async def search(
             raise HTTPException(status_code=400, detail=f"Unknown store: {store}")
         if not is_store_globally_enabled(db, store):
             raise HTTPException(status_code=400, detail=f"{SCRAPERS[store].store_name} is disabled in Settings")
-        if user and not get_user_store_enabled(db, user.id, store):
+        if not get_user_store_enabled(db, user.id, store):
             raise HTTPException(
                 status_code=400,
                 detail=f"{SCRAPERS[store].store_name} is disabled in your account settings",
@@ -67,8 +67,7 @@ async def search(
     else:
         enabled_keys = [
             key for key in SCRAPERS
-            if is_store_globally_enabled(db, key)
-            and (user is None or get_user_store_enabled(db, user.id, key))
+            if is_store_globally_enabled(db, key) and get_user_store_enabled(db, user.id, key)
         ]
 
     errors: list[dict] = []
@@ -119,7 +118,7 @@ async def search(
         results.append(d)
 
     search_type = "ebay_snipe" if (store == "ebay" and exact) else "search"
-    db.add(SearchLog(query=q, result_count=len(results), user_id=user.id if user else None, search_type=search_type))
+    db.add(SearchLog(query=q, result_count=len(results), user_id=user.id, search_type=search_type))
     db.commit()
 
     logger.info(f"Search {q!r}: {len(results)} results from {len(enabled_keys)} store(s), {len(errors)} error(s)")
