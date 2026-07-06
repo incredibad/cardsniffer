@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.65.0] - 2026-07-06
+
+### Changed
+- The whole app now requires login — anonymous visitors are shown a full-page login (or initial admin setup) screen instead of Search, and `/search`/`/stores` now reject unauthenticated requests server-side too, closing the previous public/unauthenticated access to search
+
 ## [0.64.0] - 2026-07-05
 
 ### Fixed
