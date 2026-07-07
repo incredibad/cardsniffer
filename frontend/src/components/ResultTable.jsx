@@ -5,8 +5,7 @@ import { formatPrice } from "../formatPrice";
 import { formatListedAt } from "../formatDate";
 import TruncatedTooltip from "./TruncatedTooltip";
 import FoilOverlay from "./FoilOverlay";
-import Tooltip from "./Tooltip";
-import EbayListingTooltipContent from "./EbayListingTooltipContent";
+import StoreBadge from "./StoreBadge";
 
 function Thumbnail({ src, alt, href, foil, className }) {
   return (
@@ -62,24 +61,7 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
           </div>
         );
 
-        const storeBadge = r.listed_at ? (
-          <Tooltip content={<EbayListingTooltipContent result={r} />}>
-            <span
-              className="chip shrink-0 font-semibold text-white cursor-help"
-              style={{ backgroundColor: storeMeta.color }}
-            >
-              {storeMeta.code}
-            </span>
-          </Tooltip>
-        ) : (
-          <span
-            className="chip shrink-0 font-semibold text-white"
-            style={{ backgroundColor: storeMeta.color }}
-            title={r.store_name}
-          >
-            {storeMeta.code}
-          </span>
-        );
+        const storeBadge = <StoreBadge result={r} />;
 
         const buyButton = (
           <a

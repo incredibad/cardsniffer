@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.66.0] - 2026-07-07
+
+### Added
+- Real store logos (sourced from each store's own site, trimmed and standardized to a common height) now replace the colored code chips on results — shown in a small pill, white-backed except MTGMate's which needs a dark pill for its white lettering to read; stores without a fetched logo still fall back to the old color+code chip
+
 ## [0.65.0] - 2026-07-06
 
 ### Changed
