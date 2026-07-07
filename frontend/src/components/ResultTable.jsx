@@ -157,7 +157,7 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
                   {formatQty(r.quantity_available)} in stock
                 </div>
               </div>
-              <div className="w-16 shrink-0">{storeBadge}</div>
+              <div className="w-24 shrink-0">{storeBadge}</div>
               {buyButton}
             </div>
           </div>

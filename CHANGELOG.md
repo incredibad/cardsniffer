@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.67.0] - 2026-07-07
+
+### Changed
+- Store logos no longer sit in a pill — they're shown directly on the card's own background, and use the real full wordmark instead of a crest/mascot where one exists (Hareruya now shows "HARERUYA" + mascot, not just the mascot). Card Kingdom and Hareruya's logos are plain white silhouettes, so they're inverted to black in light mode and left white in dark mode via CSS, giving correct contrast in both themes from a single asset. GUF, Good Games, and MTGMintCard are known to be low-contrast in dark mode (and MTGMintCard in light mode too) since those stores don't publish a differently-colored logo variant; MTGMate's logo similarly loses its white "MATE" text in light mode
+
 ## [0.66.0] - 2026-07-07
 
 ### Added
