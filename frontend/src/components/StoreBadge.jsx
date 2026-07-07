@@ -2,12 +2,16 @@ import { getStoreMeta } from "../storeMeta";
 import Tooltip from "./Tooltip";
 import EbayListingTooltipContent from "./EbayListingTooltipContent";
 
-// Store identifier shown on every result — a standardized brand-logo pill
-// where we have one (see storeMeta.js), falling back to the color+code chip
-// for anything without a logo yet. eBay Snipe results (result.listed_at set)
-// get an extra hover tooltip with the raw listing details, in which case
-// `className` (e.g. grid positioning) goes on the Tooltip's wrapper instead
-// of the badge itself so the hover target still lines up.
+// Store identifier shown on every result — the real brand logo where we
+// have one (see storeMeta.js), sitting directly on the card's own
+// background (no pill), falling back to the color+code chip for anything
+// without a logo yet. Bounded to a fixed box (height-capped, width-capped)
+// so icon-shaped and wordmark-shaped logos still line up next to each
+// other despite wildly different native aspect ratios. eBay Snipe results
+// (result.listed_at set) get an extra hover tooltip with the raw listing
+// details, in which case `className` (e.g. grid positioning) goes on the
+// Tooltip's wrapper instead of the badge itself so the hover target still
+// lines up.
 export default function StoreBadge({ result, className = "" }) {
   const storeMeta = getStoreMeta(result.store_name);
   const isTooltip = Boolean(result.listed_at);
@@ -17,12 +21,14 @@ export default function StoreBadge({ result, className = "" }) {
 
   const content = storeMeta.logo ? (
     <span
-      className={`chip inline-flex items-center px-1.5 py-1 ${
-        storeMeta.logoBg === "dark" ? "bg-zinc-900" : "bg-white border border-slate-200 dark:border-transparent"
-      } ${badgeClassName}`}
+      className={`inline-flex items-center h-5 sm:h-6 max-w-[72px] sm:max-w-[92px] ${badgeClassName}`}
       title={result.store_name}
     >
-      <img src={storeMeta.logo} alt={result.store_name} className="h-3 sm:h-3.5 w-auto object-contain" />
+      <img
+        src={storeMeta.logo}
+        alt={result.store_name}
+        className={`h-full w-full object-contain ${storeMeta.logoInvert ? "invert dark:invert-0" : ""}`}
+      />
     </span>
   ) : (
     <span
