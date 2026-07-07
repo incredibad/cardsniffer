@@ -24,11 +24,28 @@ export default function StoreBadge({ result, className = "" }) {
       className={`inline-flex items-center h-5 sm:h-6 max-w-[72px] sm:max-w-[92px] ${badgeClassName}`}
       title={result.store_name}
     >
-      <img
-        src={storeMeta.logo}
-        alt={result.store_name}
-        className={`h-full w-full object-contain ${storeMeta.logoInvert ? "invert dark:invert-0" : ""}`}
-      />
+      {storeMeta.logoTint ? (
+        // Plain white-silhouette source asset (no brand-colored version
+        // published) — recolored to the brand color via a CSS mask instead
+        // of shown as a flat white/black shape, so it still reads as *that
+        // store's* mark rather than a generic icon.
+        <span
+          className="h-full w-full"
+          style={{
+            backgroundColor: storeMeta.color,
+            WebkitMaskImage: `url(${storeMeta.logo})`,
+            maskImage: `url(${storeMeta.logo})`,
+            WebkitMaskSize: "contain",
+            maskSize: "contain",
+            WebkitMaskRepeat: "no-repeat",
+            maskRepeat: "no-repeat",
+            WebkitMaskPosition: "center",
+            maskPosition: "center",
+          }}
+        />
+      ) : (
+        <img src={storeMeta.logo} alt={result.store_name} className="h-full w-full object-contain" />
+      )}
     </span>
   ) : (
     <span
