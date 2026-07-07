@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.67.2] - 2026-07-07
+
+### Fixed
+- Card Kingdom and Hareruya's tinted logos weren't rendering at all — the masked `<span>` used to recolor them has no intrinsic size the way an `<img>` does, so it collapsed to 0×0 inside its shrink-to-fit box. Fixed with an explicit aspect-ratio matching each logo's actual pixel dimensions
+
 ## [0.67.1] - 2026-07-07
 
 ### Fixed
