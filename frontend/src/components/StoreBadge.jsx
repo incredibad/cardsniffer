@@ -30,8 +30,9 @@ export default function StoreBadge({ result, className = "" }) {
         // of shown as a flat white/black shape, so it still reads as *that
         // store's* mark rather than a generic icon.
         <span
-          className="h-full w-full"
+          className="h-full"
           style={{
+            aspectRatio: storeMeta.logoAspect,
             backgroundColor: storeMeta.color,
             WebkitMaskImage: `url(${storeMeta.logo})`,
             maskImage: `url(${storeMeta.logo})`,
