@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.67.1] - 2026-07-07
+
+### Fixed
+- Card Kingdom's crest and Hareruya's wordmark (both published only as plain white silhouettes) are now recolored to their real brand colors — Card Kingdom navy, Hareruya red — via a CSS mask, instead of a flat black/white invert that lost their actual brand identity
+
 ## [0.67.0] - 2026-07-07
 
 ### Changed
