@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.68.2] - 2026-07-09
+
+### Changed
+- MTGMintCard's logo now includes the "mtgmintcard" wordmark, recreated from the store's own header: the dice-and-sparkle icon at its site-relative scale with the text self-rendered in Liberation Sans (metric stand-in for the site's Helvetica Neue stack), white per the site's own styling — like the icon itself, best suited to dark mode
+
 ## [0.68.1] - 2026-07-09
 
 ### Changed
