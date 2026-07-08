@@ -11,10 +11,14 @@
 // logo: standardized (trimmed + resized to a common height, see scratchpad
 // notes) brand mark in public/logos/, shown directly on the card's own
 // background instead of the color+code chip — no pill/background of its
-// own. MTGMintCard has no "worded" logo — its own site uses an icon-only
-// mark (dice-and-sparkle) with the store name set as plain text next to it,
-// not baked into an image — so its `logo` is that icon as-is, not a
-// substitute we chose. Card Kingdom's is a recreation of its site header:
+// own. MTGMintCard has no "worded" logo image — its own site sets
+// "mtgmintcard" as plain navbar text (Helvetica Neue 23.8px white) next to
+// the dice-and-sparkle icon — so ours is a recreation of that header:
+// the icon at its site-relative scale (80px alongside that text) with the
+// wordmark self-rendered in Liberation Sans (the font stack's
+// Arial-fallback metric equivalent), flush per the site's own box model
+// (padding-left cancelled by margin). Card Kingdom's is likewise a
+// recreation of its site header:
 // crest (ck-header-logo.png) left of wordmark (ck-header-title.png),
 // vertically centered with a 10px gap at native scale, composed into one
 // asset (both sources are white silhouettes, so the result stays tintable).
@@ -28,10 +32,10 @@
 // inside the badge's shrink-to-fit box.
 // Multi-color logos (GUF, Good Games, MTGMate, ...) are shown as-is; a few
 // of those are genuinely low-contrast in dark mode (GUF's black wordmark,
-// Good Games' navy, MTGMintCard's pale icon) or in light mode (MTGMate's
-// white "MATE") since they were only ever designed for one of the two
-// themes — no fix for those short of a differently-colored source asset,
-// which none of these stores publish.
+// Good Games' navy) or in light mode (MTGMate's white "MATE",
+// MTGMintCard's pale icon and white wordmark text) since they were only
+// ever designed for one of the two themes — no fix for those short of a
+// differently-colored source asset, which none of these stores publish.
 export const STORE_META = {
   "MTGMate": { code: "MTGM8", color: "#F9A72B", country: "AU", currency: "AUD", foilOverlay: false, logo: "/logos/mtgmate.png" },
   "MTGMintCard": { code: "MTGMC", color: "#428BCA", country: "US", currency: "USD", foilOverlay: false, logo: "/logos/mtgmintcard.png" },
