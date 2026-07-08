@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.69.0] - 2026-07-09
+
+### Changed
+- Search results now persist when navigating away from the main page (to Cart, Settings, etc.) and back — the query, results, and any scraper errors stay until the next search replaces them. In-app navigation only: a full page reload still starts fresh, since results are live-scraped prices
+- The Cart half of the result Cart/Buy button is now an icon-only green segment (tooltip "Add to cart") — visually distinct from the indigo Buy half instead of two same-colored labelled segments
+
 ## [0.68.2] - 2026-07-09
 
 ### Changed

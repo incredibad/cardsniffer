@@ -59,14 +59,50 @@ function readStoredSet(key) {
   }
 }
 
+// Module-level cache so a search's results survive navigating to /cart or
+// /settings and back (this component unmounts on route change) — they stay
+// until the next search replaces them. Deliberately not localStorage:
+// results are live-scraped prices, already stale by the next session, so a
+// full page reload still starts fresh.
+const searchCache = {
+  query: "",
+  status: "idle",
+  results: [],
+  errors: [],
+  errorMessage: "",
+  dismissedErrors: false,
+  lastQuery: "",
+};
+
 export default function Search() {
-  const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("idle"); // idle | loading | success | error
-  const [results, setResults] = useState([]);
-  const [errors, setErrors] = useState([]);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [dismissedErrors, setDismissedErrors] = useState(false);
-  const [lastQuery, setLastQuery] = useState("");
+  const [query, setQuery] = useState(searchCache.query);
+  // A search still in flight when the page unmounted can never complete
+  // into the cache — restore "loading" as the state it'll read as instead
+  // of a spinner nothing will ever clear.
+  const [status, setStatus] = useState(() =>
+    searchCache.status === "loading"
+      ? searchCache.lastQuery
+        ? "success"
+        : "idle"
+      : searchCache.status
+  ); // idle | loading | success | error
+  const [results, setResults] = useState(searchCache.results);
+  const [errors, setErrors] = useState(searchCache.errors);
+  const [errorMessage, setErrorMessage] = useState(searchCache.errorMessage);
+  const [dismissedErrors, setDismissedErrors] = useState(searchCache.dismissedErrors);
+  const [lastQuery, setLastQuery] = useState(searchCache.lastQuery);
+
+  useEffect(() => {
+    Object.assign(searchCache, {
+      query,
+      status,
+      results,
+      errors,
+      errorMessage,
+      dismissedErrors,
+      lastQuery,
+    });
+  }, [query, status, results, errors, errorMessage, dismissedErrors, lastQuery]);
   const [viewMode, setViewMode] = useState(
     () => localStorage.getItem(VIEW_MODE_KEY) || "grid"
   ); // grid | table
