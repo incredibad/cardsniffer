@@ -15,7 +15,7 @@ export default function CartBuyButtons({ result, className = "" }) {
       <button
         type="button"
         onClick={() => addToCart(result)}
-        className={`${segment} bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400`}
+        className={`${segment} bg-green-600 hover:bg-green-500 dark:bg-green-600 dark:hover:bg-green-500`}
         aria-label={`Add ${result.card_name} to ${result.store_name} cart`}
         title="Add to cart"
       >

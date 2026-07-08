@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.69.1] - 2026-07-09
+
+### Changed
+- The cart button's green is now a proper grass green (Tailwind green-600, kept at full strength in dark mode too) instead of the paler emerald
+
 ## [0.69.0] - 2026-07-09
 
 ### Changed
