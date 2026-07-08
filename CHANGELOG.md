@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.68.0] - 2026-07-09
+
+### Added
+- Per-store carts: every result's Buy button is now a split Cart/Buy pair — Cart adds that listing (a snapshot of its price/condition/links at that moment) to the store's cart with a toast confirmation, Buy behaves exactly as before. A new cart icon in the header (with a live total-count badge) opens the Cart page: one tab per store showing its logo and item count, each listing its cards with a Buy button, per-item delete, an "added X ago" note (prices are snapshots, not live), and a Clear Cart button; a Clear all Carts button in the heading row (with confirmation) empties everything. Carts are stored server-side per user (`cart_items` table), so they follow your account across browsers; adding the identical listing again bumps a ×N quantity instead of duplicating the row
+
 ## [0.67.2] - 2026-07-07
 
 ### Fixed

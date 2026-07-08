@@ -1,4 +1,4 @@
-import { Sparkles, ExternalLink } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import { formatPrice } from "../formatPrice";
@@ -6,6 +6,7 @@ import { formatListedAt } from "../formatDate";
 import TruncatedTooltip from "./TruncatedTooltip";
 import FoilOverlay from "./FoilOverlay";
 import StoreBadge from "./StoreBadge";
+import CartBuyButtons from "./CartBuyButtons";
 
 function Thumbnail({ src, alt, href, foil, className }) {
   return (
@@ -63,16 +64,7 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
 
         const storeBadge = <StoreBadge result={r} />;
 
-        const buyButton = (
-          <a
-            href={r.product_url}
-            target="_blank"
-            rel="noreferrer"
-            className="shrink-0 inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors whitespace-nowrap dark:bg-indigo-500 dark:hover:bg-indigo-400"
-          >
-            Buy <ExternalLink size={12} />
-          </a>
-        );
+        const buyButton = <CartBuyButtons result={r} />;
 
         return (
           <div

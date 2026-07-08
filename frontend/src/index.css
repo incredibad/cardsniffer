@@ -46,4 +46,19 @@
   .segmented-btn.is-active {
     @apply bg-indigo-600 text-white hover:text-white dark:bg-indigo-500 dark:hover:text-white;
   }
+  /* Toast entrance — small rise + fade. */
+  .toast-pop {
+    animation: toast-pop 0.18s ease-out;
+  }
+}
+
+@keyframes toast-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

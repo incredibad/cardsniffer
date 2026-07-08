@@ -36,6 +36,13 @@ export const api = {
   authLogin: (username, password) => postJSON("/auth/login", { username, password }),
   authLogout: () => request("/auth/logout", { method: "POST" }),
 
+  getCart: () => request("/cart"),
+  addToCart: (item) => postJSON("/cart", item),
+  deleteCartItem: (id) => request(`/cart/${id}`, { method: "DELETE" }),
+  clearStoreCart: (storeName) =>
+    request(`/cart/store/${encodeURIComponent(storeName)}`, { method: "DELETE" }),
+  clearAllCarts: () => request("/cart", { method: "DELETE" }),
+
   getMyStores: () => request("/users/me/stores"),
   updateMyStores: (stores) =>
     request("/users/me/stores", {
