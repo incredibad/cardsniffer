@@ -50,6 +50,19 @@
   .toast-pop {
     animation: toast-pop 0.18s ease-out;
   }
+  /* Cart drawer entrance — slide in from the right edge. */
+  .drawer-slide {
+    animation: drawer-slide 0.2s ease-out;
+  }
+}
+
+@keyframes drawer-slide {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
 @keyframes toast-pop {
