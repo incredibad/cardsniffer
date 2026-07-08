@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey, event, text
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, Float, ForeignKey, event, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import NullPool
@@ -96,6 +96,36 @@ class UserStoreSetting(Base):
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     store_key = Column(String, primary_key=True)
     enabled = Column(Boolean, nullable=False, default=True)
+
+
+class CartItem(Base):
+    """One listing a user has added to a per-store cart. Search results are
+    live-scraped and never persisted, so this row is a *snapshot* of the
+    listing as it looked when added — price/stock may have drifted by the
+    time the user gets to the store (added_at is surfaced in the UI for that
+    reason). Adding the identical listing again (same product URL, condition
+    and foil state) bumps `quantity` instead of inserting a duplicate row."""
+
+    __tablename__ = "cart_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    store_name = Column(String, nullable=False)
+    card_name = Column(String, nullable=False)
+    set_name = Column(String, nullable=True)
+    collector_number = Column(String, nullable=True)
+    foil = Column(Boolean, nullable=False, default=False)
+    foil_treatment = Column(String, nullable=True)
+    condition = Column(String, nullable=False)
+    price = Column(Float, nullable=False)
+    currency = Column(String, nullable=False)
+    price_original = Column(Float, nullable=True)
+    currency_original = Column(String, nullable=True)
+    shipping_price = Column(Float, nullable=True)
+    image_url = Column(String, nullable=True)
+    product_url = Column(String, nullable=False)
+    quantity = Column(Integer, nullable=False, default=1)
+    added_at = Column(DateTime, default=datetime.utcnow)
 
 
 class AuthSession(Base):

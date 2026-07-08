@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse
 
 import tz
 from database import SessionLocal, get_setting, init_db, set_setting
-from routers import auth as auth_router, search, settings, logs as logs_router, users as users_router, stores as stores_router
+from routers import auth as auth_router, cart as cart_router, search, settings, logs as logs_router, users as users_router, stores as stores_router
 from log_buffer import LogBufferHandler
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "frontend")
@@ -104,6 +104,7 @@ app.add_middleware(
 api = APIRouter(prefix="/api")
 api.include_router(auth_router.router)
 api.include_router(users_router.router)
+api.include_router(cart_router.router)
 api.include_router(search.router)
 api.include_router(stores_router.router)
 api.include_router(settings.router)

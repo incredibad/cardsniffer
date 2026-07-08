@@ -1,14 +1,17 @@
 import { Routes, Route, Link } from "react-router-dom";
-import { Settings as SettingsIcon } from "lucide-react";
+import { Settings as SettingsIcon, ShoppingCart } from "lucide-react";
 import Search from "./pages/Search";
 import Settings from "./pages/Settings";
+import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import AuthMenu from "./components/AuthMenu";
 import BackToTopButton from "./components/BackToTopButton";
 import { useAuth } from "./AuthContext";
+import { useCart } from "./CartContext";
 
 export default function App() {
   const { loading, user } = useAuth();
+  const { count: cartCount } = useCart();
 
   if (loading) return null;
 
@@ -31,6 +34,18 @@ export default function App() {
           <div className="flex items-center gap-4">
             <AuthMenu />
             <Link
+              to="/cart"
+              className="relative text-slate-400 hover:text-indigo-600 transition-colors dark:text-zinc-500 dark:hover:text-indigo-400"
+              aria-label="Cart"
+            >
+              <ShoppingCart size={22} />
+              {cartCount > 0 && (
+                <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-indigo-600 text-white text-[10px] font-semibold flex items-center justify-center leading-none dark:bg-indigo-500">
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              )}
+            </Link>
+            <Link
               to="/settings"
               className="text-slate-400 hover:text-indigo-600 transition-colors dark:text-zinc-500 dark:hover:text-indigo-400"
               aria-label="Settings"
@@ -44,6 +59,7 @@ export default function App() {
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6">
         <Routes>
           <Route path="/" element={<Search />} />
+          <Route path="/cart" element={<Cart />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </main>

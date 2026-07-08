@@ -45,6 +45,19 @@ function relativeAgo(elapsedMs) {
   return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
+// Relative-only ("3 hours ago") for backend-side naive-UTC timestamps
+// (cart added_at) — relative time needs no timezone setting at all, unlike
+// formatAccountDateTime's absolute rendering.
+export function formatAgo(isoString) {
+  if (!isoString) return null;
+  const hasZone = /[Zz]|[+-]\d{2}:?\d{2}$/.test(isoString);
+  const date = new Date(hasZone ? isoString : `${isoString}Z`);
+  const elapsedMs = Date.now() - date.getTime();
+  if (Number.isNaN(elapsedMs)) return null;
+  if (elapsedMs < MINUTE_MS) return "just now";
+  return relativeAgo(elapsedMs);
+}
+
 // Hardcoded rather than Intl's month: "short" — that's locale-dependent and
 // not reliably 3 letters (e.g. en-AU gives "Sept", not "Sep").
 const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];

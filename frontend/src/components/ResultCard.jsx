@@ -1,4 +1,4 @@
-import { Sparkles, ExternalLink } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import { formatPrice } from "../formatPrice";
@@ -6,6 +6,7 @@ import { formatListedAt } from "../formatDate";
 import TruncatedTooltip from "./TruncatedTooltip";
 import FoilOverlay from "./FoilOverlay";
 import StoreBadge from "./StoreBadge";
+import CartBuyButtons from "./CartBuyButtons";
 
 export default function ResultCard({ result, pricingMode = "aud" }) {
   const {
@@ -119,14 +120,7 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
               </span>
             )}
           </div>
-          <a
-            href={product_url}
-            target="_blank"
-            rel="noreferrer"
-            className="justify-self-end shrink-0 inline-flex items-center gap-1 text-[11px] sm:text-xs px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors dark:bg-indigo-500 dark:hover:bg-indigo-400"
-          >
-            Buy <ExternalLink size={12} />
-          </a>
+          <CartBuyButtons result={result} className="justify-self-end" />
         </div>
       </div>
     </div>

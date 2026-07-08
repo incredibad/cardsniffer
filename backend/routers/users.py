@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from auth import hash_password, require_admin, require_user, verify_password
 from database import (
     AuthSession,
+    CartItem,
     SearchLog,
     User,
     UserStoreSetting,
@@ -196,6 +197,7 @@ def delete_user(user_id: int, db: Session = Depends(get_db), admin: User = Depen
 
     db.query(AuthSession).filter(AuthSession.user_id == user.id).delete()
     db.query(UserStoreSetting).filter(UserStoreSetting.user_id == user.id).delete()
+    db.query(CartItem).filter(CartItem.user_id == user.id).delete()
     db.query(SearchLog).filter(SearchLog.user_id == user.id).update({SearchLog.user_id: None})
     db.delete(user)
     db.commit()
