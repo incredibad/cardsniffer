@@ -12,7 +12,14 @@ import EbayListingTooltipContent from "./EbayListingTooltipContent";
 // details, in which case `className` (e.g. grid positioning) goes on the
 // Tooltip's wrapper instead of the badge itself so the hover target still
 // lines up.
-export default function StoreBadge({ result, className = "" }) {
+// maxWidthClass is a prop (not baked in) so call sites in %-sized layouts
+// (ResultCard's grid row) can swap the default px cap for a relative one
+// without two conflicting max-w-* utilities landing on the same span.
+export default function StoreBadge({
+  result,
+  className = "",
+  maxWidthClass = "max-w-[72px] sm:max-w-[92px]",
+}) {
   const storeMeta = getStoreMeta(result.store_name);
   const isTooltip = Boolean(result.listed_at);
   const badgeClassName = ["shrink-0 w-fit", isTooltip && "cursor-help", !isTooltip && className]
@@ -21,16 +28,20 @@ export default function StoreBadge({ result, className = "" }) {
 
   const content = storeMeta.logo ? (
     <span
-      className={`inline-flex items-center h-5 sm:h-6 max-w-[72px] sm:max-w-[92px] ${badgeClassName}`}
+      className={`inline-flex items-center h-5 sm:h-6 ${maxWidthClass} ${badgeClassName}`}
       title={result.store_name}
     >
       {storeMeta.logoTint ? (
         // Plain white-silhouette source asset (no brand-colored version
         // published) — recolored to the brand color via a CSS mask instead
         // of shown as a flat white/black shape, so it still reads as *that
-        // store's* mark rather than a generic icon.
+        // store's* mark rather than a generic icon. max-w-full because the
+        // explicit aspect-ratio + h-full otherwise ignores the outer span's
+        // width cap entirely — a wide wordmark (Hareruya, Card Kingdom)
+        // would render at its full aspect width and clip out of the card;
+        // mask-size: contain rescales the mark inside the clamped box.
         <span
-          className="h-full"
+          className="h-full max-w-full"
           style={{
             aspectRatio: storeMeta.logoAspect,
             backgroundColor: storeMeta.color,

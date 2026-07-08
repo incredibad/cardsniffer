@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented here.
 
+## [0.68.1] - 2026-07-09
+
+### Changed
+- Card Stars now shows its real wordmark logo (from cardstars.com.au, full-color SVG) instead of the previous placeholder mark
+- Card Kingdom's logo is now a recreation of its site header — crest left of the "Card Kingdom" wordmark, vertically centered with a 10px gap — still mask-tinted to CK navy (both source images are white silhouettes)
+
+### Fixed
+- Hareruya's (and any other wide) tinted logo no longer clips over the card edge — the masked span ignored its container's width cap entirely; it's now clamped (mask rescales inside the box) and the condition/store row's two spans are each capped at 45% of the row so they can never touch
+
 ## [0.68.0] - 2026-07-09
 
 ### Added

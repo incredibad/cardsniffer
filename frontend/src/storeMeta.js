@@ -11,12 +11,15 @@
 // logo: standardized (trimmed + resized to a common height, see scratchpad
 // notes) brand mark in public/logos/, shown directly on the card's own
 // background instead of the color+code chip — no pill/background of its
-// own. Neither Card Kingdom nor MTGMintCard actually has a "worded" logo —
-// both stores' own sites use an icon-only mark (crest / dice-and-sparkle),
-// with the store name set as plain text next to it, not baked into an
-// image — so their `logo` is that icon as-is, not a substitute we chose.
+// own. MTGMintCard has no "worded" logo — its own site uses an icon-only
+// mark (dice-and-sparkle) with the store name set as plain text next to it,
+// not baked into an image — so its `logo` is that icon as-is, not a
+// substitute we chose. Card Kingdom's is a recreation of its site header:
+// crest (ck-header-logo.png) left of wordmark (ck-header-title.png),
+// vertically centered with a 10px gap at native scale, composed into one
+// asset (both sources are white silhouettes, so the result stays tintable).
 // logoTint is for logos published only as a plain white silhouette with no
-// colored version anywhere (Card Kingdom's crest, Hareruya's
+// colored version anywhere (Card Kingdom's crest+wordmark, Hareruya's
 // wordmark+mascot) — recolored to `color` via a CSS mask so they still read
 // as that store's actual brand color rather than a flat black/white shape.
 // logoAspect (only needed alongside logoTint) is the processed PNG's own
@@ -33,10 +36,10 @@ export const STORE_META = {
   "MTGMate": { code: "MTGM8", color: "#F9A72B", country: "AU", currency: "AUD", foilOverlay: false, logo: "/logos/mtgmate.png" },
   "MTGMintCard": { code: "MTGMC", color: "#428BCA", country: "US", currency: "USD", foilOverlay: false, logo: "/logos/mtgmintcard.png" },
   "Good Games TCG": { code: "GG", color: "#1D345E", country: "AU", currency: "AUD", foilOverlay: true, logo: "/logos/goodgames.png" },
-  "Card Kingdom": { code: "CK", color: "#2D5174", country: "US", currency: "USD", foilOverlay: true, logo: "/logos/card_kingdom.png", logoTint: true, logoAspect: "240 / 240" },
+  "Card Kingdom": { code: "CK", color: "#2D5174", country: "US", currency: "USD", foilOverlay: true, logo: "/logos/card_kingdom.png", logoTint: true, logoAspect: "1697 / 240" },
   "GUF": { code: "GUF", color: "#351675", country: "AU", currency: "AUD", foilOverlay: true, logo: "/logos/guf.png" },
   "Hareruya": { code: "HARE", color: "#E60012", country: "JP", currency: "JPY", foilOverlay: true, logo: "/logos/hareruya.png", logoTint: true, logoAspect: "1867 / 240" },
-  "Card Stars": { code: "CS", color: "#0E1D34", country: "AU", currency: "AUD", foilOverlay: true, logo: "/logos/cardstars.png" },
+  "Card Stars": { code: "CS", color: "#0E1D34", country: "AU", currency: "AUD", foilOverlay: true, logo: "/logos/cardstars.svg" },
   "eBay": { code: "EBAY", color: "#FFBD14", country: "AU", currency: "AUD", foilOverlay: false, logo: "/logos/ebay.png" },
 };
 
