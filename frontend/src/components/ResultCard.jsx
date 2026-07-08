@@ -99,11 +99,14 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
         </div>
 
         <div className="mt-auto grid grid-cols-2 items-center gap-x-1.5 gap-y-1 sm:gap-x-2 sm:gap-y-1.5 pt-1">
-          <span className="text-[11px] sm:text-xs text-slate-500 dark:text-zinc-500">
+          {/* Each cell is half the row, so max-w-[90%] of a cell caps each
+              span at 45% of the row — opposite-aligned, they can never
+              touch (≥10% of the row stays clear between them). */}
+          <span className="max-w-[90%] text-[11px] sm:text-xs text-slate-500 dark:text-zinc-500">
             <span className="font-semibold text-slate-700 dark:text-zinc-300 uppercase">{condition}</span>
             {" · "}Qty: {formatQty(quantity_available)}
           </span>
-          <StoreBadge result={result} className="justify-self-end" />
+          <StoreBadge result={result} className="justify-self-end" maxWidthClass="max-w-[90%]" />
           <div className="flex items-center gap-1.5 min-w-0">
             <div
               className={`text-base sm:text-xl font-semibold leading-tight ${
