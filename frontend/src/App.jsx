@@ -1,10 +1,12 @@
+import { useState } from "react";
 import { Routes, Route, Link } from "react-router-dom";
-import { Settings as SettingsIcon, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import Search from "./pages/Search";
 import Settings from "./pages/Settings";
 import Cart from "./pages/Cart";
 import Login from "./pages/Login";
-import AuthMenu from "./components/AuthMenu";
+import HeaderMenu from "./components/HeaderMenu";
+import CartDrawer from "./components/CartDrawer";
 import BackToTopButton from "./components/BackToTopButton";
 import { useAuth } from "./AuthContext";
 import { useCart } from "./CartContext";
@@ -12,6 +14,7 @@ import { useCart } from "./CartContext";
 export default function App() {
   const { loading, user } = useAuth();
   const { count: cartCount } = useCart();
+  const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
 
   if (loading) return null;
 
@@ -32,10 +35,9 @@ export default function App() {
             Cardsniffer
           </Link>
           <div className="flex items-center gap-4">
-            <AuthMenu />
-            <Link
-              to="/cart"
-              className="relative text-slate-400 hover:text-indigo-600 transition-colors dark:text-zinc-500 dark:hover:text-indigo-400"
+            <button
+              onClick={() => setCartDrawerOpen(true)}
+              className="relative block text-slate-400 hover:text-indigo-600 transition-colors dark:text-zinc-500 dark:hover:text-indigo-400"
               aria-label="Cart"
             >
               <ShoppingCart size={22} />
@@ -44,14 +46,8 @@ export default function App() {
                   {cartCount > 99 ? "99+" : cartCount}
                 </span>
               )}
-            </Link>
-            <Link
-              to="/settings"
-              className="text-slate-400 hover:text-indigo-600 transition-colors dark:text-zinc-500 dark:hover:text-indigo-400"
-              aria-label="Settings"
-            >
-              <SettingsIcon size={22} />
-            </Link>
+            </button>
+            <HeaderMenu />
           </div>
         </div>
       </header>
@@ -64,6 +60,7 @@ export default function App() {
         </Routes>
       </main>
 
+      <CartDrawer open={cartDrawerOpen} onClose={() => setCartDrawerOpen(false)} />
       <BackToTopButton />
     </div>
   );

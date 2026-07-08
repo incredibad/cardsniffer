@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 
 // Centered dialog with a backdrop — click-outside or Escape both close it,
 // matching the outside-click convention already used by FilterDropdown/
-// AuthMenu's popovers, just at full-screen scope instead of anchored.
+// HeaderMenu's popovers, just at full-screen scope instead of anchored.
 export default function Modal({ title, onClose, children }) {
   useEffect(() => {
     function handleKey(e) {

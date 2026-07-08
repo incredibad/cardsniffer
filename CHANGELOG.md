@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented here.
 
+## [0.70.0] - 2026-07-09
+
+### Added
+- Cart drawer: the header cart icon now slides a panel in from the right instead of navigating away — a quick-glance list of every carted card (art, name, store logo, price, ×N quantity) across all stores, with a store filter at the top and each row linking to the store's product page. The drawer header links through to the full Cart page for management (delete/clear); closes via X, backdrop click, or Escape
+
+### Changed
+- The Settings cog and username/logout moved into a hamburger menu on the far right of the header — the header is now just logo, cart, and menu, with room to grow
+
 ## [0.69.1] - 2026-07-09
 
 ### Changed
