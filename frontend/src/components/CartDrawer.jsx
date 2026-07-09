@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { X, ShoppingCart, ArrowRight, ExternalLink } from "lucide-react";
+import { X, ShoppingCart, ArrowRight, ExternalLink, Trash2 } from "lucide-react";
 import { useCart } from "../CartContext";
 import { formatPrice } from "../formatPrice";
 import { formatCartTotal } from "../cartTotals";
@@ -10,10 +10,10 @@ import TruncatedTooltip from "./TruncatedTooltip";
 
 // Quick-glance cart panel sliding in from the right when the header cart
 // icon is clicked — a flat list (art, name, store, price) across all store
-// carts with a store filter, deliberately without the full Cart page's
-// management actions (delete/clear); the header links there for those.
+// carts with a store filter, plus per-item buy/remove; bulk actions
+// (clear cart / clear all) stay on the full Cart page the header links to.
 export default function CartDrawer({ open, onClose }) {
-  const { items, count } = useCart();
+  const { items, count, removeItem } = useCart();
   const [storeFilter, setStoreFilter] = useState("all");
 
   useEffect(() => {
@@ -139,6 +139,13 @@ export default function CartDrawer({ open, onClose }) {
                       Buy <ExternalLink size={11} />
                     </a>
                   </span>
+                  <button
+                    onClick={() => removeItem(item.id)}
+                    aria-label={`Remove ${item.card_name} from cart`}
+                    className="shrink-0 p-1 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors dark:text-zinc-500 dark:hover:text-red-400 dark:hover:bg-red-500/10"
+                  >
+                    <Trash2 size={15} />
+                  </button>
                 </div>
               ))}
             </div>
