@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.71.0] - 2026-07-09
+
+### Added
+- Cart totals: the drawer shows a total at the bottom (following the store filter — one store's total when filtered, grand total on All stores), and each Cart page tab shows that store's total under its list. Quantity-weighted, summed per currency (mixed AUD/USD carts show "A$X + U$Y" rather than adding unlike currencies), card prices only — per-item postage is quoted too inconsistently across stores to sum meaningfully
+
 ## [0.70.0] - 2026-07-09
 
 ### Added
