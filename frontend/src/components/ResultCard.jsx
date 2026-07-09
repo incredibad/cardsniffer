@@ -77,7 +77,13 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
         */}
       </a>
 
-      <div className="p-2 sm:p-3.5 flex flex-col gap-1.5 sm:gap-2.5 flex-1 rounded-2xl overflow-hidden bg-white dark:bg-zinc-900">
+      {/* Bottom padding shrinks when a postage line is present so the extra
+          line is absorbed instead of making the card taller. */}
+      <div
+        className={`p-2 sm:p-3.5 ${
+          shipping_price != null ? "pb-0.5 sm:pb-1.5" : ""
+        } flex flex-col gap-1.5 sm:gap-2.5 flex-1 rounded-2xl overflow-hidden bg-white dark:bg-zinc-900`}
+      >
         <div>
           <TruncatedTooltip
             as="h3"
@@ -107,7 +113,7 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
             {" · "}Qty: {formatQty(quantity_available)}
           </span>
           <StoreBadge result={result} className="justify-self-end" maxWidthClass="max-w-[90%]" />
-          <div className="flex items-center gap-1.5 min-w-0">
+          <div className="flex flex-col min-w-0">
             <div
               className={`text-base sm:text-xl font-semibold leading-tight ${
                 displayCurrency === "AUD"
@@ -118,8 +124,8 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
               {formatPrice(displayPrice, displayCurrency)}
             </div>
             {shipping_price != null && (
-              <span className="text-[10px] sm:text-[11px] text-slate-400 dark:text-zinc-500 whitespace-nowrap">
-                +${shipping_price.toFixed(2)}
+              <span className="mt-[2px] text-[9px] sm:text-[10px] leading-none text-slate-400 dark:text-zinc-500 whitespace-nowrap">
+                +${shipping_price.toFixed(2)} postage
               </span>
             )}
           </div>

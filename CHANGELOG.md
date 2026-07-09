@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.72.1] - 2026-07-09
+
+### Changed
+- Grid view postage (eBay) moved from beside the price — where it squeezed the tight price/buttons row — to a very small "+$X.XX postage" line 2px under the price; the card's bottom padding shrinks when the line is present so it adds almost no card height
+
 ## [0.72.0] - 2026-07-09
 
 ### Added
