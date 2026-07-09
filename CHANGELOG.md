@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.72.0] - 2026-07-09
+
+### Added
+- Each card in the cart drawer now has its own Buy button (under the price) linking to the store's product page; the art thumbnail still links there too, and the rest of the row is no longer one big link
+
 ## [0.71.0] - 2026-07-09
 
 ### Added

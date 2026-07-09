@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { X, ShoppingCart, ArrowRight } from "lucide-react";
+import { X, ShoppingCart, ArrowRight, ExternalLink } from "lucide-react";
 import { useCart } from "../CartContext";
 import { formatPrice } from "../formatPrice";
 import { formatCartTotal } from "../cartTotals";
@@ -87,14 +87,16 @@ export default function CartDrawer({ open, onClose }) {
 
             <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-zinc-800/60">
               {visible.map((item) => (
-                <a
+                <div
                   key={item.id}
-                  href={item.product_url}
-                  target="_blank"
-                  rel="noreferrer"
                   className="flex items-center gap-3 p-3 hover:bg-slate-50 dark:hover:bg-zinc-800/40 transition-colors"
                 >
-                  <span className="block w-10 aspect-[5/7] rounded-md overflow-hidden bg-slate-100 dark:bg-zinc-800 shrink-0">
+                  <a
+                    href={item.product_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block w-10 aspect-[5/7] rounded-md overflow-hidden bg-slate-100 dark:bg-zinc-800 shrink-0"
+                  >
                     {item.image_url && (
                       <img
                         src={item.image_url}
@@ -103,7 +105,7 @@ export default function CartDrawer({ open, onClose }) {
                         className="w-full h-full object-cover"
                       />
                     )}
-                  </span>
+                  </a>
                   <span className="flex-1 min-w-0">
                     <span className="flex items-center gap-1.5 min-w-0">
                       <TruncatedTooltip
@@ -118,16 +120,26 @@ export default function CartDrawer({ open, onClose }) {
                     </span>
                     <StoreBadge result={item} className="mt-1" />
                   </span>
-                  <span
-                    className={`shrink-0 text-sm font-semibold whitespace-nowrap ${
-                      item.currency === "AUD"
-                        ? "text-slate-900 dark:text-zinc-50"
-                        : "text-amber-700 dark:text-amber-400"
-                    }`}
-                  >
-                    {formatPrice(item.price, item.currency)}
+                  <span className="shrink-0 flex flex-col items-end gap-1">
+                    <span
+                      className={`text-sm font-semibold whitespace-nowrap ${
+                        item.currency === "AUD"
+                          ? "text-slate-900 dark:text-zinc-50"
+                          : "text-amber-700 dark:text-amber-400"
+                      }`}
+                    >
+                      {formatPrice(item.price, item.currency)}
+                    </span>
+                    <a
+                      href={item.product_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors whitespace-nowrap dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                    >
+                      Buy <ExternalLink size={11} />
+                    </a>
                   </span>
-                </a>
+                </div>
               ))}
             </div>
 
