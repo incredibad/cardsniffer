@@ -3,6 +3,7 @@ import { ShoppingCart, ExternalLink, Trash2, Sparkles } from "lucide-react";
 import { useCart } from "../CartContext";
 import { STORE_META } from "../storeMeta";
 import { formatPrice } from "../formatPrice";
+import { formatCartTotal } from "../cartTotals";
 import { formatAgo } from "../formatDate";
 import StoreBadge from "../components/StoreBadge";
 import TruncatedTooltip from "../components/TruncatedTooltip";
@@ -110,6 +111,14 @@ export default function Cart() {
                 {active.items.map((item) => (
                   <CartRow key={item.id} item={item} onRemove={() => removeItem(item.id)} />
                 ))}
+                <div className="flex items-center justify-between gap-2 p-3 bg-slate-50/60 dark:bg-zinc-800/30">
+                  <span className="text-sm text-slate-500 dark:text-zinc-400">
+                    Total · {active.count} card{active.count === 1 ? "" : "s"}
+                  </span>
+                  <span className="font-semibold text-slate-900 dark:text-zinc-50">
+                    {formatCartTotal(active.items)}
+                  </span>
+                </div>
               </div>
             </div>
           )}

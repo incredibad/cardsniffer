@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { X, ShoppingCart, ArrowRight } from "lucide-react";
 import { useCart } from "../CartContext";
 import { formatPrice } from "../formatPrice";
+import { formatCartTotal } from "../cartTotals";
 import SelectDropdown from "./SelectDropdown";
 import StoreBadge from "./StoreBadge";
 import TruncatedTooltip from "./TruncatedTooltip";
@@ -128,6 +129,17 @@ export default function CartDrawer({ open, onClose }) {
                   </span>
                 </a>
               ))}
+            </div>
+
+            {/* Total follows the store filter — filtered to one store, it's
+                that store's total; on All stores it's the grand total. */}
+            <div className="flex items-center justify-between gap-2 p-4 border-t border-slate-100 dark:border-zinc-800">
+              <span className="text-sm text-slate-500 dark:text-zinc-400">
+                Total{storeFilter !== "all" && ` · ${storeFilter}`}
+              </span>
+              <span className="font-semibold text-slate-900 dark:text-zinc-50">
+                {formatCartTotal(visible)}
+              </span>
             </div>
           </>
         )}
