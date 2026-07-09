@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.73.0] - 2026-07-09
+
+### Added
+- Cart drawer items can now be removed individually — a trash button on each row, same as the Cart page; a removed row deletes the whole entry (including stacked ×N quantities), and bulk clears remain on the full Cart page
+
 ## [0.72.1] - 2026-07-09
 
 ### Changed
