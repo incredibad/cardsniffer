@@ -126,6 +126,12 @@ class CartItem(Base):
     product_url = Column(String, nullable=False)
     quantity = Column(Integer, nullable=False, default=1)
     added_at = Column(DateTime, default=datetime.utcnow)
+    # Set whenever a cart price refresh re-checked this listing at the store —
+    # null means the price is still the untouched snapshot from added_at.
+    price_checked_at = Column(DateTime, nullable=True)
+    # True when the last refresh couldn't find this listing in stock at the
+    # store (sold out / delisted) — the snapshot price is kept but flagged.
+    refresh_missing = Column(Boolean, nullable=False, default=False)
 
 
 class AuthSession(Base):
@@ -221,6 +227,8 @@ def _migrate_db():
         "ALTER TABLE search_logs ADD COLUMN user_id INTEGER REFERENCES users(id)",
         "ALTER TABLE search_logs ADD COLUMN search_type VARCHAR NOT NULL DEFAULT 'search'",
         "ALTER TABLE users ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT 1",
+        "ALTER TABLE cart_items ADD COLUMN price_checked_at DATETIME",
+        "ALTER TABLE cart_items ADD COLUMN refresh_missing BOOLEAN NOT NULL DEFAULT 0",
     ]
     with engine.connect() as conn:
         for sql in migrations:
