@@ -42,6 +42,7 @@ export const api = {
   clearStoreCart: (storeName) =>
     request(`/cart/store/${encodeURIComponent(storeName)}`, { method: "DELETE" }),
   clearAllCarts: () => request("/cart", { method: "DELETE" }),
+  refreshCartPrices: () => request("/cart/refresh", { method: "POST" }),
 
   getMyStores: () => request("/users/me/stores"),
   updateMyStores: (stores) =>

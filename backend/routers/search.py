@@ -32,6 +32,37 @@ def _is_art(result) -> bool:
     return result.is_art or any(substr in set_name for substr in _ART_SET_SUBSTRINGS)
 
 
+def scraper_kwargs(db: Session, key: str) -> dict:
+    """Constructor kwargs for a scraper — proxy plus any store-specific
+    credentials/config from settings. Shared with the cart price refresh."""
+    kwargs = {"proxy_url": get_setting(db, "vpn_proxy_url", "")}
+    if key == "ebay":
+        cert_encrypted = get_setting(db, "ebay_cert_id_encrypted", "")
+        kwargs["app_id"] = get_setting(db, "ebay_app_id", "")
+        kwargs["cert_id"] = crypto.decrypt(cert_encrypted) if cert_encrypted else ""
+    if key == "mtgmate":
+        kwargs["base_url"] = get_setting(db, "mtgmate_relay_url", "")
+    return kwargs
+
+
+def priced_fields(result, rate: float | None) -> dict:
+    """Display price/currency (AUD conversion + GST where applicable) plus the
+    store's original pair — the pricing every surface (search results, cart)
+    must agree on. rate=None (exchange rate unavailable) leaves the price
+    unconverted."""
+    price, currency = result.price, result.currency
+    if rate is not None:
+        price, currency = round(result.price * rate, 2), "AUD"
+    if result.store_name in _GST_STORE_NAMES:
+        price = round(price * _GST_RATE, 2)
+    return {
+        "price": price,
+        "currency": currency,
+        "price_original": result.price,
+        "currency_original": result.currency,
+    }
+
+
 # eBay "Playtest" listings are unofficial proxies (not real WotC Playtest
 # cards), identifiable only by the listing title since eBay has no separate
 # category/flag for them — same title-substring approach as art cards above,
@@ -48,8 +79,6 @@ async def search(
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
 ):
-    proxy_url = get_setting(db, "vpn_proxy_url", "")
-
     if store:
         # "eBay Snipe": a single-store, exact-query search rather than the
         # usual all-enabled-stores aggregate — still respects the store
@@ -74,14 +103,7 @@ async def search(
 
     async def run_one(key: str):
         try:
-            kwargs = {"proxy_url": proxy_url}
-            if key == "ebay":
-                cert_encrypted = get_setting(db, "ebay_cert_id_encrypted", "")
-                kwargs["app_id"] = get_setting(db, "ebay_app_id", "")
-                kwargs["cert_id"] = crypto.decrypt(cert_encrypted) if cert_encrypted else ""
-            if key == "mtgmate":
-                kwargs["base_url"] = get_setting(db, "mtgmate_relay_url", "")
-            async with get_scraper(key, **kwargs) as scraper:
+            async with get_scraper(key, **scraper_kwargs(db, key)) as scraper:
                 if key == "ebay" and exact:
                     return await scraper.search(q, exact=True)
                 return await scraper.search(q)
@@ -105,14 +127,7 @@ async def search(
     results = []
     for r in in_stock:
         d = asdict(r)
-        d["price_original"] = r.price
-        d["currency_original"] = r.currency
-        rate = rates.get(r.currency)
-        if rate is not None:
-            d["price"] = round(r.price * rate, 2)
-            d["currency"] = "AUD"
-        if r.store_name in _GST_STORE_NAMES:
-            d["price"] = round(d["price"] * _GST_RATE, 2)
+        d.update(priced_fields(r, rates.get(r.currency)))
         d["is_art"] = _is_art(r)
         d["is_playtest"] = _is_playtest(r)
         results.append(d)

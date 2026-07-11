@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ShoppingCart, ExternalLink, Trash2, Sparkles } from "lucide-react";
+import { ShoppingCart, ExternalLink, Trash2, Sparkles, RefreshCw, AlertTriangle } from "lucide-react";
 import { useCart } from "../CartContext";
 import { STORE_META } from "../storeMeta";
 import { formatPrice } from "../formatPrice";
@@ -10,10 +10,10 @@ import TruncatedTooltip from "../components/TruncatedTooltip";
 import Modal from "../components/Modal";
 
 // Per-store carts, one tab per store that has items. Prices/stock are
-// snapshots from when each card was added (results are live-scraped, never
-// re-checked) — hence the "added X ago" note on every row.
+// snapshots from when each card was added (or last re-checked via Refresh
+// Prices) — hence the "added/checked X ago" note on every row.
 export default function Cart() {
-  const { items, count, removeItem, clearStore, clearAll } = useCart();
+  const { items, count, removeItem, clearStore, clearAll, refreshPrices, refreshing } = useCart();
   const [activeStore, setActiveStore] = useState(null);
   const [confirmClearAll, setConfirmClearAll] = useState(false);
 
@@ -48,12 +48,23 @@ export default function Cart() {
       <div className="flex items-center justify-between gap-4">
         <h1 className="page-header text-3xl">Cart</h1>
         {count > 0 && (
-          <button
-            onClick={() => setConfirmClearAll(true)}
-            className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition-colors dark:border-red-500/30 dark:text-red-400 dark:hover:bg-red-500/10"
-          >
-            <Trash2 size={14} /> Clear all Carts
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={refreshPrices}
+              disabled={refreshing}
+              title="Re-check current store prices for everything in your carts"
+              className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:border-indigo-300 hover:text-indigo-600 disabled:opacity-60 transition-colors dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-indigo-500/40 dark:hover:text-indigo-400"
+            >
+              <RefreshCw size={14} className={refreshing ? "animate-spin" : undefined} />
+              {refreshing ? "Refreshing…" : "Refresh Prices"}
+            </button>
+            <button
+              onClick={() => setConfirmClearAll(true)}
+              className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition-colors dark:border-red-500/30 dark:text-red-400 dark:hover:bg-red-500/10"
+            >
+              <Trash2 size={14} /> Clear all Carts
+            </button>
+          </div>
         )}
       </div>
 
@@ -156,6 +167,7 @@ export default function Cart() {
 
 function CartRow({ item, onRemove }) {
   const addedAgo = formatAgo(item.added_at);
+  const checkedAgo = formatAgo(item.price_checked_at);
 
   return (
     <div className="flex items-center gap-3 p-3 hover:bg-slate-50 dark:hover:bg-zinc-800/40 transition-colors">
@@ -202,6 +214,14 @@ function CartRow({ item, onRemove }) {
               <Sparkles size={11} /> {item.foil_treatment || "Foil"}
             </span>
           )}
+          {item.refresh_missing && (
+            <span
+              className="chip bg-amber-100 text-amber-700 inline-flex items-center gap-1 dark:bg-amber-500/15 dark:text-amber-300"
+              title="The last price refresh couldn't find this listing in stock at the store — it may have sold out; the price shown is the old snapshot"
+            >
+              <AlertTriangle size={11} /> Not found at last check
+            </span>
+          )}
         </div>
       </div>
 
@@ -222,13 +242,24 @@ function CartRow({ item, onRemove }) {
             </span>
           )}
         </div>
-        {addedAgo && (
+        {/* Once a refresh has re-checked the listing, "checked X ago" is the
+            price's real age — more useful than when it was first added. */}
+        {checkedAgo ? (
           <div
             className="text-[11px] text-slate-400 dark:text-zinc-500 whitespace-nowrap"
-            title="Price and stock are from when this was added — the store may have changed them since"
+            title="When Refresh Prices last re-checked this listing at the store"
           >
-            added {addedAgo}
+            checked {checkedAgo}
           </div>
+        ) : (
+          addedAgo && (
+            <div
+              className="text-[11px] text-slate-400 dark:text-zinc-500 whitespace-nowrap"
+              title="Price and stock are from when this was added — the store may have changed them since"
+            >
+              added {addedAgo}
+            </div>
+          )
         )}
       </div>
 

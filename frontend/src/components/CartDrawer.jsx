@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { X, ShoppingCart, ArrowRight, ExternalLink, Trash2 } from "lucide-react";
+import { X, ShoppingCart, ArrowRight, ExternalLink, Trash2, RefreshCw } from "lucide-react";
 import { useCart } from "../CartContext";
 import { formatPrice } from "../formatPrice";
 import { formatCartTotal } from "../cartTotals";
@@ -13,7 +13,7 @@ import TruncatedTooltip from "./TruncatedTooltip";
 // carts with a store filter, plus per-item buy/remove; bulk actions
 // (clear cart / clear all) stay on the full Cart page the header links to.
 export default function CartDrawer({ open, onClose }) {
-  const { items, count, removeItem } = useCart();
+  const { items, count, removeItem, refreshPrices, refreshing } = useCart();
   const [storeFilter, setStoreFilter] = useState("all");
 
   useEffect(() => {
@@ -58,13 +58,26 @@ export default function CartDrawer({ open, onClose }) {
             Cart{count > 0 && ` (${count})`}
             <ArrowRight size={15} />
           </Link>
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            className="text-slate-400 hover:text-slate-700 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors"
-          >
-            <X size={18} />
-          </button>
+          <span className="flex items-center gap-3">
+            {items.length > 0 && (
+              <button
+                onClick={refreshPrices}
+                disabled={refreshing}
+                aria-label="Refresh prices"
+                title="Re-check current store prices for everything in your carts"
+                className="text-slate-400 hover:text-indigo-600 disabled:opacity-60 dark:text-zinc-500 dark:hover:text-indigo-400 transition-colors"
+              >
+                <RefreshCw size={16} className={refreshing ? "animate-spin" : undefined} />
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              className="text-slate-400 hover:text-slate-700 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </span>
         </div>
 
         {items.length === 0 ? (

@@ -85,10 +85,37 @@ export function CartProvider({ children }) {
     }
   }, [showToast]);
 
+  // Re-scrapes every store cart on the backend, so this can take as long as
+  // a search — `refreshing` drives the spinning icons on both refresh buttons.
+  const [refreshing, setRefreshing] = useState(false);
+  const refreshPrices = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const data = await api.refreshCartPrices();
+      setItems(data.items);
+      if (data.checked === 0 && data.errors.length > 0) {
+        showToast("Couldn't refresh prices — every store check failed", "error");
+        return;
+      }
+      const parts = [];
+      if (data.changed > 0) parts.push(`${data.changed} price${data.changed === 1 ? "" : "s"} changed`);
+      if (data.missing > 0) parts.push(`${data.missing} no longer in stock`);
+      if (data.errors.length > 0) parts.push(`${data.errors.length} store check${data.errors.length === 1 ? "" : "s"} failed`);
+      showToast(
+        `Prices refreshed — ${parts.join(", ") || "no changes"}`,
+        data.errors.length > 0 ? "error" : "success"
+      );
+    } catch (e) {
+      showToast(e.message || "Couldn't refresh prices", "error");
+    } finally {
+      setRefreshing(false);
+    }
+  }, [showToast]);
+
   const value = useMemo(() => {
     const count = items.reduce((sum, item) => sum + item.quantity, 0);
-    return { items, count, addToCart, removeItem, clearStore, clearAll };
-  }, [items, addToCart, removeItem, clearStore, clearAll]);
+    return { items, count, addToCart, removeItem, clearStore, clearAll, refreshPrices, refreshing };
+  }, [items, addToCart, removeItem, clearStore, clearAll, refreshPrices, refreshing]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

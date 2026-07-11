@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.74.0] - 2026-07-11
+
+### Added
+- Refresh Prices button in the cart drawer (icon in the header) and on the Cart page — re-checks every carted listing at its store and updates the snapshot price, postage, and currency conversion in place. Rows show "checked X ago" instead of "added X ago" once refreshed; a listing no longer found in stock keeps its old price but gets an amber "Not found at last check" chip, and the toast summarises how many prices changed / went missing / failed to check
+
 ## [0.73.0] - 2026-07-09
 
 ### Added
