@@ -45,6 +45,7 @@ export const STORE_META = {
   "Hareruya": { code: "HARE", color: "#E60012", country: "JP", currency: "JPY", foilOverlay: true, logo: "/logos/hareruya.png", logoTint: true, logoAspect: "1867 / 240" },
   "Card Stars": { code: "CS", color: "#0E1D34", country: "AU", currency: "AUD", foilOverlay: true, logo: "/logos/cardstars.svg" },
   "eBay": { code: "EBAY", color: "#FFBD14", country: "AU", currency: "AUD", foilOverlay: false, logo: "/logos/ebay.png" },
+  "Star City Games": { code: "SCG", color: "#DE181E", country: "US", currency: "USD", foilOverlay: true, logo: "/logos/starcitygames.png" },
 };
 
 const FALLBACK_COLOR = "#57534e";
