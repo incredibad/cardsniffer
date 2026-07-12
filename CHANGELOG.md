@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.76.0] - 2026-07-12
+
+### Added
+- New store: Face to Face Games (facetofacegames.com, CAD, GST applied) — queries the Elasticsearch indexer behind their Shopify app proxy (JSON, 100 products/page) with per-condition variants (NM/PL/HP), finish-based foil treatment detection, out-of-stock listings kept with prices, and non-English printings flagged as foreign
+
 ## [0.75.1] - 2026-07-12
 
 ### Changed
