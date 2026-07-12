@@ -2,6 +2,7 @@ from .base import BaseScraper, SearchResult
 from .card_kingdom import CardKingdomScraper
 from .cardstars import CardStarsScraper
 from .ebay import EbayScraper
+from .facetoface import FaceToFaceScraper
 from .goodgames import GoodGamesScraper
 from .guf import GufScraper
 from .hareruya import HareruyaScraper
@@ -19,6 +20,7 @@ SCRAPERS: dict[str, type[BaseScraper]] = {
     "goodgames": GoodGamesScraper,
     "ebay": EbayScraper,
     "starcitygames": StarCityGamesScraper,
+    "facetoface": FaceToFaceScraper,
 }
 
 
