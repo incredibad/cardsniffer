@@ -46,6 +46,7 @@ export const STORE_META = {
   "Card Stars": { code: "CS", color: "#0E1D34", country: "AU", currency: "AUD", foilOverlay: true, logo: "/logos/cardstars.svg" },
   "eBay": { code: "EBAY", color: "#FFBD14", country: "AU", currency: "AUD", foilOverlay: false, logo: "/logos/ebay.png" },
   "Star City Games": { code: "SCG", color: "#DE181E", country: "US", currency: "USD", foilOverlay: true, logo: "/logos/starcitygames.png" },
+  "Face to Face Games": { code: "F2F", color: "#D9531E", country: "CA", currency: "CAD", foilOverlay: true, logo: "/logos/facetoface.png", logoTint: true, logoAspect: "655 / 240" },
 };
 
 const FALLBACK_COLOR = "#57534e";

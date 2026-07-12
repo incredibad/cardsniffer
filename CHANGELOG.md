@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.76.1] - 2026-07-12
+
+### Changed
+- Face to Face Games results now show the F2F brand logo (tinted to their orange, since the source asset's wordmark is white) instead of the fallback color+code chip
+
 ## [0.76.0] - 2026-07-12
 
 ### Added
