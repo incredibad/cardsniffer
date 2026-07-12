@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.74.2] - 2026-07-11
+
+### Changed
+- The "Not found at last check" chip (cart drawer and Cart page) is now a small amber ⚠ triangle next to the card name, with the full explanation in a styled tooltip on hover/tap
+
 ## [0.74.1] - 2026-07-11
 
 ### Changed
