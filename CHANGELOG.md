@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.75.1] - 2026-07-12
+
+### Changed
+- Star City Games results now show the SCG brand logo instead of the fallback color+code chip
+
 ## [0.75.0] - 2026-07-12
 
 ### Added
