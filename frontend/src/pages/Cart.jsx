@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ShoppingCart, ExternalLink, Trash2, Sparkles, RefreshCw, AlertTriangle } from "lucide-react";
+import { ShoppingCart, ExternalLink, Trash2, Sparkles, RefreshCw } from "lucide-react";
 import { useCart } from "../CartContext";
 import { STORE_META } from "../storeMeta";
 import { formatPrice } from "../formatPrice";
@@ -8,6 +8,7 @@ import { formatAgo } from "../formatDate";
 import StoreBadge from "../components/StoreBadge";
 import TruncatedTooltip from "../components/TruncatedTooltip";
 import Modal from "../components/Modal";
+import { MissingWarning } from "../components/CartDrawer";
 
 // Per-store carts, one tab per store that has items. Prices/stock are
 // snapshots from when each card was added (or last re-checked via Refresh
@@ -198,6 +199,7 @@ function CartRow({ item, onRemove }) {
               ×{item.quantity}
             </span>
           )}
+          {item.refresh_missing && <MissingWarning size={14} />}
         </div>
         {item.set_name && (
           <TruncatedTooltip
@@ -212,14 +214,6 @@ function CartRow({ item, onRemove }) {
           {item.foil && (
             <span className="chip bg-violet-100 text-violet-700 inline-flex items-center gap-1 dark:bg-violet-500/15 dark:text-violet-300">
               <Sparkles size={11} /> {item.foil_treatment || "Foil"}
-            </span>
-          )}
-          {item.refresh_missing && (
-            <span
-              className="chip bg-amber-100 text-amber-700 inline-flex items-center gap-1 dark:bg-amber-500/15 dark:text-amber-300"
-              title="The last price refresh couldn't find this listing in stock at the store — it may have sold out; the price shown is the old snapshot"
-            >
-              <AlertTriangle size={11} /> Not found at last check
             </span>
           )}
         </div>

@@ -6,7 +6,18 @@ import { formatPrice } from "../formatPrice";
 import { formatCartTotal } from "../cartTotals";
 import SelectDropdown from "./SelectDropdown";
 import StoreBadge from "./StoreBadge";
+import Tooltip from "./Tooltip";
 import TruncatedTooltip from "./TruncatedTooltip";
+
+// Shared with the Cart page's CartRow — the amber ! next to a card name when
+// the last price refresh couldn't find its listing in stock anymore.
+export function MissingWarning({ size = 13 }) {
+  return (
+    <Tooltip content="The last price refresh couldn't find this listing in stock at the store — it may have sold out. The price shown is the old snapshot.">
+      <AlertTriangle size={size} className="shrink-0 text-amber-500 dark:text-amber-400" />
+    </Tooltip>
+  );
+}
 
 // Quick-glance cart panel sliding in from the right when the header cart
 // icon is clicked — a flat list (art, name, set, store/condition/foil chips,
@@ -131,6 +142,7 @@ export default function CartDrawer({ open, onClose }) {
                           ×{item.quantity}
                         </span>
                       )}
+                      {item.refresh_missing && <MissingWarning />}
                     </span>
                     {item.set_name && (
                       <TruncatedTooltip
@@ -146,14 +158,6 @@ export default function CartDrawer({ open, onClose }) {
                       {item.foil && (
                         <span className="chip bg-violet-100 text-violet-700 inline-flex items-center gap-1 dark:bg-violet-500/15 dark:text-violet-300">
                           <Sparkles size={10} /> {item.foil_treatment || "Foil"}
-                        </span>
-                      )}
-                      {item.refresh_missing && (
-                        <span
-                          className="chip bg-amber-100 text-amber-700 inline-flex items-center gap-1 dark:bg-amber-500/15 dark:text-amber-300"
-                          title="The last price refresh couldn't find this listing in stock at the store — it may have sold out; the price shown is the old snapshot"
-                        >
-                          <AlertTriangle size={10} /> Not found
                         </span>
                       )}
                     </span>
