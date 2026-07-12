@@ -7,6 +7,7 @@ from .guf import GufScraper
 from .hareruya import HareruyaScraper
 from .mtgmate import MtgMateScraper
 from .mtgmintcard import MtgMintCardScraper
+from .starcitygames import StarCityGamesScraper
 
 SCRAPERS: dict[str, type[BaseScraper]] = {
     "card_kingdom": CardKingdomScraper,
@@ -17,6 +18,7 @@ SCRAPERS: dict[str, type[BaseScraper]] = {
     "cardstars": CardStarsScraper,
     "goodgames": GoodGamesScraper,
     "ebay": EbayScraper,
+    "starcitygames": StarCityGamesScraper,
 }
 
 

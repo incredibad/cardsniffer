@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.75.0] - 2026-07-12
+
+### Added
+- New store: Star City Games (starcitygames.com, USD, GST applied) — searches their Hawksearch API directly (JSON, one request per 96 products) with per-condition variants (NM/PL/HP), foil treatment detection from the finish field (including SCG-specific labels like "Pool Party Foil"), out-of-stock listings with prices, and non-English printings flagged as foreign
+
 ## [0.74.2] - 2026-07-11
 
 ### Changed
