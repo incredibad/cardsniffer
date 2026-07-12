@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.74.1] - 2026-07-11
+
+### Changed
+- Cart drawer rows now show the same detail as the Cart page: set name (and collector number) under the card name, plus condition, foil treatment, and "Not found" (missing at last price check) chips next to the store badge. Stores only expose set names, not short set codes, so the full set name is shown (truncated with a hover tooltip when long)
+
 ## [0.74.0] - 2026-07-11
 
 ### Added
