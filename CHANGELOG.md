@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.76.3] - 2026-07-15
+
+### Fixed
+- Sticky search/filter bar spacing: 5px gap between the search bar and filters, and 5px bottom padding so content doesn't scroll flush against the filter row
+
 ## [0.76.2] - 2026-07-15
 
 ### Changed
