@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.76.2] - 2026-07-15
+
+### Changed
+- The filter/sort/view bar on the Search page now sticks to the top of the screen alongside the search bar when scrolling; store error banners moved below the sticky area
+
 ## [0.76.1] - 2026-07-12
 
 ### Changed
