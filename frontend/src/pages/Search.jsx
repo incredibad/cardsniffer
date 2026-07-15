@@ -420,7 +420,7 @@ export default function Search() {
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
-      <div className="sticky top-0 z-30 bg-slate-50/95 backdrop-blur dark:bg-zinc-950/95">
+      <div className="sticky top-0 z-30 flex flex-col gap-4 sm:gap-6 bg-slate-50/95 backdrop-blur dark:bg-zinc-950/95">
       <div className="card-frame">
         <form onSubmit={runSearch} className="flex gap-2 p-2">
           <div className="relative flex-1">
@@ -521,31 +521,6 @@ export default function Search() {
           </div>
         </form>
       </div>
-      </div>
-
-      {status === "error" && (
-        <div className="card-frame border-red-300 dark:border-red-500/40 px-4 py-3 text-red-600 dark:text-red-300 text-sm">
-          {errorMessage}
-        </div>
-      )}
-
-      {errors.length > 0 && !dismissedErrors && (
-        <div className="flex items-start justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
-          <div>
-            {errors.map((e) => (
-              <div key={e.store}>
-                <strong>{e.store}</strong> failed: {e.error}
-              </div>
-            ))}
-          </div>
-          <button
-            onClick={() => setDismissedErrors(true)}
-            className="text-amber-600 hover:text-amber-800 dark:text-amber-300 dark:hover:text-amber-100"
-          >
-            <X size={16} />
-          </button>
-        </div>
-      )}
 
       {(() => {
             // Filters/sort/view are always available — even before a search
@@ -789,6 +764,31 @@ export default function Search() {
               </>
             );
           })()}
+      </div>
+
+      {status === "error" && (
+        <div className="card-frame border-red-300 dark:border-red-500/40 px-4 py-3 text-red-600 dark:text-red-300 text-sm">
+          {errorMessage}
+        </div>
+      )}
+
+      {errors.length > 0 && !dismissedErrors && (
+        <div className="flex items-start justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
+          <div>
+            {errors.map((e) => (
+              <div key={e.store}>
+                <strong>{e.store}</strong> failed: {e.error}
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => setDismissedErrors(true)}
+            className="text-amber-600 hover:text-amber-800 dark:text-amber-300 dark:hover:text-amber-100"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
 
       {status === "success" && results.length === 0 && (
         <div className="text-center text-slate-500 dark:text-zinc-500 py-12">
