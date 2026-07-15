@@ -420,7 +420,7 @@ export default function Search() {
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
-      <div className="sticky top-0 z-30 flex flex-col gap-4 sm:gap-6 bg-slate-50/95 backdrop-blur dark:bg-zinc-950/95">
+      <div className="sticky top-0 z-30 flex flex-col gap-[5px] pb-[5px] bg-slate-50/95 backdrop-blur dark:bg-zinc-950/95">
       <div className="card-frame">
         <form onSubmit={runSearch} className="flex gap-2 p-2">
           <div className="relative flex-1">
