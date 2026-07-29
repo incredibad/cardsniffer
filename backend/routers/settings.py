@@ -8,7 +8,14 @@ from sqlalchemy.orm import Session
 import crypto
 import tz
 from auth import require_admin
-from database import count_ebay_api_calls_24h, get_db, get_setting, is_store_globally_enabled, set_setting
+from database import (
+    count_ebay_api_calls_24h,
+    get_db,
+    get_setting,
+    is_store_globally_enabled,
+    is_store_proxy_enabled,
+    set_setting,
+)
 from scrapers import SCRAPERS
 
 router = APIRouter(prefix="/settings", tags=["settings"], dependencies=[Depends(require_admin)])
@@ -18,6 +25,7 @@ class StoreSetting(BaseModel):
     key: str
     store_name: str
     enabled: bool
+    use_proxy: bool
 
 
 class SettingsOut(BaseModel):
@@ -37,6 +45,7 @@ class SettingsUpdate(BaseModel):
     mtgmate_relay_url: str | None = None
     timezone: str | None = None
     stores: dict[str, bool] | None = None  # scraper key -> enabled
+    stores_use_proxy: dict[str, bool] | None = None  # scraper key -> use_proxy
 
 
 @router.get("", response_model=SettingsOut)
@@ -53,6 +62,7 @@ def get_settings(db: Session = Depends(get_db)):
                 key=key,
                 store_name=cls.store_name,
                 enabled=is_store_globally_enabled(db, key),
+                use_proxy=is_store_proxy_enabled(db, key),
             )
             for key, cls in SCRAPERS.items()
         ],
@@ -80,6 +90,11 @@ def update_settings(payload: SettingsUpdate, db: Session = Depends(get_db)):
             if key not in SCRAPERS:
                 continue
             set_setting(db, f"store_{key}_enabled", "true" if enabled else "false")
+    if payload.stores_use_proxy:
+        for key, use_proxy in payload.stores_use_proxy.items():
+            if key not in SCRAPERS:
+                continue
+            set_setting(db, f"store_{key}_use_proxy", "true" if use_proxy else "false")
     db.commit()
     return get_settings(db)
 
