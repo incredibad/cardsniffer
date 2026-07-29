@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.77.3] - 2026-07-30
+
+### Fixed
+- eBay art-only listings (e.g. "Witch Enchanter 16/54 Art Series MH3", "Witch Enchanter Art Card") were showing up regardless of the "show art cards" filter — the search router's art check inspects `set_name`, but eBay repurposes that field for the seller's username rather than any set info, so the check never actually saw the title. eBay now flags these itself from the title text ("Art Series"/"Art Card").
+
 ## [0.77.2] - 2026-07-30
 
 ### Fixed
