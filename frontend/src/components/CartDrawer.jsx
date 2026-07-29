@@ -5,6 +5,7 @@ import { useCart } from "../CartContext";
 import { formatPrice } from "../formatPrice";
 import { formatCartTotal } from "../cartTotals";
 import SelectDropdown from "./SelectDropdown";
+import CartExportMenu from "./CartExportMenu";
 import StoreBadge from "./StoreBadge";
 import Tooltip from "./Tooltip";
 import TruncatedTooltip from "./TruncatedTooltip";
@@ -82,6 +83,7 @@ export default function CartDrawer({ open, onClose }) {
                 <RefreshCw size={16} className={refreshing ? "animate-spin" : undefined} />
               </button>
             )}
+            <CartExportMenu items={items} defaultStore={storeFilter} />
             <button
               onClick={onClose}
               aria-label="Close"

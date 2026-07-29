@@ -8,6 +8,7 @@ import { formatAgo } from "../formatDate";
 import StoreBadge from "../components/StoreBadge";
 import TruncatedTooltip from "../components/TruncatedTooltip";
 import Modal from "../components/Modal";
+import CartExportMenu from "../components/CartExportMenu";
 import { MissingWarning } from "../components/CartDrawer";
 
 // Per-store carts, one tab per store that has items. Prices/stock are
@@ -50,6 +51,7 @@ export default function Cart() {
         <h1 className="page-header text-3xl">Cart</h1>
         {count > 0 && (
           <div className="flex items-center gap-2">
+            <CartExportMenu items={items} defaultStore={activeStore ?? "all"} />
             <button
               onClick={refreshPrices}
               disabled={refreshing}

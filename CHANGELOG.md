@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.78.0] - 2026-07-30
+
+### Added
+- Export button on both the Cart popout and the Cart page — pick a store (or All Stores), then either copy a plain-text list to the clipboard in one of three formats ("1x Grim Hireling" / "1 Grim Hireling" / "Grim Hireling") or download a full CSV (quantity, name, set, collector number, foil, condition, price, currency, store, product URL) regardless of the text format chosen.
+
 ## [0.77.3] - 2026-07-30
 
 ### Fixed
