@@ -167,7 +167,13 @@ class EbayScraper(BaseScraper):
         title = item.get("title", "")
 
         foil_treatment = extract_foil_treatment(title)
-        foil = foil_treatment is not None or bool(re.search(r"\bfoil\b", title, re.I))
+        # "\bfoil\b" alone also matches inside "Non-Foil"/"Non Foil" — the
+        # hyphen/space isn't a word character, so the boundary lands right
+        # before "Foil" regardless. Excluding a "non" immediately before
+        # (with or without a separator) rules those out.
+        foil = foil_treatment is not None or bool(
+            re.search(r"(?<!non)(?<!non-)(?<!non )\bfoil\b", title, re.I)
+        )
 
         condition_match = _CONDITION_RE.search(title)
         condition = _CONDITIONS.get(condition_match.group(1).lower(), "NM") if condition_match else "NM"

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.77.2] - 2026-07-30
+
+### Fixed
+- eBay listings titled "Non-Foil"/"Non Foil" were incorrectly flagged as foil — the fallback `\bfoil\b` regex matched "Foil" inside those titles too, since the hyphen/space isn't a word character. Now excludes a preceding "non" (with or without a separator).
+
 ## [0.77.1] - 2026-07-30
 
 ### Changed
