@@ -431,7 +431,7 @@ function GlobalStoresSection() {
                       checked={s.use_proxy}
                       disabled={needsRelay}
                       onChange={(e) => toggleStoreProxy(s.key, e.target.checked)}
-                      className="accent-indigo-600 w-4 h-4 disabled:opacity-40"
+                      className="accent-amber-500 w-4 h-4 disabled:opacity-40"
                     />
                   </label>
                 )}

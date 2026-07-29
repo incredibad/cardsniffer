@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.77.1] - 2026-07-30
+
+### Changed
+- The "Use Proxy" checkboxes in Settings → Admin → Stores now check in amber instead of the usual indigo, to visually distinguish them from the "Enabled" column at a glance
+
 ## [0.77.0] - 2026-07-30
 
 ### Added
