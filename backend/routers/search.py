@@ -8,7 +8,15 @@ from sqlalchemy.orm import Session
 import crypto
 from auth import require_user
 from currency import get_rate_to_aud
-from database import SearchLog, User, get_db, get_setting, get_user_store_enabled, is_store_globally_enabled
+from database import (
+    SearchLog,
+    User,
+    get_db,
+    get_setting,
+    get_user_store_enabled,
+    is_store_globally_enabled,
+    is_store_proxy_enabled,
+)
 from scrapers import SCRAPERS, get_scraper
 
 logger = logging.getLogger(__name__)
@@ -35,7 +43,8 @@ def _is_art(result) -> bool:
 def scraper_kwargs(db: Session, key: str) -> dict:
     """Constructor kwargs for a scraper — proxy plus any store-specific
     credentials/config from settings. Shared with the cart price refresh."""
-    kwargs = {"proxy_url": get_setting(db, "vpn_proxy_url", "")}
+    proxy_url = get_setting(db, "vpn_proxy_url", "") if is_store_proxy_enabled(db, key) else ""
+    kwargs = {"proxy_url": proxy_url}
     if key == "ebay":
         cert_encrypted = get_setting(db, "ebay_cert_id_encrypted", "")
         kwargs["app_id"] = get_setting(db, "ebay_app_id", "")

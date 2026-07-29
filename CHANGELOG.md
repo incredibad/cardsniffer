@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.77.0] - 2026-07-30
+
+### Added
+- Per-store "Use Proxy" toggle in Settings → Admin → Stores, next to the existing enable/disable checkbox — lets a store bypass the configured VPN proxy and connect directly (on by default for every store). The column only shows when a proxy URL is actually set in Settings → Network.
+
 ## [0.76.3] - 2026-07-15
 
 ### Fixed

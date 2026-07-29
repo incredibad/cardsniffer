@@ -376,9 +376,15 @@ function GlobalStoresSection() {
     setSettings(await api.updateSettings({ stores: { [key]: enabled } }));
   }
 
+  async function toggleStoreProxy(key, useProxy) {
+    setSettings(await api.updateSettings({ stores_use_proxy: { [key]: useProxy } }));
+  }
+
   if (settings === null) {
     return <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400" size={24} />;
   }
+
+  const showProxyColumn = !!settings.vpn_proxy_url;
 
   return (
     <section className="card-frame p-4">
@@ -386,12 +392,19 @@ function GlobalStoresSection() {
       <p className="text-xs text-slate-500 dark:text-zinc-500 mb-3">
         Enables or disables a store for the entire system — when disabled here, no user can
         search it, regardless of their own per-account preference in Settings → General.
+        {showProxyColumn && " \"Use Proxy\" controls whether that store's requests route through the VPN proxy configured in Settings → Network."}
       </p>
+      {showProxyColumn && (
+        <div className="flex items-center justify-end gap-6 pr-0 pb-1 text-xs text-slate-400 dark:text-zinc-500">
+          <span className="w-10 text-center">Enabled</span>
+          <span className="w-10 text-center">Use Proxy</span>
+        </div>
+      )}
       <div className="flex flex-col gap-2">
         {settings.stores.map((s) => {
           const needsRelay = s.key === "mtgmate" && !settings.mtgmate_relay_url;
           return (
-            <label
+            <div
               key={s.key}
               className={`flex items-center justify-between py-1.5 text-sm ${
                 needsRelay ? "text-slate-400 dark:text-zinc-600" : "text-slate-700 dark:text-zinc-300"
@@ -401,14 +414,29 @@ function GlobalStoresSection() {
                 {s.store_name}
                 {needsRelay && <span className="ml-1.5 text-xs">(requires relay URL below)</span>}
               </span>
-              <input
-                type="checkbox"
-                checked={s.enabled}
-                disabled={needsRelay}
-                onChange={(e) => toggleStore(s.key, e.target.checked)}
-                className="accent-indigo-600 w-4 h-4 disabled:opacity-40"
-              />
-            </label>
+              <span className="flex items-center gap-6">
+                <label className="w-10 flex justify-center">
+                  <input
+                    type="checkbox"
+                    checked={s.enabled}
+                    disabled={needsRelay}
+                    onChange={(e) => toggleStore(s.key, e.target.checked)}
+                    className="accent-indigo-600 w-4 h-4 disabled:opacity-40"
+                  />
+                </label>
+                {showProxyColumn && (
+                  <label className="w-10 flex justify-center">
+                    <input
+                      type="checkbox"
+                      checked={s.use_proxy}
+                      disabled={needsRelay}
+                      onChange={(e) => toggleStoreProxy(s.key, e.target.checked)}
+                      className="accent-indigo-600 w-4 h-4 disabled:opacity-40"
+                    />
+                  </label>
+                )}
+              </span>
+            </div>
           );
         })}
       </div>

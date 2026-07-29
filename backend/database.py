@@ -180,6 +180,14 @@ def is_store_globally_enabled(db, key: str) -> bool:
     return True
 
 
+def is_store_proxy_enabled(db, key: str) -> bool:
+    """Per-store "Use Proxy" toggle (Settings → Admin → Stores) — on by
+    default so existing setups keep routing every store through a configured
+    VPN proxy unchanged. Only meaningful when a proxy URL is actually set;
+    scraper_kwargs() ignores this and connects direct when there's none."""
+    return get_setting(db, f"store_{key}_use_proxy", "true") != "false"
+
+
 def get_user_store_enabled(db, user_id: int, store_key: str) -> bool:
     row = db.query(UserStoreSetting).filter(
         UserStoreSetting.user_id == user_id, UserStoreSetting.store_key == store_key
