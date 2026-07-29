@@ -53,6 +53,15 @@ _SINGLE_CARD_CATEGORY_ID = "183454"
 # are also screened for bundle language as a second defense.
 _NON_SINGLE_RE = re.compile(r"\b(lot|bundle|collection)\b", re.I)
 
+# eBay has no structured field for this (unlike other stores, where it's
+# keyed off a set name/prefix) — sellers just work "Art Series"/"Art Card"
+# into the free-text title, e.g. "Witch Enchanter 16/54 Art Series MH3" or
+# "Witch Enchanter Art Card Near Mint". The search router's set_name-based
+# _is_art check never catches these since eBay repurposes that field for the
+# seller's username, not any set info — so this scraper has to flag it
+# itself via result.is_art instead.
+_ART_TITLE_RE = re.compile(r"\bart (?:series|card)\b", re.I)
+
 
 def _normalize(text: str) -> str:
     return re.sub(r"\s+", " ", text or "").strip().lower()
@@ -214,6 +223,7 @@ class EbayScraper(BaseScraper):
             image_url=(item.get("image") or {}).get("imageUrl"),
             product_url=item.get("itemWebUrl", ""),
             store_name=self.store_name,
+            is_art=bool(_ART_TITLE_RE.search(title)),
             shipping_price=float(shipping_price) if shipping_price is not None else None,
             listed_at=item.get("itemCreationDate"),
             seller_username=seller_username,
