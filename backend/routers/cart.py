@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+import carddb
 from auth import require_user
 from currency import get_rate_to_aud
 from database import CartItem, User, get_db, is_store_globally_enabled
@@ -45,6 +46,10 @@ class CartItemOut(CartItemIn):
     added_at: datetime
     price_checked_at: datetime | None = None
     refresh_missing: bool = False
+    # Best-effort real card name resolved from card_name (see carddb.py) —
+    # only ever set for eBay, whose listing titles are free text. Null means
+    # resolution failed or hasn't run; the frontend falls back to card_name.
+    card_name_clean: str | None = None
 
     class Config:
         from_attributes = True
@@ -75,7 +80,7 @@ def get_cart(db: Session = Depends(get_db), user: User = Depends(require_user)):
 
 
 @router.post("", response_model=list[CartItemOut])
-def add_to_cart(payload: CartItemIn, db: Session = Depends(get_db), user: User = Depends(require_user)):
+async def add_to_cart(payload: CartItemIn, db: Session = Depends(get_db), user: User = Depends(require_user)):
     # The same listing added again bumps quantity instead of duplicating.
     # product_url alone isn't enough — some stores list every condition/foil
     # variant on one product page, so those are part of the identity too.
@@ -92,10 +97,23 @@ def add_to_cart(payload: CartItemIn, db: Session = Depends(get_db), user: User =
     )
     if existing:
         existing.quantity += 1
+        if existing.card_name_clean is None:
+            # Backfill items added before this feature shipped, or where the
+            # first attempt ran before the name index had finished loading.
+            existing.card_name_clean = await _resolve_clean_name(payload)
     else:
-        db.add(CartItem(user_id=user.id, **payload.model_dump()))
+        card_name_clean = await _resolve_clean_name(payload)
+        db.add(CartItem(user_id=user.id, card_name_clean=card_name_clean, **payload.model_dump()))
     db.commit()
     return _cart_items(db, user)
+
+
+async def _resolve_clean_name(payload: CartItemIn) -> str | None:
+    """Only eBay's card_name is free listing-title text rather than an
+    already-clean parsed name (see ebay.py) — no other store needs this."""
+    if payload.store_name != SCRAPERS["ebay"].store_name:
+        return None
+    return await carddb.match_card_name(payload.card_name)
 
 
 # Re-scrape every cart item's store listing and pull the current price into

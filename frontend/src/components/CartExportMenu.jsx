@@ -3,13 +3,22 @@ import { Download, ClipboardCopy, FileDown } from "lucide-react";
 import { useToast } from "./Toast";
 import SelectDropdown from "./SelectDropdown";
 
+// card_name_clean is a best-effort real card name resolved server-side from
+// card_name (see backend/carddb.py) — only ever differs from card_name for
+// eBay, whose listing titles are free text ("MTG [FIC-295 NM] Hellkite
+// Tyrant") rather than an already-clean parsed name. Falls back to the raw
+// card_name when resolution failed or hasn't run.
+function exportName(item) {
+  return item.card_name_clean || item.card_name;
+}
+
 // Plain-text line formats for the clipboard export — the CSV export always
 // carries full structured detail regardless of which of these is selected,
 // since a spreadsheet has no reason to throw that away.
 const FORMATS = [
-  { value: "qtyx", label: "1x Grim Hireling", line: (item) => `${item.quantity}x ${item.card_name}` },
-  { value: "qty", label: "1 Grim Hireling", line: (item) => `${item.quantity} ${item.card_name}` },
-  { value: "name", label: "Grim Hireling", line: (item) => item.card_name },
+  { value: "qtyx", label: "1x Grim Hireling", line: (item) => `${item.quantity}x ${exportName(item)}` },
+  { value: "qty", label: "1 Grim Hireling", line: (item) => `${item.quantity} ${exportName(item)}` },
+  { value: "name", label: "Grim Hireling", line: (item) => exportName(item) },
 ];
 
 function slugify(text) {
@@ -23,7 +32,11 @@ function csvField(value) {
 
 const CSV_COLUMNS = [
   ["Quantity", (i) => i.quantity],
-  ["Card Name", (i) => i.card_name],
+  ["Card Name", (i) => exportName(i)],
+  // Only ever differs from Card Name for eBay (resolved from this raw
+  // listing title) — kept alongside it so a resolution that guessed wrong
+  // is easy to spot and correct in a spreadsheet.
+  ["Listing Title", (i) => i.card_name],
   ["Set", (i) => i.set_name ?? ""],
   ["Collector Number", (i) => i.collector_number ?? ""],
   ["Foil", (i) => (i.foil ? i.foil_treatment || "Foil" : "")],
