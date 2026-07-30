@@ -109,10 +109,12 @@ async def add_to_cart(payload: CartItemIn, db: Session = Depends(get_db), user: 
 
 
 async def _resolve_clean_name(payload: CartItemIn) -> str | None:
-    """Only eBay's card_name is free listing-title text rather than an
-    already-clean parsed name (see ebay.py) — no other store needs this."""
-    if payload.store_name != SCRAPERS["ebay"].store_name:
-        return None
+    """Runs for every store, not just eBay: eBay's card_name is messy free
+    listing-title text (see ebay.py), but even a store with a perfectly
+    clean, structurally-parsed card_name can be selling a Universes Beyond
+    flavor-name reskin (e.g. MTGMintCard's own product name for a Secret
+    Lair print genuinely is "Knuckles's Gloves", not "The Reaver Cleaver")
+    — that's just as much in need of resolving to the real rules name."""
     return await carddb.match_card_name(payload.card_name)
 
 
