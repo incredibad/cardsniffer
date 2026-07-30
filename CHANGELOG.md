@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.79.0] - 2026-07-30
+
+### Added
+- Cart exports now carry a clean, accurate card name instead of eBay's raw free-text listing title — e.g. "MTG [FIC-295 NM] Hellkite Tyrant" exports as "Hellkite Tyrant", and Universes Beyond flavor-name reskins resolve to their real rules name too (e.g. "Knuckles's Gloves" → "The Reaver Cleaver", "Megatron" → "Blightsteel Colossus"). Resolved at add-to-cart time by cross-referencing Scryfall's card name and flavor-name data (new `backend/carddb.py`, cached to disk and refreshed weekly); falls back to the raw title when nothing matches.
+
 ## [0.78.0] - 2026-07-30
 
 ### Added

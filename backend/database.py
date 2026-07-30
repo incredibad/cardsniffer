@@ -132,6 +132,11 @@ class CartItem(Base):
     # True when the last refresh couldn't find this listing in stock at the
     # store (sold out / delisted) — the snapshot price is kept but flagged.
     refresh_missing = Column(Boolean, nullable=False, default=False)
+    # Best-effort real card name resolved out of card_name via carddb.py —
+    # only ever differs from card_name for eBay, whose listing titles are
+    # free text (see ebay.py). Null when resolution failed/hasn't run yet;
+    # export (CartExportMenu.jsx) falls back to card_name in that case.
+    card_name_clean = Column(String, nullable=True)
 
 
 class AuthSession(Base):
@@ -237,6 +242,7 @@ def _migrate_db():
         "ALTER TABLE users ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT 1",
         "ALTER TABLE cart_items ADD COLUMN price_checked_at DATETIME",
         "ALTER TABLE cart_items ADD COLUMN refresh_missing BOOLEAN NOT NULL DEFAULT 0",
+        "ALTER TABLE cart_items ADD COLUMN card_name_clean VARCHAR",
     ]
     with engine.connect() as conn:
         for sql in migrations:
