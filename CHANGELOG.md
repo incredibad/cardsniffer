@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.79.1] - 2026-07-30
+
+### Fixed
+- Card-name resolution for export was wrongly scoped to eBay only. Any store can legitimately carry a Universes Beyond flavor-name reskin as its own clean, structurally-parsed product name (e.g. MTGMintCard's own listing for a Secret Lair print genuinely reads "Knuckles's Gloves", not "The Reaver Cleaver") — resolution now runs for every store, not just eBay's messy free-text titles.
+
 ## [0.79.0] - 2026-07-30
 
 ### Added
