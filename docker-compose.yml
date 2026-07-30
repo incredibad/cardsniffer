@@ -1,0 +1,51 @@
+services:
+  app:
+    container_name: cardsniffer
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    volumes:
+      - cardsniffer_data:/data
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      # Display/log timezone — Settings → Admin → System overrides this once set.
+      - TZ=${TZ:-UTC}
+      # Optional scraper HTTP proxy — Settings → Admin → Network overrides this once set.
+      - VPN_PROXY_URL=${VPN_PROXY_URL:-}
+      # Personal MTGMate relay URL (see backend/scrapers/mtgmate.py) — MTGMate
+      # stays force-disabled without one. Settings → Admin → Stores overrides
+      # this once set.
+      - MTGMATE_RELAY_URL=${MTGMATE_RELAY_URL:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "6870:6870"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6870/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
+
+  # Optional VPN sidecar — uncomment, set your provider below (see
+  # https://github.com/qdm12/gluetun-wiki/tree/main/setup/providers), then
+  # set VPN_PROXY_URL=http://gluetun:8888 above.
+  # gluetun:
+  #   container_name: cardsniffer-gluetun
+  #   image: qmcgaw/gluetun
+  #   cap_add:
+  #     - NET_ADMIN
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - VPN_SERVICE_PROVIDER=changeme
+  #     - SERVER_COUNTRIES=changeme
+  #     - HTTPPROXY=on
+  #   ports:
+  #     - "8888:8888"
+  #   restart: unless-stopped
+
+volumes:
+  cardsniffer_data:
+    name: cardsniffer_data
