@@ -89,6 +89,27 @@ _NAME_ALIASES = {
     # one running set ("sld") rather than one set per drop, which happens to
     # line up with Card Kingdom/SCG's own single "Secret Lair" bucket.
     "secret lair": "secret lair drop",
+    # Scryfall's own name is "Strixhaven Mystical Archive" — singular, no
+    # colon — but most stores (and eBay sellers) write the plural "Archives",
+    # which the free-text scanner's exact-token-run match won't bridge on
+    # its own since "archives" and "archive" are different tokens.
+    "strixhaven: mystical archives": "strixhaven mystical archive",
+    "strixhaven mystical archives": "strixhaven mystical archive",
+    "strixhaven: school of mages mystical archives": "strixhaven mystical archive",
+    # Card Kingdom drops "Universe"/"Commander" entirely from these two —
+    # each is that store's only product for the set, so no ambiguity.
+    "marvel eternal-legal": "marvel universe",
+    "universes beyond: warhammer 40,000": "warhammer 40,000 commander",
+    # Hareruya's own numbered-edition convention ("<N>ED") matches Scryfall's
+    # own code for every other numbered edition (2ed..9ed) — only Tenth
+    # Edition's real code breaks the pattern ("10e", not "10ed").
+    "10ed": "tenth edition",
+    # MTGMintCard's own phrasing/punctuation for two older products.
+    "collector's edition international": "intl. collectors' edition",
+    "fire & lightning": "premium deck series: fire and lightning",
+    # Star City Games's own name for the LOTR Commander decks — Scryfall
+    # drops "The Lord of the Rings:" entirely and keeps only the subtitle.
+    "the lord of the rings commander": "tales of middle-earth commander",
 }
 
 # code -> (code, canonical name); normalized name -> (code, canonical name);
@@ -205,11 +226,23 @@ async def match_set(raw: str | None) -> tuple[str, str] | None:
     """raw may be a full set name or a bare set code, either with a
     " — <treatment>" suffix already appended by the scraper (see module
     docstring) — returns (code, canonical_name), or None if nothing in
-    Scryfall's set list matches."""
+    Scryfall's set list matches.
+
+    Tries an exact (alias-normalized) full-string match first, then a bare
+    code, then falls back to the same free-text longest-word-run scan eBay's
+    title matching uses (see match_set_from_ebay_title) — several stores
+    don't use Scryfall's exact set name verbatim: a branding prefix Scryfall
+    itself drops ("Universes Beyond: Doctor Who" vs "Doctor Who"), a colon
+    moved or dropped ("Bloomburrow: Commander" vs "Bloomburrow Commander" —
+    tokenizing strips the punctuation either way), or a code joined onto
+    something else with a dash (Hareruya's "CMR-BF"). Structured retailer
+    text carries much less of the false-positive risk eBay's free-text
+    titles do, so this runs unconditionally rather than only as a last
+    resort."""
     await _ensure_index()
     if not raw or _index is None:
         return None
-    by_code, by_name, _ = _index
+    by_code, by_name, token_index = _index
     text = raw.split(" — ", 1)[0].strip()
     if not text:
         return None
@@ -219,8 +252,10 @@ async def match_set(raw: str | None) -> tuple[str, str] | None:
     if match:
         return match
     if re.fullmatch(r"[A-Za-z0-9]{2,6}", text):
-        return by_code.get(text.lower())
-    return None
+        match = by_code.get(text.lower())
+        if match:
+            return match
+    return _find_longest(_tokenize(raw), token_index)
 
 
 async def match_set_from_ebay_title(title: str | None, card_name: str | None = None) -> tuple[str, str] | None:

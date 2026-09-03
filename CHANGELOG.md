@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.80.3] - 2026-09-03
+
+### Changed
+- Set matching for every non-eBay store now also falls back to the same free-text longest-word-run scan eBay's title matching uses, instead of requiring an exact full-string match against Scryfall's set name. Fixes branding prefixes stores add that Scryfall's own name doesn't have ("Universes Beyond: Doctor Who" vs "Doctor Who"), colon placement differences ("Bloomburrow: Commander" vs "Bloomburrow Commander"), and codes joined onto other text with a dash (Hareruya's "CMR-BF"). Measured live across 9 stores (~2,900 listings): match rate rose from a 46-79% range up to 84-100%, plus a handful of new aliases for cases the scan still couldn't bridge on its own (a store dropping a generic trailing word like "Commander"/"Edgar" that Scryfall's real name still has, or a plural/singular mismatch on "Strixhaven Mystical Archive" — Scryfall's own name is singular, which also fixed a chunk of eBay's Strixhaven misses for free).
+
 ## [0.80.2] - 2026-09-03
 
 ### Changed
