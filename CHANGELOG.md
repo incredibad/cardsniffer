@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.80.4] - 2026-09-04
+
+### Fixed
+- A handful of specific set-matching gaps found via manual testing (searching "Intruder Alarm" and unticking every Set filter option): Star City Games's "Enchanting Tales" (drops the "Wilds of Eldraine:" prefix Scryfall's real name has), eBay's bracketed "[LIST-86]" (Scryfall's actual code for The List is `plst`, not `list`), and — the interesting one — every "Mystery Booster"/"Mystery Booster Retail Edition" mention across GUF, Good Games, and eBay. The base 2019/2020 retail Mystery Booster box turns out to have no set of its own on Scryfall at all; those prints are catalogued under "The List" (`plst`) itself, using an origin-set-prefixed collector number (confirmed live against scryfall.com/card/plst/8ED-86/intruder-alarm).
+
 ## [0.80.3] - 2026-09-03
 
 ### Changed

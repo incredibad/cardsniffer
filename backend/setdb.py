@@ -110,6 +110,28 @@ _NAME_ALIASES = {
     # Star City Games's own name for the LOTR Commander decks — Scryfall
     # drops "The Lord of the Rings:" entirely and keeps only the subtitle.
     "the lord of the rings commander": "tales of middle-earth commander",
+    # Star City Games drops "Wilds of Eldraine:" and keeps only the subtitle
+    # — the one bonus sheet named "Enchanting Tales", no ambiguity.
+    "enchanting tales": "wilds of eldraine: enchanting tales",
+    # eBay sellers write The List's own code as bare "LIST" the same way they
+    # would a real 3-4 letter code (e.g. "[LIST-86 Foil NM]") — Scryfall's
+    # actual code is "plst", so this needs its own alias rather than falling
+    # out of the bare-code lookup. "list" is a common enough word that this
+    # carries a little more false-positive risk than most of the aliases
+    # above if it ever appears as prose rather than a title-cased code, but
+    # eBay titles are terse structured metadata rather than prose, so it's
+    # low in practice.
+    "list": "the list",
+    # The base 2019/2020 retail Mystery Booster box has no set of its own on
+    # Scryfall at all — confirmed live (scryfall.com/card/plst/8ED-86/
+    # intruder-alarm): those prints are catalogued under "plst" (The List)
+    # itself, using an origin-set-prefixed collector number ("8ED-86" =
+    # originally 8th Edition #86) rather than their own numbering. Only the
+    # two black-bordered Playtest Card variants (cmb1/cmb2) and Mystery
+    # Booster 2 (mb2) get their own real set — this alias only fires on the
+    # bare/retail phrasing, so anything with "Playtest" or "2" attached
+    # still resolves to those via the exact-name/token-scan paths first.
+    "mystery booster": "the list",
 }
 
 # code -> (code, canonical name); normalized name -> (code, canonical name);
