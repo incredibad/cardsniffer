@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.83.2] - 2026-09-04
+
+### Fixed
+- The set-resolution debug tooltip showed eBay's seller username as "Raw text" — eBay's own set_name field is repurposed for that (see ResultCard's existing comment on the same field), not anything set-related. Now shows the listing title (card_name) instead for eBay specifically, since that's what setdb.py's eBay matching actually operates on.
+
 ## [0.83.1] - 2026-09-04
 
 ### Added
