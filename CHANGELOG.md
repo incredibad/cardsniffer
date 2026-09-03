@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.83.0] - 2026-09-04
+
+### Changed
+- The subtitle line under a result's card name (Search results, both grid and table view) now always shows the resolved, canonical set name (server-side, against Scryfall's own set list) instead of each store's own raw/inconsistent text — or "Undetected" for rows the Set filter would also call unmatched. eBay results previously showed the listing's creation date here instead (no set data of its own); that's still available in the store-badge hover tooltip, just no longer taking this slot now that eBay results resolve a set too.
+
 ## [0.82.1] - 2026-09-04
 
 ### Changed

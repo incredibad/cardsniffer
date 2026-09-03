@@ -2,7 +2,6 @@ import { Sparkles } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import { formatPrice } from "../formatPrice";
-import { formatListedAt } from "../formatDate";
 import TruncatedTooltip from "./TruncatedTooltip";
 import FoilOverlay from "./FoilOverlay";
 import StoreBadge from "./StoreBadge";
@@ -11,7 +10,7 @@ import CartBuyButtons from "./CartBuyButtons";
 export default function ResultCard({ result, pricingMode = "aud" }) {
   const {
     card_name,
-    set_name,
+    set_name_canonical,
     collector_number,
     foil,
     foil_treatment,
@@ -25,19 +24,19 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
     product_url,
     store_name,
     shipping_price,
-    listed_at,
   } = result;
   const storeMeta = getStoreMeta(store_name);
   const displayPrice = pricingMode === "original" ? price_original : price;
   const displayCurrency = pricingMode === "original" ? currency_original : currency;
-  // eBay has no set code to show here (its "set_name" is the seller
-  // username, already surfaced in the badge tooltip) — the creation date is
-  // far more useful in this slot, especially for eBay Snipe results.
-  const subtitleText = listed_at
-    ? formatListedAt(listed_at)
-    : set_name
-    ? `${set_name}${collector_number ? ` · #${collector_number}` : ""}`
-    : null;
+  // Resolved server-side (setdb.py) against Scryfall's own set list — the
+  // one thing every store's own set_name text agrees on. eBay's own
+  // "set_name" field is actually the seller username (still surfaced via
+  // the badge tooltip below), so this is the only reliable set signal for
+  // it too. "Undetected" for whatever setdb couldn't resolve, same label
+  // as the Set filter's own bucket for these rows.
+  const subtitleText = `${set_name_canonical || "Undetected"}${
+    collector_number ? ` · #${collector_number}` : ""
+  }`;
 
   return (
     <div className="card-frame flex flex-col overflow-hidden">

@@ -2,7 +2,6 @@ import { Sparkles } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import { formatPrice } from "../formatPrice";
-import { formatListedAt } from "../formatDate";
 import TruncatedTooltip from "./TruncatedTooltip";
 import FoilOverlay from "./FoilOverlay";
 import StoreBadge from "./StoreBadge";
@@ -34,14 +33,11 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
           displayCurrency === "AUD"
             ? "text-slate-900 dark:text-zinc-50"
             : "text-amber-700 dark:text-amber-400";
-        // eBay has no set code to show here (its "set_name" is the seller
-        // username, already surfaced in the badge tooltip) — the creation
-        // date is far more useful in this slot, especially for eBay Snipe.
-        const setText = r.listed_at
-          ? formatListedAt(r.listed_at)
-          : r.set_name
-          ? `${r.set_name}${r.collector_number ? ` · #${r.collector_number}` : ""}`
-          : null;
+        // Resolved server-side (setdb.py) against Scryfall's own set list —
+        // see ResultCard's own comment on this same value.
+        const setText = `${r.set_name_canonical || "Undetected"}${
+          r.collector_number ? ` · #${r.collector_number}` : ""
+        }`;
 
         const postageEl = r.shipping_price != null && (
           <span className="text-[11px] text-slate-400 dark:text-zinc-500 whitespace-nowrap">

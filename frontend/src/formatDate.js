@@ -58,25 +58,3 @@ export function formatAgo(isoString) {
   return relativeAgo(elapsedMs);
 }
 
-// Hardcoded rather than Intl's month: "short" — that's locale-dependent and
-// not reliably 3 letters (e.g. en-AU gives "Sept", not "Sep").
-const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-// No year, always-3-letter month ("4 Jul, 12:48") — the "ago" suffix already
-// carries how recent it is, so the year would just be redundant clutter here.
-function formatShortDateTime(isoString) {
-  const date = new Date(isoString);
-  const time = date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-  return `${date.getDate()} ${SHORT_MONTHS[date.getMonth()]}, ${time}`;
-}
-
-// "4 Jul, 12:48 (4 hours ago)" — minutes under an hour, hours under 48h, then
-// days, incrementing indefinitely (most eBay listings surfaced here are only
-// ever a few weeks old at most, so there's no point capping it).
-export function formatListedAt(isoString) {
-  const date = new Date(isoString);
-  const elapsedMs = Date.now() - date.getTime();
-  const absolute = formatShortDateTime(isoString);
-  if (elapsedMs < 0) return absolute;
-  return `${absolute} (${relativeAgo(elapsedMs)})`;
-}
