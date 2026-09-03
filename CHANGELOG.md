@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented here.
 
+## [0.82.0] - 2026-09-04
+
+### Added
+- `SearchResult.set_code_hint` — an optional authoritative Scryfall set code a scraper can supply directly, bypassing free-text set matching entirely once validated against Scryfall's own set list (`setdb.match_set_code_hint`). An invalid hint (a scraper's source occasionally using an outdated/non-Scryfall code) just falls back to the normal text match rather than being trusted blindly.
+
+### Changed
+- Card Stars now supplies this hint from its own API's `set_code` field — that API is literally built on Scryfall data, so this is a direct, guaranteed-accurate pass-through rather than fuzzy text matching.
+- MTGMintCard now supplies it too, parsed from its own product URLs, which embed Scryfall's set code as a path segment (`/mtg/singles/<code>/...`). Checking this against the free-text match surfaced two real bugs in the text-matching approach: a longer prefix match ("The Lord of the Rings: Tales of Middle-earth") can currently beat a shorter but more specific suffix match ("Tales of Middle-earth Commander") for the same text, mislabeling two Commander-deck-specific printings (Lord of the Rings, Streets of New Capenna) as their non-Commander parent set. The URL-derived hint fixes both immediately for this store; MTGMintCard rose from 84.7% to 99.3% set-match rate in testing.
+- A couple more Hareruya shorthand aliases: "MED14" → Modern Event Deck 2014, "VvK" → Duel Decks: Venser vs. Koth.
+
 ## [0.81.0] - 2026-09-04
 
 ### Changed

@@ -96,4 +96,8 @@ class CardStarsScraper(BaseScraper):
             image_url=card.get("image_url"),
             product_url=f"{CARD_URL}/{scryfall_id}/{_slugify(card.get('name', ''))}",
             store_name=self.store_name,
+            # This API is built directly on Scryfall data — set_code is
+            # Scryfall's own code verbatim, not a vendor name needing the
+            # usual free-text set matching.
+            set_code_hint=card.get("set_code"),
         )

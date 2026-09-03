@@ -137,6 +137,9 @@ _NAME_ALIASES = {
     "fmb1": "the list",
     # Only ever released once (2014), so no ambiguity in dropping the year.
     "modern event deck": "modern event deck 2014",
+    # Hareruya's own shorthand for the same set.
+    "med14": "modern event deck 2014",
+    "vvk": "duel decks: venser vs. koth",
 }
 
 # code -> (code, canonical name); normalized name -> (code, canonical name);
@@ -247,6 +250,19 @@ async def _ensure_index() -> None:
             sets = await _fetch_and_cache()
         if sets is not None:
             _index = _build_index(sets)
+
+
+async def match_set_code_hint(hint: str | None) -> tuple[str, str] | None:
+    """Validates a scraper-supplied authoritative code (SearchResult.
+    set_code_hint) against Scryfall's own set list — returns (code,
+    canonical_name), or None if the hint doesn't correspond to a real
+    current Scryfall set (an invalid hint should fall back to the normal
+    set_name text match, not be trusted blindly)."""
+    await _ensure_index()
+    if not hint or _index is None:
+        return None
+    by_code, _, _ = _index
+    return by_code.get(hint.lower())
 
 
 async def match_set(raw: str | None) -> tuple[str, str] | None:

@@ -141,11 +141,13 @@ async def search(
         d.update(priced_fields(r, rates.get(r.currency)))
         d["is_art"] = _is_art(r)
         d["is_playtest"] = _is_playtest(r)
-        set_match = (
-            await setdb.match_set_from_ebay_title(r.card_name, q)
-            if r.store_name == _EBAY_STORE_NAME
-            else await setdb.match_set(r.set_name)
-        )
+        set_match = await setdb.match_set_code_hint(r.set_code_hint)
+        if set_match is None:
+            set_match = (
+                await setdb.match_set_from_ebay_title(r.card_name, q)
+                if r.store_name == _EBAY_STORE_NAME
+                else await setdb.match_set(r.set_name)
+            )
         d["set_code"] = set_match[0] if set_match else None
         d["set_name_canonical"] = set_match[1] if set_match else None
         results.append(d)

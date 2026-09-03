@@ -74,6 +74,17 @@ class SearchResult:
     # stores just show current catalog inventory, not individual dated
     # listings, so this is only ever set by eBay for now.
     listed_at: Optional[str] = None
+    # A handful of stores expose Scryfall's own set code directly rather than
+    # just a free-text/vendor name — Card Stars' API is literally built on
+    # Scryfall data (a plain "set_code" field), and MTGMintCard's own product
+    # URL embeds it as a path segment (/mtg/singles/<code>/...). Set this
+    # when a scraper has one; the search router (setdb.match_set_code_hint)
+    # prefers it over the free-text match, but only once confirmed against
+    # Scryfall's own set list — a scraper's source can occasionally use an
+    # outdated/non-Scryfall code (seen once on MTGMintCard, for an old
+    # Mystery Booster/List reprint), so an invalid hint just falls back to
+    # the normal set_name matching rather than being trusted blindly.
+    set_code_hint: Optional[str] = None
     # Marketplace-listing-specific extras, shown in the frontend's store-badge
     # tooltip — only ever set by eBay (a per-listing marketplace seller), not
     # applicable to storefront-style stores which sell under their own name.

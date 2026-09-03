@@ -33,6 +33,18 @@ SEARCH_URL = f"{BASE_URL}/mtg/singles/search"
 
 _PRICE_RE = re.compile(r"([\d,]+\.\d{2})")
 _BRACKET_RE = re.compile(r"\(([^()]*)\)")
+# Every product URL embeds Scryfall's own set code as a path segment
+# (/mtg/singles/<code>/eng-reg/...) — confirmed live against Scryfall's set
+# list across a sample search, matching the scraper's own text-derived
+# `edition` in all but a handful of cases (which the code got right and
+# `edition` didn't — e.g. a Commander-deck printing `edition` resolved to
+# its parent set instead of the Commander-specific one). Not authoritative
+# 100% of the time though (one old Mystery Booster/List reprint used a code
+# that isn't in Scryfall's current set list at all), so it's only trusted
+# once validated against that list (see setdb.match_set_code_hint) rather
+# than blindly — an invalid one just falls back to the edition/treatment
+# text match same as before.
+_SET_CODE_URL_RE = re.compile(r"/mtg/singles/([a-z0-9]+)/")
 
 
 def _parse_price(text: str) -> float | None:
@@ -85,6 +97,9 @@ class MtgMintCardScraper(BaseScraper):
         image_el = row.select_one(".lv-image img")
         image_url = urljoin(BASE_URL, image_el.get("src", "")) if image_el else None
 
+        url_code_match = _SET_CODE_URL_RE.search(product_url)
+        set_code_hint = url_code_match.group(1) if url_code_match else None
+
         condition_el = row.select_one("td.text-left div.text-left")
         condition = condition_el.get_text(strip=True) if condition_el else "NM"
 
@@ -123,4 +138,5 @@ class MtgMintCardScraper(BaseScraper):
             product_url=product_url,
             store_name=self.store_name,
             foreign=foreign,
+            set_code_hint=set_code_hint,
         )
