@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.83.1] - 2026-09-04
+
+### Added
+- Hovering the set-name subtitle on a search result (grid and table view) now shows a tooltip with the raw pre-resolution data: the store's own free-text set name, its own set code if it supplied one directly (Card Stars, MTGMintCard), the collector number, and the final resolved set/code — for checking a resolution against the store's own listing during testing.
+
 ## [0.83.0] - 2026-09-04
 
 ### Changed

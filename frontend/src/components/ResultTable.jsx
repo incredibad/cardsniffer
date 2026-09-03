@@ -3,6 +3,8 @@ import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import { formatPrice } from "../formatPrice";
 import TruncatedTooltip from "./TruncatedTooltip";
+import Tooltip from "./Tooltip";
+import SetDebugTooltipContent from "./SetDebugTooltipContent";
 import FoilOverlay from "./FoilOverlay";
 import StoreBadge from "./StoreBadge";
 import CartBuyButtons from "./CartBuyButtons";
@@ -84,12 +86,9 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
                     text={r.card_name}
                     className="font-semibold text-slate-900 dark:text-zinc-50 leading-snug"
                   />
-                  {setText && (
-                    <TruncatedTooltip
-                      text={setText}
-                      className="text-xs text-slate-500 dark:text-zinc-500"
-                    />
-                  )}
+                  <Tooltip className="block w-full min-w-0" content={<SetDebugTooltipContent result={r} />}>
+                    <p className="truncate cursor-help text-xs text-slate-500 dark:text-zinc-500">{setText}</p>
+                  </Tooltip>
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5 flex-wrap min-w-0">
@@ -126,12 +125,9 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
                   text={r.card_name}
                   className="font-semibold text-slate-900 dark:text-zinc-50 leading-snug"
                 />
-                {setText && (
-                  <TruncatedTooltip
-                    text={setText}
-                    className="text-xs text-slate-500 dark:text-zinc-500"
-                  />
-                )}
+                <Tooltip className="block w-full min-w-0" content={<SetDebugTooltipContent result={r} />}>
+                  <p className="truncate cursor-help text-xs text-slate-500 dark:text-zinc-500">{setText}</p>
+                </Tooltip>
               </div>
               <div className="w-32 shrink-0">{conditionChips}</div>
               <div className="w-24 shrink-0 text-right">
