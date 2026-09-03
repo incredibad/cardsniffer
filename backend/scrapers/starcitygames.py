@@ -21,8 +21,10 @@ _PAGE_SIZE = 96
 _VARIANT_PAGE_SIZE = 32
 _MAX_PAGES = 3
 
-# SCG's own condition scale — just NM/PL/HP, no LP/MP distinction.
-_CONDITIONS = {"Near Mint": "NM", "Played": "PL", "Heavily Played": "HP"}
+# SCG's own condition scale — just NM/Played/HP, no LP/MP distinction. Played
+# is mapped to MP (rather than LP) since it implies more wear than "Lightly
+# Played" connotes on stores that do distinguish the two.
+_CONDITIONS = {"Near Mint": "NM", "Played": "MP", "Heavily Played": "HP"}
 
 
 def _normalize(text: str) -> str:

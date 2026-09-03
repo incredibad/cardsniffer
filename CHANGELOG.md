@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.79.2] - 2026-09-03
+
+### Fixed
+- Condition filter (e.g. ticking "HP" only) could still show other conditions for Card Kingdom and StarCityGames results. Both stores were emitting condition codes outside the app's NM/SP/LP/MP/HP/DMG scale — Card Kingdom passed through its own raw `EX`/`VG`/`G` CSS classes unmapped, and StarCityGames emitted `PL` for "Played" — so those rows could never match the filter's checkbox state. Both now normalize onto the standard scale (Card Kingdom: EX→LP, VG→MP, G→HP; StarCityGames: Played→MP).
+
 ## [0.79.1] - 2026-07-30
 
 ### Fixed

@@ -46,6 +46,9 @@ _MAX_ATTEMPTS = 2
 _PRICE_RE = re.compile(r"([\d,]+\.\d{2})")
 _RARITY_SUFFIX_RE = re.compile(r"\s*\([A-Z]\)\s*$")
 _NON_CONDITION_CLASSES = {"itemAddToCart", "active", "disabled", ""}
+# Card Kingdom's own 4-tier condition scale (its per-item CSS class name) —
+# EX/VG/G map onto the wider NM/SP/LP/MP/HP/DMG scale other stores use.
+_CONDITIONS = {"NM": "NM", "EX": "LP", "VG": "MP", "G": "HP"}
 
 
 def _normalize(text: str) -> str:
@@ -197,9 +200,10 @@ class CardKingdomScraper(BaseScraper):
         if condition_items:
             for li in condition_items:
                 classes = li.get("class", [])
-                condition = next((c for c in classes if c not in _NON_CONDITION_CLASSES), None)
-                if not condition:
+                condition_raw = next((c for c in classes if c not in _NON_CONDITION_CLASSES), None)
+                if not condition_raw:
                     continue
+                condition = _CONDITIONS.get(condition_raw, condition_raw)
                 price = _parse_price((li.select_one(".stylePrice") or li).get_text())
                 if price is None:
                     continue
