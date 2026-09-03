@@ -55,6 +55,83 @@ _TOKEN_RE = re.compile(r"[a-z0-9']+")
 def _tokenize(text: str) -> tuple[str, ...]:
     return tuple(_TOKEN_RE.findall(text.lower()))
 
+
+# A handful of colloquial/shortened set references are genuinely ambiguous
+# from text alone — multiple real Scryfall sets share the same "flagship"
+# wording, with no reliable textual signal (like "Commander") to pick
+# between them (e.g. bare "Lord of the Rings" could mean the main set or
+# its Commander decks). Rather than guess a direction or hardcode one,
+# the last resort (_resolve_ambiguous_group) asks Scryfall which of the
+# candidate sets actually printed *this specific card* — if only one did,
+# that's unambiguous regardless of the text; if more than one (or neither)
+# did, it's genuinely ambiguous and stays unresolved. Confirmed live:
+# "Path to Exile" was only ever printed in the Commander decks (ltc), never
+# the main set (ltr), despite an eBay title just saying "...Lord Of The
+# Rings" with no "Commander" qualifier at all.
+_AMBIGUOUS_GROUPS: list[tuple[tuple[str, ...], tuple[str, ...]]] = [
+    (("lord", "of", "the", "rings"), ("ltr", "ltc")),
+]
+
+_CARDS_SEARCH_URL = "https://api.scryfall.com/cards/search"
+# card name -> set of codes it's ever been printed in, or None if the
+# lookup failed. Only ever populated on the rare ambiguous-group hit, so a
+# process-lifetime cache (no disk persistence, no TTL) is plenty — nowhere
+# near enough volume to matter, and printings only ever get added to, never
+# removed, so staleness isn't a correctness concern the way it is for the
+# main set-name cache above.
+_printings_cache: dict[str, set[str] | None] = {}
+_printings_lock = asyncio.Lock()
+
+
+def _contains_phrase(tokens: tuple[str, ...], phrase: tuple[str, ...]) -> bool:
+    n = len(phrase)
+    return any(tokens[i:i + n] == phrase for i in range(len(tokens) - n + 1))
+
+
+async def _printings_for_card(card_name: str) -> set[str] | None:
+    key = _normalize(card_name)
+    if key in _printings_cache:
+        return _printings_cache[key]
+    async with _printings_lock:
+        if key in _printings_cache:
+            return _printings_cache[key]
+        codes: set[str] = set()
+        url, params = _CARDS_SEARCH_URL, {"q": f'!"{card_name}"', "unique": "prints"}
+        try:
+            async with httpx.AsyncClient(timeout=30.0, headers=_HEADERS) as client:
+                while url:
+                    resp = await client.get(url, params=params)
+                    if resp.status_code == 404:  # no card by that exact name
+                        break
+                    resp.raise_for_status()
+                    data = resp.json()
+                    codes.update(c["set"] for c in data.get("data", []) if c.get("set"))
+                    url = data.get("next_page")  # already a full URL; no more params needed
+                    params = None
+        except Exception as e:
+            logger.warning(f"setdb: failed to fetch printings for {card_name!r}: {e}")
+            _printings_cache[key] = None
+            return None
+        _printings_cache[key] = codes
+        return codes
+
+
+async def _resolve_ambiguous_group(tokens: tuple[str, ...], card_name: str | None) -> tuple[str, str] | None:
+    if not card_name:
+        return None
+    for phrase, candidates in _AMBIGUOUS_GROUPS:
+        if not _contains_phrase(tokens, phrase):
+            continue
+        printings = await _printings_for_card(card_name)
+        if not printings:
+            return None
+        printed_in = [c for c in candidates if c in printings]
+        if len(printed_in) != 1:
+            return None  # 0 or 2+ candidates actually printed it — still ambiguous
+        by_code, _, _ = _index
+        return by_code.get(printed_in[0])
+    return None
+
 # Colloquial/vendor set names that don't match Scryfall's own canonical name
 # for the same set — confirmed live against Card Kingdom, which uses these
 # for its older-edition and pre-2016 core-set listings. Normalized alias ->
@@ -265,13 +342,19 @@ async def match_set_code_hint(hint: str | None) -> tuple[str, str] | None:
     return by_code.get(hint.lower())
 
 
-async def match_set(raw: str | None) -> tuple[str, str] | None:
+async def match_set(raw: str | None, card_name: str | None = None) -> tuple[str, str] | None:
     """raw may be a full set name or a bare set code, either with a
     " — <treatment>" suffix already appended by the scraper (see module
     docstring) — returns (code, canonical_name), or None if nothing in
     Scryfall's set list matches.
 
-    Tries an exact (alias-normalized) full-string match first, then a bare
+    Checks _resolve_ambiguous_group first (see its own docstring) — an
+    authoritative per-card answer, so it takes priority even over an exact
+    full-string match: a title can legitimately contain a whole *wrong* set's
+    exact name verbatim (e.g. "Commander: The Lord of the Rings: Tales of
+    Middle-earth" naming the main set precisely while actually describing a
+    Commander-deck-exclusive printing that was never in that set at all).
+    Then tries an exact (alias-normalized) full-string match, then a bare
     code, then falls back to the same free-text longest-word-run scan eBay's
     title matching uses (see match_set_from_ebay_title) — several stores
     don't use Scryfall's exact set name verbatim: a branding prefix Scryfall
@@ -289,6 +372,12 @@ async def match_set(raw: str | None) -> tuple[str, str] | None:
     text = raw.split(" — ", 1)[0].strip()
     if not text:
         return None
+
+    tokens = _tokenize(raw)
+    match = await _resolve_ambiguous_group(tokens, card_name)
+    if match:
+        return match
+
     normalized = _normalize(text)
     normalized = _NAME_ALIASES.get(normalized, normalized)
     match = by_name.get(normalized)
@@ -298,17 +387,21 @@ async def match_set(raw: str | None) -> tuple[str, str] | None:
         match = by_code.get(text.lower())
         if match:
             return match
-    return _find_longest(_tokenize(raw), token_index)
+    return _find_longest(tokens, token_index)
 
 
 async def match_set_from_ebay_title(title: str | None, card_name: str | None = None) -> tuple[str, str] | None:
     """Best-effort set match for eBay, which has no structured set field at
     all. Tries a bracketed/parenthesized set signal first (see
-    _EBAY_BRACKET_RE), then a free-text set code/name anywhere else in the
-    title (see _find_longest) — excluding whatever span card_name (the
-    search query, which is also eBay's own card_name field — see ebay.py)
-    matches, so a card whose own name happens to be/contain a code-like word
-    or set-name word isn't mistaken for one."""
+    _EBAY_BRACKET_RE) — an explicit, deliberate signal from the seller, so it
+    still wins over everything else including _resolve_ambiguous_group's
+    authoritative per-card check. Failing that, checks _resolve_ambiguous_group
+    (see match_set's own docstring on why it runs before the free-text scan),
+    then falls back to a free-text set code/name anywhere else in the title
+    (see _find_longest) — excluding whatever span card_name (the search
+    query, which is also eBay's own card_name field — see ebay.py) matches,
+    so a card whose own name happens to be/contain a code-like word or
+    set-name word isn't mistaken for one."""
     await _ensure_index()
     if not title or _index is None:
         return None
@@ -330,4 +423,11 @@ async def match_set_from_ebay_title(title: str | None, card_name: str | None = N
         idx = title.lower().find(card_name.lower())
         if idx != -1:
             masked_title = title[:idx] + (" " * len(card_name)) + title[idx + len(card_name):]
-    return _find_longest(_tokenize(masked_title), token_index)
+    tokens = _tokenize(masked_title)
+    match = await _resolve_ambiguous_group(tokens, card_name)
+    if match:
+        return match
+    match = _find_longest(tokens, token_index)
+    if match:
+        return match
+    return await _resolve_ambiguous_group(tokens, card_name)

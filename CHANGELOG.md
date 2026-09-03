@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.84.0] - 2026-09-04
+
+### Added
+- Set matching can now resolve genuinely ambiguous set references (e.g. bare "Lord of the Rings", which could mean the main set or its Commander decks, with no textual signal like "Commander" to pick between them) by asking Scryfall which of the candidate sets actually printed *the specific card being searched* — one Scryfall API call per search (not per listing), cached per card name. If only one candidate set ever printed the card, that's used regardless of the text; if more than one did (or neither), it's left genuinely ambiguous rather than guessed. This check now runs before the general text/token match, since a title can legitimately contain a whole *wrong* set's exact name verbatim (confirmed live: an eBay title reading "Commander: The Lord of the Rings: Tales of Middle-earth" was resolving to the main set purely because that exact phrase appears in the text, even though Path to Exile was never printed there — only in the Commander decks).
+
 ## [0.83.2] - 2026-09-04
 
 ### Fixed
