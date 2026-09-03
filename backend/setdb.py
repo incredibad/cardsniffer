@@ -135,6 +135,8 @@ _NAME_ALIASES = {
     # "FMB1" ("Foil Mystery Booster 1") is a vendor shorthand for that same
     # plst printing — confirmed it's foil-only on Scryfall (finishes: [foil]).
     "fmb1": "the list",
+    # Only ever released once (2014), so no ambiguity in dropping the year.
+    "modern event deck": "modern event deck 2014",
 }
 
 # code -> (code, canonical name); normalized name -> (code, canonical name);

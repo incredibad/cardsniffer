@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented here.
 
+## [0.81.0] - 2026-09-04
+
+### Changed
+- Star City Games's scraper now reads its own `primary_category_name` field instead of the plain `set` field for set matching. Confirmed live it matches `set` everywhere except when `set` is SCG's own generic "Promo" bucket, where it's often more specific — several "Promo" listings for a card turned out to actually be Secret Lair Drop prints that `primary_category_name` correctly identifies and `set` alone was losing.
+- Also added "Modern Event Deck" (only ever released once, in 2014, so no ambiguity) as an alias, fixing that gap on Card Kingdom and Star City Games both.
+
+### Investigated
+- Card Kingdom's "Promotional" bucket carries an extra descriptor in the product title (e.g. "MagicFest Foil", "WPN Foil") that the scraper currently only uses for foil detection. Checked whether resolving it further was worthwhile: Scryfall itself splits these promo campaigns (MagicFest, Wizards Play Network, Judge Gift Cards, Friday Night Magic, Arena League) into a separate set *per year*, and neither Card Kingdom's page nor the descriptor text says which year a given card is from — so this remains genuinely unresolvable without more data, not a bug.
+
 ## [0.80.5] - 2026-09-04
 
 ### Fixed

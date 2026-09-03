@@ -105,7 +105,12 @@ class StarCityGamesScraper(BaseScraper):
 
         common = dict(
             card_name=card_name,
-            set_name=_first(doc, "set"),
+            # primary_category_name matches "set" everywhere it's populated
+            # except when "set" is SCG's own generic "Promo" bucket, where
+            # it's often more specific (e.g. a Secret Lair Drop print that
+            # "set" alone would otherwise lose) — confirmed live across a
+            # sample of Path to Exile listings, no case where it was worse.
+            set_name=_first(doc, "primary_category_name") or _first(doc, "set"),
             collector_number=str(_first(doc, "collector_number") or "") or None,
             foil=finish not in ("", "Non-foil"),
             foil_treatment=_foil_treatment(finish),
