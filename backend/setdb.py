@@ -132,6 +132,9 @@ _NAME_ALIASES = {
     # bare/retail phrasing, so anything with "Playtest" or "2" attached
     # still resolves to those via the exact-name/token-scan paths first.
     "mystery booster": "the list",
+    # "FMB1" ("Foil Mystery Booster 1") is a vendor shorthand for that same
+    # plst printing — confirmed it's foil-only on Scryfall (finishes: [foil]).
+    "fmb1": "the list",
 }
 
 # code -> (code, canonical name); normalized name -> (code, canonical name);

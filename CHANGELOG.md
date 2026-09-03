@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.80.5] - 2026-09-04
+
+### Fixed
+- eBay's "FMB1" ("Foil Mystery Booster 1") now also resolves to The List (`plst`) — confirmed on Scryfall that the one Mystery Booster printing of a given card is foil-only, and "FMB1" is just a vendor shorthand for that same printing.
+
 ## [0.80.4] - 2026-09-04
 
 ### Fixed
