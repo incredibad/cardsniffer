@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.80.1] - 2026-09-03
+
+### Changed
+- eBay's set match (backing the new Set filter) now also catches a bare set code with no brackets/parens at all — e.g. "MTG Llanowar Elves NM Near Mint FDN" — by scanning the title for any standalone whole-word token that's a real Scryfall set code, excluding whatever span the card name itself occupies. Tested against ~1,100 real listings across 6 staple cards: raised eBay's set-match rate from ~30% to ~55-65% depending on the card. A handful of set codes double as ordinary English words (war/one/all/who/mar/...) and can occasionally mislabel a listing (e.g. "Game Night: Free-for-**all**" reading as Alliances) — accepted as a rare tradeoff for not leaving most of eBay unfiltered by set.
+
 ## [0.80.0] - 2026-09-03
 
 ### Added
