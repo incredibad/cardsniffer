@@ -46,6 +46,7 @@ const EXACT_MATCH_KEY = "cardsniffer.exactMatchOnly";
 const PRICING_MODE_KEY = "cardsniffer.pricingMode";
 const HIDDEN_STORES_KEY = "cardsniffer.hiddenStores";
 const HIDDEN_CONDITIONS_KEY = "cardsniffer.hiddenConditions";
+const HIDDEN_SETS_KEY = "cardsniffer.hiddenSets";
 const FOIL_FILTER_KEY = "cardsniffer.foilFilter";
 const SEARCH_MODE_KEY = "cardsniffer.searchMode";
 const SUGGEST_DEBOUNCE_MS = 150;
@@ -132,6 +133,7 @@ export default function Search() {
   // person searching, not the specific query).
   const [barHiddenStores, setBarHiddenStores] = useState(() => readStoredSet(HIDDEN_STORES_KEY));
   const [barHiddenConditions, setBarHiddenConditions] = useState(() => readStoredSet(HIDDEN_CONDITIONS_KEY));
+  const [barHiddenSets, setBarHiddenSets] = useState(() => readStoredSet(HIDDEN_SETS_KEY));
   const [foilFilter, setFoilFilter] = useState(
     () => localStorage.getItem(FOIL_FILTER_KEY) || "all"
   ); // all | foil | nonfoil
@@ -153,6 +155,10 @@ export default function Search() {
   useEffect(() => {
     localStorage.setItem(HIDDEN_CONDITIONS_KEY, JSON.stringify([...barHiddenConditions]));
   }, [barHiddenConditions]);
+
+  useEffect(() => {
+    localStorage.setItem(HIDDEN_SETS_KEY, JSON.stringify([...barHiddenSets]));
+  }, [barHiddenSets]);
 
   useEffect(() => {
     localStorage.setItem(FOIL_FILTER_KEY, foilFilter);
@@ -236,6 +242,23 @@ export default function Search() {
     });
   }
 
+  // Dynamic, not a fixed list like CONDITION_OPTIONS — which sets are even
+  // possible depends entirely on the query. Rows whose set couldn't be
+  // resolved (no set_code — always true for eBay unless its title happens to
+  // carry a recognizable set code) have no entry here and are therefore
+  // never hidden by this filter, same as an unrecognized condition would be.
+  const setOptions = useMemo(() => {
+    const byCode = new Map();
+    for (const r of results) {
+      if (r.set_code && !byCode.has(r.set_code)) {
+        byCode.set(r.set_code, r.set_name_canonical || r.set_code);
+      }
+    }
+    return [...byCode.entries()]
+      .map(([code, name]) => ({ code, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [results]);
+
   const filteredResults = useMemo(() => {
     const needle = lastQuery.trim().toLowerCase();
     return results.filter(
@@ -246,6 +269,7 @@ export default function Search() {
         (!exactMatchOnly || r.card_name.trim().toLowerCase() === needle) &&
         !barHiddenStores.has(r.store_name) &&
         !barHiddenConditions.has(r.condition) &&
+        (!r.set_code || !barHiddenSets.has(r.set_code)) &&
         (foilFilter === "all" || (foilFilter === "foil" ? r.foil : !r.foil))
     );
   }, [
@@ -257,6 +281,7 @@ export default function Search() {
     exactMatchOnly,
     barHiddenStores,
     barHiddenConditions,
+    barHiddenSets,
     foilFilter,
   ]);
 
@@ -607,6 +632,30 @@ export default function Search() {
               </FilterDropdown>
             );
 
+            const setDropdown = (stretch) => (
+              <FilterDropdown
+                label="Set"
+                className={stretch ? "flex-1" : ""}
+                badgeCount={
+                  setOptions.length - setOptions.filter((o) => barHiddenSets.has(o.code)).length <
+                  setOptions.length
+                    ? setOptions.length - setOptions.filter((o) => barHiddenSets.has(o.code)).length
+                    : null
+                }
+                onSelectAll={() => setBarHiddenSets(new Set())}
+                onSelectNone={() => setBarHiddenSets(new Set(setOptions.map((o) => o.code)))}
+              >
+                {setOptions.map((option) => (
+                  <FilterDropdownOption
+                    key={option.code}
+                    label={option.name}
+                    checked={!barHiddenSets.has(option.code)}
+                    onChange={() => toggleSetMember(setBarHiddenSets, option.code)}
+                  />
+                ))}
+              </FilterDropdown>
+            );
+
             // Data-driven so a future "show X" toggle only needs an entry
             // here — Select All/None then covers it automatically instead
             // of needing its own case added by hand.
@@ -651,6 +700,7 @@ export default function Search() {
                   <div className="flex items-center gap-2">
                     {storeDropdown(true)}
                     {conditionDropdown(true)}
+                    {setOptions.length > 0 && setDropdown(true)}
                     {showDropdown(true)}
                   </div>
                   <div className="flex items-center gap-2">
@@ -707,6 +757,7 @@ export default function Search() {
                   <div className="flex flex-wrap items-center gap-2">
                     {storeDropdown(false)}
                     {conditionDropdown(false)}
+                    {setOptions.length > 0 && setDropdown(false)}
                     {showDropdown(false)}
                     <div className="inline-flex rounded-full border border-slate-200 dark:border-zinc-800 overflow-hidden">
                       {[
@@ -807,6 +858,7 @@ export default function Search() {
               onClick={() => {
                 setBarHiddenStores(new Set());
                 setBarHiddenConditions(new Set());
+                setBarHiddenSets(new Set());
                 setFoilFilter("all");
                 updateShowArtCards(true);
                 updateShowForeignCards(true);

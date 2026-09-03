@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.80.0] - 2026-09-03
+
+### Added
+- Set filter on the search results bar, alongside Store/Condition — populated dynamically from whichever sets appear in the current results (new `backend/setdb.py`, resolving each store's own free-text/coded set field against Scryfall's set list, cached to disk like `carddb.py`). Handles known naming mismatches (e.g. Card Kingdom's "9th Edition"/"2011 Core Set" vs Scryfall's "Ninth Edition"/"Magic 2011") and, best-effort, extracts a set from eBay's free-text titles when a bracketed/parenthesized set code or name is present. Rows whose set can't be resolved (most eBay listings) are simply left unaffected by the filter rather than hidden.
+
 ## [0.79.2] - 2026-09-03
 
 ### Fixed

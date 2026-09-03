@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 import crypto
+import setdb
 from auth import require_user
 from currency import get_rate_to_aud
 from database import (
@@ -25,6 +26,7 @@ router = APIRouter(prefix="/search", tags=["search"])
 
 _GST_RATE = 1.10
 _GST_STORE_NAMES = {cls.store_name for cls in SCRAPERS.values() if cls.applies_gst}
+_EBAY_STORE_NAME = SCRAPERS["ebay"].store_name
 
 # "Art Series" cards are non-playable collector items (just card-sized art, no
 # rules text). Some stores list these as regular search hits without a
@@ -139,6 +141,13 @@ async def search(
         d.update(priced_fields(r, rates.get(r.currency)))
         d["is_art"] = _is_art(r)
         d["is_playtest"] = _is_playtest(r)
+        set_match = (
+            await setdb.match_set_from_ebay_title(r.card_name)
+            if r.store_name == _EBAY_STORE_NAME
+            else await setdb.match_set(r.set_name)
+        )
+        d["set_code"] = set_match[0] if set_match else None
+        d["set_name_canonical"] = set_match[1] if set_match else None
         results.append(d)
 
     search_type = "ebay_snipe" if (store == "ebay" and exact) else "search"
