@@ -20,6 +20,13 @@ import SelectDropdown from "../components/SelectDropdown";
 // other store uses one or the other, never both.
 const CONDITION_OPTIONS = ["NM", "SP", "LP", "MP", "HP", "DMG"];
 
+// Pseudo set code for rows the backend couldn't resolve a Scryfall set for
+// (setdb.py) — surfaced as its own "Unmatched" entry pinned to the top of
+// the Set filter rather than a row that's always shown regardless of the
+// filter, so unticking everything (including this) hides everything, same
+// as the Store/Condition filters already behave.
+const UNMATCHED_SET_CODE = "__unmatched__";
+
 // Lazy-rendering batch size — mounting hundreds of image-heavy cards at once
 // is what actually stresses a mobile device, not the fetch itself (one JSON
 // response either way). Filters/sort still run over the full result set;
@@ -243,20 +250,24 @@ export default function Search() {
   }
 
   // Dynamic, not a fixed list like CONDITION_OPTIONS — which sets are even
-  // possible depends entirely on the query. Rows whose set couldn't be
-  // resolved (no set_code — always true for eBay unless its title happens to
-  // carry a recognizable set code) have no entry here and are therefore
-  // never hidden by this filter, same as an unrecognized condition would be.
+  // possible depends entirely on the query. An "Unmatched" pseudo-entry is
+  // pinned to the top (ahead of the alphabetical real sets) whenever any
+  // row's set couldn't be resolved, so it's filterable like any other set
+  // rather than a row that's always shown regardless of filter state.
   const setOptions = useMemo(() => {
     const byCode = new Map();
+    let hasUnmatched = false;
     for (const r of results) {
-      if (r.set_code && !byCode.has(r.set_code)) {
-        byCode.set(r.set_code, r.set_name_canonical || r.set_code);
+      if (r.set_code) {
+        if (!byCode.has(r.set_code)) byCode.set(r.set_code, r.set_name_canonical || r.set_code);
+      } else {
+        hasUnmatched = true;
       }
     }
-    return [...byCode.entries()]
+    const named = [...byCode.entries()]
       .map(([code, name]) => ({ code, name }))
       .sort((a, b) => a.name.localeCompare(b.name));
+    return hasUnmatched ? [{ code: UNMATCHED_SET_CODE, name: "Unmatched" }, ...named] : named;
   }, [results]);
 
   const filteredResults = useMemo(() => {
@@ -269,7 +280,7 @@ export default function Search() {
         (!exactMatchOnly || r.card_name.trim().toLowerCase() === needle) &&
         !barHiddenStores.has(r.store_name) &&
         !barHiddenConditions.has(r.condition) &&
-        (!r.set_code || !barHiddenSets.has(r.set_code)) &&
+        !barHiddenSets.has(r.set_code || UNMATCHED_SET_CODE) &&
         (foilFilter === "all" || (foilFilter === "foil" ? r.foil : !r.foil))
     );
   }, [

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.82.1] - 2026-09-04
+
+### Changed
+- The Set filter's rows with no resolved set now get their own "Unmatched" entry, pinned to the top of the dropdown ahead of the alphabetical real sets, instead of always being shown regardless of the filter. Unticking everything (Unmatched included) now hides everything, matching how the Store/Condition filters already behave.
+
 ## [0.82.0] - 2026-09-04
 
 ### Added
