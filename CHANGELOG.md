@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.80.2] - 2026-09-03
+
+### Changed
+- eBay's free-text set matching now also tries whole set *names* ("...Dominaria mtg Green..."), not just bare codes — using the same longest-contiguous-word-run approach as the existing card-name resolution (`carddb.py`), so a multi-word name always wins over a shorter, coincidental single-token match at the same spot (e.g. "The Brothers' War" no longer gets misread as the unrelated "War of the Spark" via a bare "War"). Still excludes whatever span the card's own name occupies first. Raised eBay's set-match rate from ~55-65% to ~85-96% across an 8-card sample with no false positives found on manual review (previous known mismatches — "Free-for-**all**"→Alliances, "Brothers' **War**"→War of the Spark — are both fixed by this change too).
+
 ## [0.80.1] - 2026-09-03
 
 ### Changed

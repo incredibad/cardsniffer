@@ -34,17 +34,26 @@ _HEADERS = {"User-Agent": "cardsniffer (github.com/timhedley/cardsniffer)", "Acc
 _EBAY_BRACKET_RE = re.compile(r"[\[(]([^\[\]()]+)[\])]")
 _LEADING_CODE_RE = re.compile(r"^[A-Za-z0-9]{2,5}")
 
-# Falling back to this after the bracket/paren check finds nothing: a bare
-# whole-word set code anywhere else in the title (e.g. "MTG Llanowar Elves
-# NM Near Mint FDN", no delimiter at all). Checked empirically against ~1,100
-# real listings across 6 staple cards before adding this — including the
-# ~5% of set codes that double as ordinary English words (war/one/all/who/
-# mar/...): true hits outnumbered false ones roughly 5 to 1 (things like
-# "ICE AGE"/"Doctor Who"/"Marvel Spider-Man" spelled out in the title
-# outnumbering stray words like "Free-for-**all**" or "Brothers' **War**"
+# Falling back to this after the bracket/paren check finds nothing: any
+# whole-word set code OR full set name appearing free-form elsewhere in the
+# title (e.g. "MTG Llanowar Elves NM Near Mint FDN", or "...Dominaria mtg
+# Green...", neither with any delimiter at all) — same longest-contiguous-
+# token-run approach as carddb.py's card-name matching, so a multi-word name
+# always wins over a shorter/coincidental single-token match at the same
+# position (e.g. "The Brothers' War" beats a bare "war" landing on the
+# wrong, similarly-worded War of the Spark). Checked empirically against
+# ~1,100 real listings across 6 staple cards before adding the bare-code
+# half of this — including the ~5% of set codes that double as ordinary
+# English words (war/one/all/who/mar/...): true hits outnumbered false ones
+# roughly 5 to 1 (things like "ICE AGE"/"Doctor Who"/"Marvel Spider-Man"
+# spelled out in the title outnumbering stray words like "Free-for-**all**"
 # landing on an unrelated, similarly-worded set) — worth the occasional
 # mislabeled row to not leave three-quarters of eBay unfiltered by set.
-_BARE_WORD_RE = re.compile(r"[A-Za-z0-9]{2,6}")
+_TOKEN_RE = re.compile(r"[a-z0-9']+")
+
+
+def _tokenize(text: str) -> tuple[str, ...]:
+    return tuple(_TOKEN_RE.findall(text.lower()))
 
 # Colloquial/vendor set names that don't match Scryfall's own canonical name
 # for the same set — confirmed live against Card Kingdom, which uses these
@@ -82,8 +91,15 @@ _NAME_ALIASES = {
     "secret lair": "secret lair drop",
 }
 
-# code -> (code, canonical name); normalized name -> (code, canonical name)
-_index: tuple[dict[str, tuple[str, str]], dict[str, tuple[str, str]]] | None = None
+# code -> (code, canonical name); normalized name -> (code, canonical name);
+# token-tuple -> (token-tuple, (code, canonical name)) bucketed by first
+# token, for the free-text longest-match scan (see _find_longest below).
+_Index = tuple[
+    dict[str, tuple[str, str]],
+    dict[str, tuple[str, str]],
+    dict[str, list[tuple[tuple[str, ...], tuple[str, str]]]],
+]
+_index: _Index | None = None
 _lock = asyncio.Lock()
 
 
@@ -91,7 +107,7 @@ def _normalize(text: str) -> str:
     return re.sub(r"\s+", " ", text or "").strip().lower()
 
 
-def _build_index(sets: list[dict]) -> tuple[dict, dict]:
+def _build_index(sets: list[dict]) -> _Index:
     by_code: dict[str, tuple[str, str]] = {}
     by_name: dict[str, tuple[str, str]] = {}
     for s in sets:
@@ -101,7 +117,42 @@ def _build_index(sets: list[dict]) -> tuple[dict, dict]:
         entry = (code.lower(), name)
         by_code.setdefault(code.lower(), entry)
         by_name.setdefault(_normalize(name), entry)
-    return by_code, by_name
+
+    token_index: dict[str, list[tuple[tuple[str, ...], tuple[str, str]]]] = {}
+
+    def add_tokens(tokens: tuple[str, ...], value: tuple[str, str]) -> None:
+        if tokens:
+            token_index.setdefault(tokens[0], []).append((tokens, value))
+
+    for normalized_name, value in by_name.items():
+        add_tokens(_tokenize(normalized_name), value)
+    for code, value in by_code.items():
+        add_tokens((code,), value)
+    for alias, target_name in _NAME_ALIASES.items():
+        target = by_name.get(target_name)
+        if target:
+            add_tokens(_tokenize(alias), target)
+
+    return by_code, by_name, token_index
+
+
+def _find_longest(
+    tokens: tuple[str, ...],
+    token_index: dict[str, list[tuple[tuple[str, ...], tuple[str, str]]]],
+) -> tuple[str, str] | None:
+    """Longest contiguous run in `tokens` matching a known set name/code/
+    alias, anywhere in the text — same approach as carddb.match_card_name,
+    so a longer, more specific match always beats a shorter one that merely
+    happens to start at the same or an earlier position."""
+    best: tuple[int, tuple[str, str]] | None = None
+    for start, token in enumerate(tokens):
+        for candidate_tokens, value in token_index.get(token, ()):
+            length = len(candidate_tokens)
+            if best is not None and length <= best[0]:
+                continue
+            if tokens[start:start + length] == candidate_tokens:
+                best = (length, value)
+    return best[1] if best else None
 
 
 def _load_cache() -> list[dict] | None:
@@ -158,7 +209,7 @@ async def match_set(raw: str | None) -> tuple[str, str] | None:
     await _ensure_index()
     if not raw or _index is None:
         return None
-    by_code, by_name = _index
+    by_code, by_name, _ = _index
     text = raw.split(" — ", 1)[0].strip()
     if not text:
         return None
@@ -175,15 +226,15 @@ async def match_set(raw: str | None) -> tuple[str, str] | None:
 async def match_set_from_ebay_title(title: str | None, card_name: str | None = None) -> tuple[str, str] | None:
     """Best-effort set match for eBay, which has no structured set field at
     all. Tries a bracketed/parenthesized set signal first (see
-    _EBAY_BRACKET_RE), then a bare whole-word set code anywhere else in the
-    title (see _BARE_WORD_RE) — excluding whatever span card_name (the
+    _EBAY_BRACKET_RE), then a free-text set code/name anywhere else in the
+    title (see _find_longest) — excluding whatever span card_name (the
     search query, which is also eBay's own card_name field — see ebay.py)
     matches, so a card whose own name happens to be/contain a code-like word
-    isn't mistaken for one."""
+    or set-name word isn't mistaken for one."""
     await _ensure_index()
     if not title or _index is None:
         return None
-    by_code, by_name = _index
+    by_code, by_name, token_index = _index
     for content in _EBAY_BRACKET_RE.findall(title):
         content = content.strip()
         code_match = _LEADING_CODE_RE.match(content)
@@ -201,8 +252,4 @@ async def match_set_from_ebay_title(title: str | None, card_name: str | None = N
         idx = title.lower().find(card_name.lower())
         if idx != -1:
             masked_title = title[:idx] + (" " * len(card_name)) + title[idx + len(card_name):]
-    for token in _BARE_WORD_RE.findall(masked_title):
-        match = by_code.get(token.lower())
-        if match:
-            return match
-    return None
+    return _find_longest(_tokenize(masked_title), token_index)
