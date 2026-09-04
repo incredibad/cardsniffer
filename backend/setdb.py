@@ -68,9 +68,57 @@ def _tokenize(text: str) -> tuple[str, ...]:
 # "Path to Exile" was only ever printed in the Commander decks (ltc), never
 # the main set (ltr), despite an eBay title just saying "...Lord Of The
 # Rings" with no "Commander" qualifier at all.
-_AMBIGUOUS_GROUPS: list[tuple[tuple[str, ...], tuple[str, ...]]] = [
+#
+# Manually curated because it's not the "one set's name is a prefix of
+# another's" case _build_prefix_ambiguities derives automatically below —
+# "The Lord of the Rings: Tales of Middle-earth" and "Tales of Middle-earth
+# Commander" don't share a common prefix, they each separately appear
+# somewhere in a title that mentions both. Add an entry here only when a
+# real case doesn't fit that automatic derivation.
+_MANUAL_AMBIGUOUS_GROUPS: list[tuple[tuple[str, ...], tuple[str, ...]]] = [
     (("lord", "of", "the", "rings"), ("ltr", "ltc")),
 ]
+
+# Structural/product-line words that make a name a "variant" of a base
+# product rather than a genuinely different, separately-sold card set —
+# excluded when deriving prefix ambiguities below, since a shopper would
+# never realistically list a Fallout *card* as just "Fallout" when it's
+# actually a Fallout *token*.
+_STRUCTURAL_NOISE_TOKENS = {
+    "tokens", "promos", "promo", "art", "series", "minigames", "oversized",
+    "substitute", "cards", "front", "display", "commanders", "timeshifts",
+    "schemes", "planes", "extras", "sticker", "sheets", "box", "launch",
+    "party", "clash", "pack",
+}
+
+
+def _build_prefix_ambiguities(sets: list[dict]) -> list[tuple[tuple[str, ...], tuple[str, ...]]]:
+    """Bloomburrow/Bloomburrow Commander, Commander Legends/Commander
+    Legends: Battle for Baldur's Gate, Foundations/Foundations Commander,
+    Kaldheim/Kaldheim Commander, ... — a real, commonly-sold set whose name
+    is a token-for-token prefix of another real, commonly-sold set's name is
+    exactly the shape of bug this fixes: a title mentioning the shorter
+    set's exact name in one place and the longer set's own code in another
+    (e.g. "...Commander Legends CLB...") can otherwise resolve to the
+    shorter/wrong one, since its match is textually shorter but still counts
+    as *a* match. Derived from Scryfall's own set list — a base name shared
+    by 2+ non-variant sets — rather than hand-listing every such pair, so a
+    new set sharing a name with an older one is covered automatically the
+    next time the set cache refreshes."""
+    def is_main_product(tokens: tuple[str, ...]) -> bool:
+        return not (set(tokens) & _STRUCTURAL_NOISE_TOKENS)
+
+    entries = [
+        (_tokenize(s.get("name", "")), s.get("code"))
+        for s in sets
+        if s.get("code") and s.get("name") and is_main_product(_tokenize(s["name"]))
+    ]
+    groups: dict[tuple[str, ...], set[str]] = {}
+    for tokens_a, code_a in entries:
+        for tokens_b, code_b in entries:
+            if code_a != code_b and 0 < len(tokens_a) < len(tokens_b) and tokens_b[:len(tokens_a)] == tokens_a:
+                groups.setdefault(tokens_a, set()).update((code_a, code_b))
+    return [(base, tuple(codes)) for base, codes in groups.items() if len(codes) >= 2]
 
 _CARDS_SEARCH_URL = "https://api.scryfall.com/cards/search"
 # card name -> set of codes it's ever been printed in, or None if the
@@ -116,21 +164,38 @@ async def _printings_for_card(card_name: str) -> set[str] | None:
         return codes
 
 
-async def _resolve_ambiguous_group(tokens: tuple[str, ...], card_name: str | None) -> tuple[str, str] | None:
+async def _resolve_ambiguous_group(
+    tokens: tuple[str, ...],
+    card_name: str | None,
+    normal_match: tuple[str, str] | None,
+) -> tuple[str, str] | None:
+    """Called *after* the normal exact-name/token-scan match, with whatever
+    that already found (or None) — not a first-resort check, because it
+    only has authority to intervene when the normal match is itself one of
+    the ambiguous candidates. Without that guard, a phrase like "foundations"
+    would also fire on a title that already correctly resolved to the more
+    specific "Foundations Promos" (not a candidate in the Foundations vs.
+    Foundations Commander group at all), incorrectly overriding a good,
+    more specific answer with the group's own per-card check. Returns
+    normal_match unchanged whenever no group both matches the text *and*
+    actually has standing to weigh in on it."""
     if not card_name:
-        return None
-    for phrase, candidates in _AMBIGUOUS_GROUPS:
+        return normal_match
+    for phrase, candidates in _MANUAL_AMBIGUOUS_GROUPS + (_prefix_ambiguities or []):
         if not _contains_phrase(tokens, phrase):
             continue
+        if normal_match is not None and normal_match[0] not in candidates:
+            continue  # a different, more specific match already stands
         printings = await _printings_for_card(card_name)
         if not printings:
-            return None
+            continue
         printed_in = [c for c in candidates if c in printings]
-        if len(printed_in) != 1:
-            return None  # 0 or 2+ candidates actually printed it — still ambiguous
-        by_code, _, _ = _index
-        return by_code.get(printed_in[0])
-    return None
+        if len(printed_in) == 1:
+            by_code, _, _ = _index
+            return by_code.get(printed_in[0])
+        # 0 or 2+ candidates actually printed it — still ambiguous for this
+        # group; keep checking the rest rather than giving up immediately.
+    return normal_match
 
 # Colloquial/vendor set names that don't match Scryfall's own canonical name
 # for the same set — confirmed live against Card Kingdom, which uses these
@@ -255,6 +320,14 @@ _NAME_ALIASES = {
     # in (see module docstring on why structured-store text carries much
     # less false-positive risk than eBay's free-running prose does).
     "revised": "revised edition",
+    # Hareruya's own name for this set drops Scryfall's own "/ Edgar"
+    # suffix (a 1994 recalled/reprinted-as Revised Edition oddity — a core
+    # set in its own right per Scryfall's set_type, not a promo giveaway,
+    # so it belongs here rather than the Promotional bucket).
+    "summer magic": "summer magic / edgar",
+    # eBay sellers drop the "Commander Legends:" prefix entirely — no other
+    # set is Battle for Baldur's Gate-anything, so no ambiguity in restoring it.
+    "battle for baldur's gate": "commander legends: battle for baldur's gate",
 }
 
 # Aliases that only make sense as a match on a store's *entire* structured
@@ -384,6 +457,7 @@ _Index = tuple[
 _index: _Index | None = None
 _promo_families: set[tuple[str, ...]] | None = None
 _promo_family_codes: set[str] | None = None
+_prefix_ambiguities: list[tuple[tuple[str, ...], tuple[str, ...]]] | None = None
 _lock = asyncio.Lock()
 
 
@@ -472,7 +546,7 @@ async def _fetch_and_cache() -> list[dict] | None:
 
 
 async def _ensure_index() -> None:
-    global _index, _promo_families, _promo_family_codes
+    global _index, _promo_families, _promo_family_codes, _prefix_ambiguities
     if _index is not None:
         return
     async with _lock:
@@ -484,6 +558,7 @@ async def _ensure_index() -> None:
         if sets is not None:
             _index = _build_index(sets)
             _promo_families, _promo_family_codes = _build_promo_families(sets)
+            _prefix_ambiguities = _build_prefix_ambiguities(sets)
 
 
 async def match_set_code_hint(hint: str | None) -> tuple[str, str] | None:
@@ -505,13 +580,7 @@ async def match_set(raw: str | None, card_name: str | None = None) -> tuple[str,
     docstring) — returns (code, canonical_name), or None if nothing in
     Scryfall's set list matches.
 
-    Checks _resolve_ambiguous_group first (see its own docstring) — an
-    authoritative per-card answer, so it takes priority even over an exact
-    full-string match: a title can legitimately contain a whole *wrong* set's
-    exact name verbatim (e.g. "Commander: The Lord of the Rings: Tales of
-    Middle-earth" naming the main set precisely while actually describing a
-    Commander-deck-exclusive printing that was never in that set at all).
-    Then tries an exact (alias-normalized) full-string match, then a bare
+    Tries an exact (alias-normalized) full-string match first, then a bare
     code, then falls back to the same free-text longest-word-run scan eBay's
     title matching uses (see match_set_from_ebay_title) — several stores
     don't use Scryfall's exact set name verbatim: a branding prefix Scryfall
@@ -521,10 +590,17 @@ async def match_set(raw: str | None, card_name: str | None = None) -> tuple[str,
     something else with a dash (Hareruya's "CMR-BF"). Structured retailer
     text carries much less of the false-positive risk eBay's free-text
     titles do, so this runs unconditionally rather than only as a last
-    resort. Last resort proper is _resolve_promo_family — recognizes a
-    known year-ambiguous promo campaign (or store's own generic
-    "Promotional"/"Promo" bucket) even when nothing above could pin down
-    a specific set."""
+    resort. Whatever that finds (or doesn't) then goes through
+    _resolve_ambiguous_group, which can still override it — a title can
+    legitimately contain a whole *wrong* set's exact name verbatim (e.g.
+    "Commander: The Lord of the Rings: Tales of Middle-earth" naming the
+    main set precisely while actually describing a Commander-deck-exclusive
+    printing never in that set at all) — but only when the match so far is
+    itself one of the ambiguous candidates; see that function's own
+    docstring for why it isn't a first-resort check. Last resort proper is
+    _resolve_promo_family — recognizes a known year-ambiguous promo
+    campaign (or store's own generic "Promotional"/"Promo" bucket) even
+    when nothing above could pin down a specific set."""
     await _ensure_index()
     if not raw or _index is None:
         return None
@@ -534,20 +610,15 @@ async def match_set(raw: str | None, card_name: str | None = None) -> tuple[str,
         return None
 
     tokens = _tokenize(raw)
-    match = await _resolve_ambiguous_group(tokens, card_name)
-    if match:
-        return match
-
     normalized = _normalize(text)
     normalized = _NAME_ALIASES.get(normalized, _EXACT_ONLY_ALIASES.get(normalized, normalized))
     match = by_name.get(normalized)
-    if match:
-        return match
-    if re.fullmatch(r"[A-Za-z0-9]{2,6}", text):
+    if not match and re.fullmatch(r"[A-Za-z0-9]{2,6}", text):
         match = by_code.get(text.lower())
-        if match:
-            return match
-    match = _find_longest(tokens, token_index)
+    if not match:
+        match = _find_longest(tokens, token_index)
+
+    match = await _resolve_ambiguous_group(tokens, card_name, match)
     if match:
         return match
     return _resolve_promo_family(tokens)
@@ -556,31 +627,32 @@ async def match_set(raw: str | None, card_name: str | None = None) -> tuple[str,
 async def match_set_from_ebay_title(title: str | None, card_name: str | None = None) -> tuple[str, str] | None:
     """Best-effort set match for eBay, which has no structured set field at
     all. Tries a bracketed/parenthesized set signal first (see
-    _EBAY_BRACKET_RE) — an explicit, deliberate signal from the seller, so it
-    still wins over everything else including _resolve_ambiguous_group's
-    authoritative per-card check. Failing that, checks _resolve_ambiguous_group
-    (see match_set's own docstring on why it runs before the free-text scan),
-    then falls back to a free-text set code/name anywhere else in the title
-    (see _find_longest) — excluding whatever span card_name (the search
-    query, which is also eBay's own card_name field — see ebay.py) matches,
-    so a card whose own name happens to be/contain a code-like word or
-    set-name word isn't mistaken for one. Last resort is _resolve_promo_
-    family, same as match_set's own final fallback."""
+    _EBAY_BRACKET_RE) — an explicit, deliberate signal from the seller — then
+    falls back to a free-text set code/name anywhere else in the title (see
+    _find_longest), excluding whatever span card_name (the search query,
+    which is also eBay's own card_name field — see ebay.py) matches, so a
+    card whose own name happens to be/contain a code-like word or set-name
+    word isn't mistaken for one. Whatever either of those find (or doesn't)
+    then goes through _resolve_ambiguous_group — see match_set's own
+    docstring on why it runs after, as a correction, rather than first.
+    Last resort is _resolve_promo_family, same as match_set's own final
+    fallback."""
     await _ensure_index()
     if not title or _index is None:
         return None
     by_code, by_name, token_index = _index
+    match = None
     for content in _EBAY_BRACKET_RE.findall(title):
         content = content.strip()
         code_match = _LEADING_CODE_RE.match(content)
         if code_match:
             match = by_code.get(code_match.group(0).lower())
             if match:
-                return match
+                break
         normalized = _NAME_ALIASES.get(_normalize(content), _normalize(content))
         match = by_name.get(normalized)
         if match:
-            return match
+            break
 
     masked_title = title
     if card_name:
@@ -588,10 +660,10 @@ async def match_set_from_ebay_title(title: str | None, card_name: str | None = N
         if idx != -1:
             masked_title = title[:idx] + (" " * len(card_name)) + title[idx + len(card_name):]
     tokens = _tokenize(masked_title)
-    match = await _resolve_ambiguous_group(tokens, card_name)
-    if match:
-        return match
-    match = _find_longest(tokens, token_index)
+    if not match:
+        match = _find_longest(tokens, token_index)
+
+    match = await _resolve_ambiguous_group(tokens, card_name, match)
     if match:
         return match
     return _resolve_promo_family(tokens)

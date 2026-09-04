@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented here.
 
+## [0.86.0] - 2026-09-04
+
+### Fixed
+- Two more real gaps caught by manual testing: "Summer Magic" (Hareruya) now resolves to its real set (Summer Magic / Edgar) — a fix identified earlier in this project but never actually implemented until now. And Scryfall's own `set_type: "core"` confirms it's a genuine 1994 core set, not a promo giveaway, so it belongs as its own resolved set rather than the Promotional bucket.
+- A systemic bug affecting any pair of real sets sharing a name prefix (e.g. "Commander Legends" vs "Commander Legends: Battle for Baldur's Gate") — a title mentioning the shorter set's exact name in one place and the longer set's own code elsewhere (e.g. "...Commander Legends CLB...") could resolve to the shorter, wrong set, since a full-name match still counts as *a* match even when a more specific code is also present. Found via "Neera, Wild Mage" (clb-exclusive) showing as plain "Commander Legends" on eBay. Checked how widespread this was: filtering Scryfall's set list down to genuinely competing (non-token/promo/art-variant) products turned up 57 such pairs, roughly half of them this exact "Main Set vs. its own Commander deck" shape.
+- The fix derives these pairs automatically from Scryfall's own set list (name-prefix relationships, excluding token/promo/art variants) rather than hand-listing them, feeding the existing per-card Scryfall-printings disambiguation (_resolve_ambiguous_group, added for the earlier Lord of the Rings fix). That function also had to move from a first-resort check to a corrective one run *after* the normal match — running first was itself a regression risk, caught during this same testing pass: it would override an already-correct, more specific match (a title saying "Foundations Promos" was resolving to the less specific "Foundations Commander") whenever its trigger phrase merely appeared in the text, regardless of whether a better match already existed. Now it only intervenes when the normal match is itself one of the ambiguous candidates.
+- Also added: bare "Battle for Baldur's Gate" (dropping the "Commander Legends:" prefix) as an unambiguous alias.
+
 ## [0.85.2] - 2026-09-04
 
 ### Changed
