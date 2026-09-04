@@ -345,6 +345,14 @@ _NAME_ALIASES = {
     # but keeps "Commander:" — still no other Baldur's Gate-anything set to
     # be ambiguous with.
     "commander: baldur's gate": "commander legends: battle for baldur's gate",
+    # Hareruya appends the release year to the code for clarity ("CMA17" —
+    # confirmed live, Commander Anthology released 2017, distinguishing it
+    # from Commander Anthology Volume II's own 2018) — unambiguous, not the
+    # bare "Commander Anthology" name a Volume II printing could also match.
+    "cma17": "commander anthology",
+    # eBay drops the "House of Horror" middle — still the only "Duskmourn
+    # Commander"-shaped set, no ambiguity in restoring it.
+    "duskmourn commander": "duskmourn: house of horror commander",
 }
 
 # Aliases that only make sense as a match on a store's *entire* structured

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.86.3] - 2026-09-04
+
+### Fixed
+- Two more gaps found via manual "Command Tower" testing: Hareruya's "CMA17" now resolves to Commander Anthology (confirmed live it released in 2017, distinguishing it from Commander Anthology Volume II's own 2018 — Hareruya appends the release year to the code for clarity). eBay's "Duskmourn Commander" (dropping the "House of Horror" middle) now resolves to Duskmourn: House of Horror Commander.
+
 ## [0.86.2] - 2026-09-04
 
 ### Fixed
