@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.87.0] - 2026-09-04
+
+### Fixed
+- eBay set matching could mislabel a Universes Beyond flavor-named card searched by its real name (e.g. "Fatal Push", flavor-texted "Battle at the Big Bridge" in the Final Fantasy crossover) — the masking that excludes the card's own name from the free-text scan only knew the literal searched name, leaving the flavor name's words free to coincidentally collide with an unrelated real set code/name (confirmed live: "Big Bridge" resolving to the set "The Big Score", since "Big" is also a real Scryfall code). Now also masks any known flavor name for the searched card, via a new reverse lookup (`carddb.flavor_names_for`) built on the same Scryfall data already cached for card-name resolution — no new fetch needed.
+
 ## [0.86.3] - 2026-09-04
 
 ### Fixed

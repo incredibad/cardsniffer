@@ -43,6 +43,14 @@ _TOKEN_RE = re.compile(r"[a-z0-9']+")
 # token-tuple -> canonical name, bucketed by first token for a fast narrow-down
 # instead of scanning every one of the ~40k known names per lookup.
 _index: dict[str, list[tuple[tuple[str, ...], str]]] | None = None
+# The reverse of the flavor half of _index — normalized real name -> its
+# known flavor name(s) — for masking a flavor name out of a title the same
+# way the literal searched name already is (see setdb.match_set_from_ebay_
+# title), so a Universes Beyond flavor-named card's own flavor text (e.g.
+# "Battle at the Big Bridge" for "Fatal Push") doesn't accidentally read as
+# unrelated set info just because one of its words happens to coincide with
+# a real Scryfall set code/name.
+_reverse_flavor_index: dict[str, list[str]] | None = None
 _lock = asyncio.Lock()
 
 
@@ -145,6 +153,17 @@ def _build_index(
     return index
 
 
+def _normalize(text: str) -> str:
+    return re.sub(r"\s+", " ", text or "").strip().lower()
+
+
+def _build_reverse_flavor_index(flavor_pairs: list[list[str]]) -> dict[str, list[str]]:
+    reverse: dict[str, list[str]] = {}
+    for flavor, real in flavor_pairs:
+        reverse.setdefault(_normalize(real), []).append(flavor)
+    return reverse
+
+
 def _load_cache() -> dict | None:
     if not os.path.exists(_CACHE_PATH):
         return None
@@ -178,7 +197,7 @@ async def _fetch_and_cache() -> dict | None:
 
 
 async def _ensure_index() -> None:
-    global _index
+    global _index, _reverse_flavor_index
     if _index is not None:
         return
     async with _lock:
@@ -188,12 +207,24 @@ async def _ensure_index() -> None:
         try:
             if cache is not None:
                 _index = _build_index(cache["names"], cache["flavors"])
+                _reverse_flavor_index = _build_reverse_flavor_index(cache["flavors"])
                 return
         except (KeyError, TypeError):
             logger.warning("carddb: on-disk cache is an older/incompatible format, refetching")
         cache = await _fetch_and_cache()
         if cache is not None:
             _index = _build_index(cache["names"], cache["flavors"])
+            _reverse_flavor_index = _build_reverse_flavor_index(cache["flavors"])
+
+
+async def flavor_names_for(real_name: str) -> list[str]:
+    """Known Universes Beyond flavor name(s) for a real card name (e.g.
+    "Megatron" for "Blightsteel Colossus"), or [] if it has none/the index
+    isn't available. See _reverse_flavor_index's own comment for why."""
+    await _ensure_index()
+    if _reverse_flavor_index is None:
+        return []
+    return _reverse_flavor_index.get(_normalize(real_name), [])
 
 
 async def match_card_name(text: str) -> str | None:

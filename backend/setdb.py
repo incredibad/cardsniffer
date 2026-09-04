@@ -20,6 +20,8 @@ import time
 
 import httpx
 
+import carddb
+
 logger = logging.getLogger(__name__)
 
 _CACHE_PATH = "/data/set_names_cache.json"
@@ -146,6 +148,13 @@ _printings_lock = asyncio.Lock()
 def _contains_phrase(tokens: tuple[str, ...], phrase: tuple[str, ...]) -> bool:
     n = len(phrase)
     return any(tokens[i:i + n] == phrase for i in range(len(tokens) - n + 1))
+
+
+def _mask_first_occurrence(text: str, needle: str) -> str:
+    idx = text.lower().find(needle.lower())
+    if idx == -1:
+        return text
+    return text[:idx] + (" " * len(needle)) + text[idx + len(needle):]
 
 
 async def _printings_for_card(card_name: str) -> set[str] | None:
@@ -702,9 +711,15 @@ async def match_set_from_ebay_title(title: str | None, card_name: str | None = N
 
     masked_title = title
     if card_name:
-        idx = title.lower().find(card_name.lower())
-        if idx != -1:
-            masked_title = title[:idx] + (" " * len(card_name)) + title[idx + len(card_name):]
+        masked_title = _mask_first_occurrence(masked_title, card_name)
+        # A Universes Beyond flavor-named card (e.g. "Fatal Push" flavor-
+        # texted "Battle at the Big Bridge") gets titled after either name —
+        # mask a known flavor name too, so its own words can't coincidentally
+        # collide with an unrelated real set code/name (confirmed live:
+        # "Big Bridge" resolving to the set "The Big Score" off the bare
+        # word "Big", which is also a real Scryfall code).
+        for flavor_name in await carddb.flavor_names_for(card_name):
+            masked_title = _mask_first_occurrence(masked_title, flavor_name)
     tokens = _tokenize(masked_title)
     if not match:
         match = _find_longest(tokens, token_index)
