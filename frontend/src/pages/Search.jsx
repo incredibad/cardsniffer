@@ -27,6 +27,12 @@ const CONDITION_OPTIONS = ["NM", "SP", "LP", "MP", "HP", "DMG"];
 // as the Store/Condition filters already behave.
 const UNMATCHED_SET_CODE = "__unmatched__";
 
+// Matches setdb.py's own _PROMO_CODE — a genuinely unresolvable-to-one-set
+// row (a known year-ambiguous promo campaign, or a store's own generic
+// "Promotional"/"Promo" bucket) still gets its own filterable entry rather
+// than falling into the fully-generic "Unmatched" bucket above.
+const PROMOTIONAL_SET_CODE = "__promo__";
+
 // Lazy-rendering batch size — mounting hundreds of image-heavy cards at once
 // is what actually stresses a mobile device, not the fetch itself (one JSON
 // response either way). Filters/sort still run over the full result set;
@@ -250,10 +256,12 @@ export default function Search() {
   }
 
   // Dynamic, not a fixed list like CONDITION_OPTIONS — which sets are even
-  // possible depends entirely on the query. An "Unmatched" pseudo-entry is
-  // pinned to the top (ahead of the alphabetical real sets) whenever any
-  // row's set couldn't be resolved, so it's filterable like any other set
-  // rather than a row that's always shown regardless of filter state.
+  // possible depends entirely on the query. "Unmatched" and "Promotional"
+  // pseudo-entries are pinned to the top (ahead of the alphabetical real
+  // sets, in that order) whenever present, each filterable like any other
+  // set rather than a row that's always shown regardless of filter state.
+  // pinnedCount tells the render side where to draw the divider between
+  // them and the real sets.
   const setOptions = useMemo(() => {
     const byCode = new Map();
     let hasUnmatched = false;
@@ -264,10 +272,18 @@ export default function Search() {
         hasUnmatched = true;
       }
     }
+    const hasPromotional = byCode.has(PROMOTIONAL_SET_CODE);
+    byCode.delete(PROMOTIONAL_SET_CODE);
     const named = [...byCode.entries()]
       .map(([code, name]) => ({ code, name }))
       .sort((a, b) => a.name.localeCompare(b.name));
-    return hasUnmatched ? [{ code: UNMATCHED_SET_CODE, name: "Unmatched" }, ...named] : named;
+    const pinned = [
+      ...(hasUnmatched ? [{ code: UNMATCHED_SET_CODE, name: "Unmatched" }] : []),
+      ...(hasPromotional ? [{ code: PROMOTIONAL_SET_CODE, name: "Promotional" }] : []),
+    ];
+    const options = [...pinned, ...named];
+    options.pinnedCount = pinned.length;
+    return options;
   }, [results]);
 
   const filteredResults = useMemo(() => {
@@ -656,14 +672,24 @@ export default function Search() {
                 onSelectAll={() => setBarHiddenSets(new Set())}
                 onSelectNone={() => setBarHiddenSets(new Set(setOptions.map((o) => o.code)))}
               >
-                {setOptions.map((option) => (
-                  <FilterDropdownOption
-                    key={option.code}
-                    label={option.name}
-                    checked={!barHiddenSets.has(option.code)}
-                    onChange={() => toggleSetMember(setBarHiddenSets, option.code)}
-                  />
-                ))}
+                {setOptions.flatMap((option, i) => {
+                  const row = (
+                    <FilterDropdownOption
+                      key={option.code}
+                      label={option.name}
+                      checked={!barHiddenSets.has(option.code)}
+                      onChange={() => toggleSetMember(setBarHiddenSets, option.code)}
+                    />
+                  );
+                  // Divider right after the last pinned (Unmatched/
+                  // Promotional) entry, separating it from the real sets —
+                  // only when there's at least one of each to separate.
+                  const needsDivider =
+                    i === setOptions.pinnedCount - 1 && setOptions.pinnedCount < setOptions.length;
+                  return needsDivider
+                    ? [row, <div key={`${option.code}-divider`} className="my-1.5 border-t border-slate-200 dark:border-zinc-800" />]
+                    : [row];
+                })}
               </FilterDropdown>
             );
 

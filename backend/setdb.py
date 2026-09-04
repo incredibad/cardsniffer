@@ -261,6 +261,67 @@ _EXACT_ONLY_ALIASES = {
     "commander": "commander 2011",
 }
 
+# Wizards runs the same promo campaign (MagicFest, Judge Gift Cards, Friday
+# Night Magic, Arena League, Wizards Play Network, ...) under a fresh
+# year-suffixed set every year — a bare mention of the campaign name alone
+# genuinely can't say which year without more information than any store
+# gives us. Rather than a hand-maintained list of campaign names that'd need
+# a new entry every time Wizards runs one for another year, _build_promo_
+# families derives the whole set of these campaigns straight from Scryfall's
+# own set list — group by name with any leading/trailing year token
+# stripped, keep groups with 2+ real sets. A brand new year's promo set is
+# covered automatically the next time the set cache refreshes, no code
+# change needed.
+_YEAR_RE = re.compile(r"(19|20)\d{2}")
+
+# Single-token bases excluded from that derivation — not campaign data (that
+# part's fully automatic above), just a small, stable safety guard: a base
+# this short is either the format name itself ("Commander") or a word common
+# enough ("Magic", "Starter") to turn up in nearly every unrelated listing,
+# unlike a distinctive coined term ("MagicFest") a bare mention of which
+# only ever means the one thing.
+_GENERIC_SINGLE_TOKEN_BASES = {"magic", "commander", "starter"}
+
+# Store-side umbrella words for "this is definitely some kind of promotional
+# print, exact source unknown" that don't correspond to any Scryfall set name
+# at all, so can't be derived the way the year-split campaigns above are —
+# Card Kingdom/Star City Games's own generic "Promotional"/"Promo" category
+# text, and Hareruya's "Gateway" (Wizards' pre-2011 promo program; confirmed
+# live that no set called "Gateway" exists on Scryfall at all, unlike every
+# other promo campaign checked here — apparently folded away or renamed
+# entirely on Scryfall's side).
+_PROMO_UMBRELLA_WORDS = {"promotional", "promo", "gateway"}
+_PROMO_CODE = ("__promo__", "Promotional")
+
+
+def _build_promo_families(sets: list[dict]) -> set[tuple[str, ...]]:
+    families: dict[tuple[str, ...], set[str]] = {}
+    for s in sets:
+        tokens = _tokenize(s.get("name", ""))
+        code = s.get("code")
+        if not tokens or not code:
+            continue
+        if _YEAR_RE.fullmatch(tokens[-1]):
+            base = tokens[:-1]
+        elif _YEAR_RE.fullmatch(tokens[0]):
+            base = tokens[1:]
+        else:
+            continue
+        if not base or (len(base) == 1 and base[0] in _GENERIC_SINGLE_TOKEN_BASES):
+            continue
+        families.setdefault(base, set()).add(code)
+    return {base for base, codes in families.items() if len(codes) >= 2}
+
+
+def _resolve_promo_family(tokens: tuple[str, ...]) -> tuple[str, str] | None:
+    if any(t in _PROMO_UMBRELLA_WORDS for t in tokens):
+        return _PROMO_CODE
+    for base in _promo_families or ():
+        if _contains_phrase(tokens, base):
+            return _PROMO_CODE
+    return None
+
+
 # code -> (code, canonical name); normalized name -> (code, canonical name);
 # token-tuple -> (token-tuple, (code, canonical name)) bucketed by first
 # token, for the free-text longest-match scan (see _find_longest below).
@@ -270,6 +331,7 @@ _Index = tuple[
     dict[str, list[tuple[tuple[str, ...], tuple[str, str]]]],
 ]
 _index: _Index | None = None
+_promo_families: set[tuple[str, ...]] | None = None
 _lock = asyncio.Lock()
 
 
@@ -358,7 +420,7 @@ async def _fetch_and_cache() -> list[dict] | None:
 
 
 async def _ensure_index() -> None:
-    global _index
+    global _index, _promo_families
     if _index is not None:
         return
     async with _lock:
@@ -369,6 +431,7 @@ async def _ensure_index() -> None:
             sets = await _fetch_and_cache()
         if sets is not None:
             _index = _build_index(sets)
+            _promo_families = _build_promo_families(sets)
 
 
 async def match_set_code_hint(hint: str | None) -> tuple[str, str] | None:
@@ -406,7 +469,10 @@ async def match_set(raw: str | None, card_name: str | None = None) -> tuple[str,
     something else with a dash (Hareruya's "CMR-BF"). Structured retailer
     text carries much less of the false-positive risk eBay's free-text
     titles do, so this runs unconditionally rather than only as a last
-    resort."""
+    resort. Last resort proper is _resolve_promo_family — recognizes a
+    known year-ambiguous promo campaign (or store's own generic
+    "Promotional"/"Promo" bucket) even when nothing above could pin down
+    a specific set."""
     await _ensure_index()
     if not raw or _index is None:
         return None
@@ -429,7 +495,10 @@ async def match_set(raw: str | None, card_name: str | None = None) -> tuple[str,
         match = by_code.get(text.lower())
         if match:
             return match
-    return _find_longest(tokens, token_index)
+    match = _find_longest(tokens, token_index)
+    if match:
+        return match
+    return _resolve_promo_family(tokens)
 
 
 async def match_set_from_ebay_title(title: str | None, card_name: str | None = None) -> tuple[str, str] | None:
@@ -443,7 +512,8 @@ async def match_set_from_ebay_title(title: str | None, card_name: str | None = N
     (see _find_longest) — excluding whatever span card_name (the search
     query, which is also eBay's own card_name field — see ebay.py) matches,
     so a card whose own name happens to be/contain a code-like word or
-    set-name word isn't mistaken for one."""
+    set-name word isn't mistaken for one. Last resort is _resolve_promo_
+    family, same as match_set's own final fallback."""
     await _ensure_index()
     if not title or _index is None:
         return None
@@ -472,4 +542,4 @@ async def match_set_from_ebay_title(title: str | None, card_name: str | None = N
     match = _find_longest(tokens, token_index)
     if match:
         return match
-    return await _resolve_ambiguous_group(tokens, card_name)
+    return _resolve_promo_family(tokens)

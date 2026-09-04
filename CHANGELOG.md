@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.85.0] - 2026-09-04
+
+### Added
+- Rows whose set can't be pinned to one specific Scryfall set but are still recognizably *some kind of promo* (Card Kingdom's "Promotional", Star City Games's "Promo", Hareruya's "MagicFest"/"Gateway"/etc.) now resolve to a dedicated "Promotional" pseudo-set instead of falling into the fully-generic "Unmatched" bucket. Shows up as its own entry in the Set filter, pinned second (right after "Unmatched"), with a divider separating both pinned entries from the real, alphabetically-sorted sets.
+- The year-ambiguous promo campaigns (MagicFest, Wizards Play Network, Judge Gift Cards, Friday Night Magic, Arena League, ...) driving this are derived automatically from Scryfall's own set list — grouped by name with any leading/trailing year stripped, keeping groups of 2+ real sets — rather than a hand-maintained campaign list, so a new year's promo set is covered the next time the set cache refreshes with no code change needed. A small, stable safety exclusion keeps single-token bases that are also common English/format words ("Magic", "Commander", "Starter") out of this derivation, since a bare mention of one of those turns up constantly in unrelated listings, unlike a distinctive coined term like "MagicFest".
+
 ## [0.84.1] - 2026-09-04
 
 ### Fixed
