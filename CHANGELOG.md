@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.86.2] - 2026-09-04
+
+### Fixed
+- More Hareruya gaps found via manual "Sol Ring" testing: "FtV:Relics" now resolves to its real set (From the Vault: Relics), and "Buy a Box Card"/"Other Event anniversary" now bucket into "Promotional" — both are genuinely tied to whichever set's release they came from (no dedicated Scryfall set exists for Buy-a-Box promos at all; anniversary promos span several distinct campaigns), so a bare mention alone can't say which. Hareruya now at 168/168 (100%) on this search.
+
 ## [0.86.1] - 2026-09-04
 
 ### Fixed

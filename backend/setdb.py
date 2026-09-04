@@ -322,6 +322,7 @@ _NAME_ALIASES = {
     # Hareruya's own abbreviations for two Duel Decks-family products.
     "evt": "duel decks: elspeth vs. tezzeret",
     "ftv:twenty": "from the vault: twenty",
+    "ftv:relics": "from the vault: relics",
     # eBay's own phrasing — spells the year as a digit rather than Scryfall's
     # own spelled-out "Twenty", and drops the colon.
     "from the vault 20": "from the vault: twenty",
@@ -409,6 +410,13 @@ _GENERIC_SINGLE_TOKEN_BASES = {"magic", "commander", "starter"}
 #     real 1990s Pro Tour players' names, e.g. "Mark Justice", "George
 #     Baxter"), a different textual signal than "World Championships" above
 #     for the same underlying year-ambiguous family.
+#   - "Buy a Box Card" (Hareruya) — Buy-a-Box promos are tied to whichever
+#     set's box the purchase came with, catalogued under that release's own
+#     Promos set (no dedicated "Buy a Box" set exists on Scryfall at all —
+#     confirmed live), so a bare mention alone can't say which release.
+#   - "Anniversary" (Hareruya's "Other Event anniversary") — Wizards has run
+#     several distinct anniversary promo campaigns (15th, 30th, ...), each
+#     its own set(s); a bare mention doesn't say which.
 _MANUAL_PROMO_PHRASES: set[tuple[str, ...]] = {
     ("promotional",),
     ("promo",),
@@ -417,6 +425,8 @@ _MANUAL_PROMO_PHRASES: set[tuple[str, ...]] = {
     ("judge",),
     ("rewards",),
     ("gold", "frame"),
+    ("buy", "a", "box"),
+    ("anniversary",),
 }
 _PROMO_CODE = ("__promo__", "Promotional")
 
