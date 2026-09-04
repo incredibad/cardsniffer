@@ -242,6 +242,19 @@ _NAME_ALIASES = {
     # Only one set is ever called "Source Material" — a Universes Beyond
     # crossover naming convention that happens to only have one example.
     "source material": "teenage mutant ninja turtles source material",
+    # Hareruya's own abbreviations for two Duel Decks-family products.
+    "evt": "duel decks: elspeth vs. tezzeret",
+    "ftv:twenty": "from the vault: twenty",
+    # eBay's own phrasing — spells the year as a digit rather than Scryfall's
+    # own spelled-out "Twenty", and drops the colon.
+    "from the vault 20": "from the vault: twenty",
+    # "Revised" is the near-universal collectors' shorthand for this set —
+    # same precedent as "Alpha"/"Beta"/"Unlimited" below, all real English
+    # words that are also each the settled colloquial name for one specific
+    # old set, no ambiguity in the MTG-listing context this only ever runs
+    # in (see module docstring on why structured-store text carries much
+    # less false-positive risk than eBay's free-running prose does).
+    "revised": "revised edition",
 }
 
 # Aliases that only make sense as a match on a store's *entire* structured
@@ -282,15 +295,30 @@ _YEAR_RE = re.compile(r"(19|20)\d{2}")
 # only ever means the one thing.
 _GENERIC_SINGLE_TOKEN_BASES = {"magic", "commander", "starter"}
 
-# Store-side umbrella words for "this is definitely some kind of promotional
-# print, exact source unknown" that don't correspond to any Scryfall set name
-# at all, so can't be derived the way the year-split campaigns above are —
-# Card Kingdom/Star City Games's own generic "Promotional"/"Promo" category
-# text, and Hareruya's "Gateway" (Wizards' pre-2011 promo program; confirmed
-# live that no set called "Gateway" exists on Scryfall at all, unlike every
-# other promo campaign checked here — apparently folded away or renamed
-# entirely on Scryfall's side).
-_PROMO_UMBRELLA_WORDS = {"promotional", "promo", "gateway"}
+# Manual supplement to the auto-derived families above, for cases that don't
+# (and mostly can't) derive automatically:
+#   - Card Kingdom/Star City Games's own generic "Promotional"/"Promo"
+#     category text, and Hareruya's "Gateway" (Wizards' pre-2011 promo
+#     program; confirmed live that no set called "Gateway" exists on
+#     Scryfall at all, unlike every other promo campaign checked here —
+#     apparently folded away or renamed entirely on Scryfall's side).
+#   - "World Championships" (Card Kingdom/SCG) — Scryfall's own name is the
+#     singular "World Championship Decks", which *would* auto-derive as a
+#     family (8 real sets share it once the year's stripped), but the
+#     stores' plural wording doesn't tokenize to the same phrase.
+#   - "Judge" — bare "Judge"/"Judge Foil" (Hareruya) doesn't tokenize to
+#     Scryfall's own "Judge Gift Cards" family base either. Deliberately not
+#     resolved to a specific year the way most other aliases in this file
+#     are — Judge promos are a genuinely different card back/border/rarity
+#     for the same card each year, so there's no way to tell which year a
+#     given copy is from without more than a store category name to go on.
+_MANUAL_PROMO_PHRASES: set[tuple[str, ...]] = {
+    ("promotional",),
+    ("promo",),
+    ("gateway",),
+    ("world", "championships"),
+    ("judge",),
+}
 _PROMO_CODE = ("__promo__", "Promotional")
 
 
@@ -314,9 +342,7 @@ def _build_promo_families(sets: list[dict]) -> set[tuple[str, ...]]:
 
 
 def _resolve_promo_family(tokens: tuple[str, ...]) -> tuple[str, str] | None:
-    if any(t in _PROMO_UMBRELLA_WORDS for t in tokens):
-        return _PROMO_CODE
-    for base in _promo_families or ():
+    for base in (_promo_families or set()) | _MANUAL_PROMO_PHRASES:
         if _contains_phrase(tokens, base):
             return _PROMO_CODE
     return None

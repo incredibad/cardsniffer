@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.85.1] - 2026-09-04
+
+### Fixed
+- More set-matching gaps found via manual "Swords to Plowshares" testing: Hareruya's "EvT" (Duel Decks: Elspeth vs. Tezzeret) and "FtV:Twenty" (From the Vault: Twenty); eBay's digit-spelled "FROM THE VAULT 20" (Scryfall spells it "Twenty"); "Revised" as a bare word (eBay/others) now resolves to Revised Edition, the near-universal collectors' shorthand for it, same precedent as the existing Alpha/Beta/Unlimited aliases.
+- "World Championships" (Card Kingdom/SCG) and Hareruya's bare "Judge"/"Judge Foil" now also bucket into the "Promotional" pseudo-set — both are year-ambiguous the same way MagicFest/Gateway/etc. already were, just with wording ("World Championships" plural, "Judge" alone) that didn't tokenize to match their real Scryfall families automatically. When a store's own text does include the year (e.g. GUF/Face to Face's "Judge Gift Cards 2013"), that more specific match still wins over the generic Promotional bucket, same as before.
+
 ## [0.85.0] - 2026-09-04
 
 ### Added
