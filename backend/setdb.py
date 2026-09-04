@@ -212,11 +212,53 @@ _NAME_ALIASES = {
     # "FMB1" ("Foil Mystery Booster 1") is a vendor shorthand for that same
     # plst printing — confirmed it's foil-only on Scryfall (finishes: [foil]).
     "fmb1": "the list",
+    # Its nonfoil counterpart, same reasoning.
+    "mb1": "the list",
     # Only ever released once (2014), so no ambiguity in dropping the year.
     "modern event deck": "modern event deck 2014",
     # Hareruya's own shorthand for the same set.
     "med14": "modern event deck 2014",
     "vvk": "duel decks: venser vs. koth",
+    # eBay's own shorthand for the original Modern Masters (2013) — Scryfall's
+    # own name for it has no "1"/year at all, unlike the numbered 2015/2017
+    # follow-ups it's otherwise easy to confuse it with.
+    "mm1": "modern masters",
+    # eBay drops "Decks" from Scryfall's own name.
+    "starter commander": "starter commander decks",
+    # eBay's own truncated/shorthand phrasing for two Marvel-related
+    # products — the base set drops "Universe" entirely (same reasoning as
+    # "marvel eternal-legal" above, just missing that suffix here), and
+    # "Marvel Co" is a seller's own cut-off "Marvel Commander".
+    "marvel eternal": "marvel universe",
+    "marvel co": "marvel super heroes commander",
+    # Reordered from Scryfall's own "Signature Spellbook: Gideon" — the
+    # token-scan match requires the same order, so this needs its own entry.
+    "gideon signature spellbook": "signature spellbook: gideon",
+    # A seller's title got cut off mid-name ("...Assassin's" with "Creed"
+    # trimmed) — Scryfall's own name for this set is just "Assassin's Creed"
+    # (no "Universes Beyond:" prefix at all, unlike Warhammer 40k above), and
+    # no other set is Assassin's-anything, so no ambiguity in restoring it.
+    "assassin's": "assassin's creed",
+    # Only one set is ever called "Source Material" — a Universes Beyond
+    # crossover naming convention that happens to only have one example.
+    "source material": "teenage mutant ninja turtles source material",
+}
+
+# Aliases that only make sense as a match on a store's *entire* structured
+# set field — never as a substring found anywhere in free text, unlike
+# _NAME_ALIASES above (which also feeds the shared token index eBay's
+# free-text scan uses). "Commander" alone is also the *format* name, so it
+# turns up constantly in eBay prose ("EDH/Commander Playtest Card", "Legal
+# in Commander") with zero relation to this one specific set — scoped to
+# match_set()'s exact-full-string fast path only (see below), and
+# deliberately excluded from _build_index's token index.
+_EXACT_ONLY_ALIASES = {
+    # Card Kingdom's oldest Commander product predates Wizards' later
+    # per-year naming, so it's the only one filed under this exact, bare
+    # category text on their site — confirmed live against two different
+    # cards (Path to Exile, Sol Ring), both landing on Commander 2011's own
+    # collector number for that card.
+    "commander": "commander 2011",
 }
 
 # code -> (code, canonical name); normalized name -> (code, canonical name);
@@ -379,7 +421,7 @@ async def match_set(raw: str | None, card_name: str | None = None) -> tuple[str,
         return match
 
     normalized = _normalize(text)
-    normalized = _NAME_ALIASES.get(normalized, normalized)
+    normalized = _NAME_ALIASES.get(normalized, _EXACT_ONLY_ALIASES.get(normalized, normalized))
     match = by_name.get(normalized)
     if match:
         return match

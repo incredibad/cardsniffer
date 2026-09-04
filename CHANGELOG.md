@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.84.1] - 2026-09-04
+
+### Fixed
+- 8 more specific set-matching gaps found via manual "Path to Exile" testing: eBay's "MM1"/"MB1" shorthand (Modern Masters / The List), truncated titles missing a trailing word ("Starter Commander" → Starter Commander Decks, "Marvel Co" → Marvel Super Heroes Commander, "Marvel Eternal" → Marvel Universe, reordered "Gideon Signature Spellbook" → Signature Spellbook: Gideon, "Source Material" → Teenage Mutant Ninja Turtles Source Material), and truncated "...Universes Beyond: Assassin's" missing "Creed" — the last one initially aliased to a name that doesn't actually exist on Scryfall (the real name has no "Universes Beyond:" prefix at all), silently failing to register until corrected.
+- Card Kingdom's bare "Commander" category (confirmed live against two different cards' collector numbers) is specifically their oldest Commander product, predating Wizards' later per-year naming — now resolves to Commander 2011. Scoped to a new exact-full-field-only alias path, not the shared free-text scanner, since bare "Commander" is also the *format* name and turns up constantly in unrelated eBay prose.
+
 ## [0.84.0] - 2026-09-04
 
 ### Added
