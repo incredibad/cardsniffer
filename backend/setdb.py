@@ -56,6 +56,18 @@ def _tokenize(text: str) -> tuple[str, ...]:
     return tuple(_TOKEN_RE.findall(text.lower()))
 
 
+# "4th Ed", "9th Ed", etc. — "Ed" as a seller's own shorthand for "Edition"
+# is unambiguous specifically in this "<ordinal> Ed" shape (nothing else in
+# an MTG listing reads that way). Expanding it up front lets every ordinal
+# from 2nd through 10th ride the existing "Nth Edition" aliases below for
+# free, instead of needing a separate "Nth Ed" entry duplicating each one.
+_ED_ABBREV_RE = re.compile(r"\b(\d+(?:st|nd|rd|th))\s+ed\b", re.IGNORECASE)
+
+
+def _expand_ed_abbreviation(text: str) -> str:
+    return _ED_ABBREV_RE.sub(lambda m: f"{m.group(1)} Edition", text)
+
+
 # A handful of colloquial/shortened set references are genuinely ambiguous
 # from text alone — multiple real Scryfall sets share the same "flagship"
 # wording, with no reliable textual signal (like "Commander") to pick
@@ -328,6 +340,10 @@ _NAME_ALIASES = {
     # eBay sellers drop the "Commander Legends:" prefix entirely — no other
     # set is Battle for Baldur's Gate-anything, so no ambiguity in restoring it.
     "battle for baldur's gate": "commander legends: battle for baldur's gate",
+    # Another eBay shorthand for the same set — drops "Legends"/"Battle for"
+    # but keeps "Commander:" — still no other Baldur's Gate-anything set to
+    # be ambiguous with.
+    "commander: baldur's gate": "commander legends: battle for baldur's gate",
 }
 
 # Aliases that only make sense as a match on a store's *entire* structured
@@ -385,12 +401,22 @@ _GENERIC_SINGLE_TOKEN_BASES = {"magic", "commander", "starter"}
 #     are — Judge promos are a genuinely different card back/border/rarity
 #     for the same card each year, so there's no way to tell which year a
 #     given copy is from without more than a store category name to go on.
+#   - "Rewards" (Hareruya) — short for "Magic Player Rewards", itself a
+#     year-suffixed family (2001-2011) that *would* auto-derive, but missing
+#     the "Magic Player" prefix words doesn't tokenize to match it.
+#   - "Gold Frame" (Hareruya) — gold-bordered cards are exclusively World
+#     Championship Deck prizes (confirmed live: Hareruya pairs this with
+#     real 1990s Pro Tour players' names, e.g. "Mark Justice", "George
+#     Baxter"), a different textual signal than "World Championships" above
+#     for the same underlying year-ambiguous family.
 _MANUAL_PROMO_PHRASES: set[tuple[str, ...]] = {
     ("promotional",),
     ("promo",),
     ("gateway",),
     ("world", "championships"),
     ("judge",),
+    ("rewards",),
+    ("gold", "frame"),
 }
 _PROMO_CODE = ("__promo__", "Promotional")
 
@@ -604,6 +630,7 @@ async def match_set(raw: str | None, card_name: str | None = None) -> tuple[str,
     await _ensure_index()
     if not raw or _index is None:
         return None
+    raw = _expand_ed_abbreviation(raw)
     by_code, by_name, token_index = _index
     text = raw.split(" — ", 1)[0].strip()
     if not text:
@@ -640,6 +667,7 @@ async def match_set_from_ebay_title(title: str | None, card_name: str | None = N
     await _ensure_index()
     if not title or _index is None:
         return None
+    title = _expand_ed_abbreviation(title)
     by_code, by_name, token_index = _index
     match = None
     for content in _EBAY_BRACKET_RE.findall(title):

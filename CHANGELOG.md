@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.86.1] - 2026-09-04
+
+### Fixed
+- More gaps found via manual "Lightning Bolt" testing: Hareruya's "Rewards" (short for the year-suffixed "Magic Player Rewards" family) and "Gold Frame" (gold-bordered cards are exclusively World Championship Deck prizes — confirmed live, Hareruya pairs it with real 1990s Pro Tour players' names) both now bucket into "Promotional". eBay's "Commander: Baldur's Gate" (another shorthand for Commander Legends: Battle for Baldur's Gate) now resolves correctly too.
+- eBay's "4th Ed"/"9th Ed"-style abbreviations (dropping "-ition") now expand to the full ordinal before matching, so any numbered edition rides the existing "Nth Edition" aliases for free instead of needing a separate "Nth Ed" entry per ordinal — per feedback that this pattern would recur across similarly-named sets.
+
 ## [0.86.0] - 2026-09-04
 
 ### Fixed
