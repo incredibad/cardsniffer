@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.88.0] - 2026-09-04
+
+### Added
+- eBay set matching now infers the set directly from a Universes Beyond flavor name (e.g. "Battle at the Big Bridge" → Final Fantasy: Through the Ages), confirmed live that a flavor name is tied to exactly one set even across multiple treatment variants (foil/showcase/etc.). Applies whether the card was searched by its flavor name directly, or by its real name with the listing titled after the flavor name instead — both now resolve reliably even when nothing else in the title gives away the set. Backed by `carddb.py`'s existing cached flavor-name data (676 pairs), no new fetch needed; a scraper-supplied bracket code can still override it. "Fatal Push" went from 155/166 to 166/166 matched, with the last remaining "Big Score" false positives eliminated entirely.
+
 ## [0.87.0] - 2026-09-04
 
 ### Fixed

@@ -51,6 +51,11 @@ _index: dict[str, list[tuple[tuple[str, ...], str]]] | None = None
 # unrelated set info just because one of its words happens to coincide with
 # a real Scryfall set code/name.
 _reverse_flavor_index: dict[str, list[str]] | None = None
+# Normalized flavor name -> the one set code it's tied to (see
+# _build_flavor_set_index) — a card searched or listed under its Universes
+# Beyond flavor name alone still gives away a specific, reliable set this
+# way, as a fallback for setdb.py when nothing else in the listing does.
+_flavor_set_index: dict[str, str] | None = None
 _lock = asyncio.Lock()
 
 
@@ -103,19 +108,26 @@ async def _fetch_oracle_names(client: httpx.AsyncClient) -> list[dict]:
 
 
 async def _fetch_flavor_pairs(client: httpx.AsyncClient) -> list[list[str]]:
-    """[flavor_name, real_name] pairs from Universes Beyond-style crossover
-    reskins (e.g. ["Megatron", "Blightsteel Colossus"]) — only ~600 of
-    ~116k printings carry one, at either the whole-card or per-face level."""
+    """[flavor_name, real_name, set_code] triples from Universes Beyond-style
+    crossover reskins (e.g. ["Megatron", "Blightsteel Colossus", "..."]) —
+    only ~600 of ~116k printings carry one, at either the whole-card or
+    per-face level. set_code powers setdb.py's own flavor-name-implies-set
+    inference (see _build_flavor_set_index) — confirmed live against
+    several sampled flavor names that each is tied to exactly one set, even
+    when the same flavor name has multiple printings (foil/showcase/etc.
+    variants all within that one set), so a card searched or listed under
+    its flavor name alone still gives away a specific, reliable set."""
     url = await _bulk_download_uri(client, "default_cards")
     pairs = []
     async for card in _iter_jsonl_gz(client, url):
+        set_code = card.get("set")
         flavor = card.get("flavor_name")
         if flavor:
-            pairs.append([flavor, card["name"]])
+            pairs.append([flavor, card["name"], set_code])
         for face in card.get("card_faces") or ():
             face_flavor = face.get("flavor_name")
             if face_flavor and face.get("name"):
-                pairs.append([face_flavor, face["name"]])
+                pairs.append([face_flavor, face["name"], set_code])
     return pairs
 
 
@@ -147,7 +159,7 @@ def _build_index(
 
     # Flavor names last: real names take priority in the (extremely
     # unlikely) event of an identical-token collision between the two sets.
-    for flavor, real in flavor_pairs:
+    for flavor, real, _set_code in flavor_pairs:
         add(flavor, real)
 
     return index
@@ -159,9 +171,17 @@ def _normalize(text: str) -> str:
 
 def _build_reverse_flavor_index(flavor_pairs: list[list[str]]) -> dict[str, list[str]]:
     reverse: dict[str, list[str]] = {}
-    for flavor, real in flavor_pairs:
+    for flavor, real, _set_code in flavor_pairs:
         reverse.setdefault(_normalize(real), []).append(flavor)
     return reverse
+
+
+def _build_flavor_set_index(flavor_pairs: list[list[str]]) -> dict[str, str]:
+    index: dict[str, str] = {}
+    for flavor, _real, set_code in flavor_pairs:
+        if set_code:
+            index.setdefault(_normalize(flavor), set_code)
+    return index
 
 
 def _load_cache() -> dict | None:
@@ -197,7 +217,7 @@ async def _fetch_and_cache() -> dict | None:
 
 
 async def _ensure_index() -> None:
-    global _index, _reverse_flavor_index
+    global _index, _reverse_flavor_index, _flavor_set_index
     if _index is not None:
         return
     async with _lock:
@@ -208,13 +228,20 @@ async def _ensure_index() -> None:
             if cache is not None:
                 _index = _build_index(cache["names"], cache["flavors"])
                 _reverse_flavor_index = _build_reverse_flavor_index(cache["flavors"])
+                _flavor_set_index = _build_flavor_set_index(cache["flavors"])
                 return
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, ValueError):
+            # ValueError covers an older on-disk cache whose flavor entries
+            # were still [flavor, real] pairs, one element short of the
+            # [flavor, real, set_code] triples added alongside _flavor_set_
+            # index — same "refetch on incompatible shape" handling as the
+            # other two.
             logger.warning("carddb: on-disk cache is an older/incompatible format, refetching")
         cache = await _fetch_and_cache()
         if cache is not None:
             _index = _build_index(cache["names"], cache["flavors"])
             _reverse_flavor_index = _build_reverse_flavor_index(cache["flavors"])
+            _flavor_set_index = _build_flavor_set_index(cache["flavors"])
 
 
 async def flavor_names_for(real_name: str) -> list[str]:
@@ -225,6 +252,17 @@ async def flavor_names_for(real_name: str) -> list[str]:
     if _reverse_flavor_index is None:
         return []
     return _reverse_flavor_index.get(_normalize(real_name), [])
+
+
+async def set_code_for_flavor_name(flavor_name: str) -> str | None:
+    """Scryfall set code a known flavor name is tied to, or None if the text
+    isn't a recognized flavor name at all (an ordinary real card name, or
+    text that's neither). See _flavor_set_index's own comment for why an
+    exact match is trusted."""
+    await _ensure_index()
+    if _flavor_set_index is None:
+        return None
+    return _flavor_set_index.get(_normalize(flavor_name))
 
 
 async def match_card_name(text: str) -> str | None:

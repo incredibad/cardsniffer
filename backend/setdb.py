@@ -680,33 +680,51 @@ async def match_set(raw: str | None, card_name: str | None = None) -> tuple[str,
 
 async def match_set_from_ebay_title(title: str | None, card_name: str | None = None) -> tuple[str, str] | None:
     """Best-effort set match for eBay, which has no structured set field at
-    all. Tries a bracketed/parenthesized set signal first (see
-    _EBAY_BRACKET_RE) — an explicit, deliberate signal from the seller — then
-    falls back to a free-text set code/name anywhere else in the title (see
-    _find_longest), excluding whatever span card_name (the search query,
-    which is also eBay's own card_name field — see ebay.py) matches, so a
-    card whose own name happens to be/contain a code-like word or set-name
-    word isn't mistaken for one. Whatever either of those find (or doesn't)
-    then goes through _resolve_ambiguous_group — see match_set's own
-    docstring on why it runs after, as a correction, rather than first.
-    Last resort is _resolve_promo_family, same as match_set's own final
-    fallback."""
+    all. Starts from whichever set a known Universes Beyond flavor name
+    implies (see below), then a bracketed/parenthesized set signal (see
+    _EBAY_BRACKET_RE) — an explicit, deliberate signal from the seller — can
+    still override that, then falls back to a free-text set code/name
+    anywhere else in the title (see _find_longest), excluding whatever span
+    card_name (the search query, which is also eBay's own card_name field —
+    see ebay.py) matches, so a card whose own name happens to be/contain a
+    code-like word or set-name word isn't mistaken for one. Whatever any of
+    those find (or doesn't) then goes through _resolve_ambiguous_group — see
+    match_set's own docstring on why it runs after, as a correction, rather
+    than first. Last resort is _resolve_promo_family, same as match_set's
+    own final fallback.
+
+    The flavor-name check runs two ways: the search itself might be for a
+    card by its flavor name directly (carddb.set_code_for_flavor_name(
+    card_name)), or the title might use the flavor name for a card searched
+    by its real name (carddb.flavor_names_for(card_name) — the same lookup
+    that also drives the masking below) — confirmed live that a flavor name
+    is tied to exactly one set even across multiple treatment variants
+    (foil/showcase/etc.), so either way is a reliable, specific answer even
+    when nothing else in the title is."""
     await _ensure_index()
     if not title or _index is None:
         return None
     title = _expand_ed_abbreviation(title)
     by_code, by_name, token_index = _index
+
     match = None
+    if card_name:
+        flavor_set_code = await carddb.set_code_for_flavor_name(card_name)
+        if flavor_set_code:
+            match = by_code.get(flavor_set_code)
+
     for content in _EBAY_BRACKET_RE.findall(title):
         content = content.strip()
         code_match = _LEADING_CODE_RE.match(content)
         if code_match:
-            match = by_code.get(code_match.group(0).lower())
-            if match:
+            bracket_match = by_code.get(code_match.group(0).lower())
+            if bracket_match:
+                match = bracket_match
                 break
         normalized = _NAME_ALIASES.get(_normalize(content), _normalize(content))
-        match = by_name.get(normalized)
-        if match:
+        bracket_match = by_name.get(normalized)
+        if bracket_match:
+            match = bracket_match
             break
 
     masked_title = title
@@ -720,6 +738,10 @@ async def match_set_from_ebay_title(title: str | None, card_name: str | None = N
         # word "Big", which is also a real Scryfall code).
         for flavor_name in await carddb.flavor_names_for(card_name):
             masked_title = _mask_first_occurrence(masked_title, flavor_name)
+            if not match:
+                flavor_set_code = await carddb.set_code_for_flavor_name(flavor_name)
+                if flavor_set_code:
+                    match = by_code.get(flavor_set_code)
     tokens = _tokenize(masked_title)
     if not match:
         match = _find_longest(tokens, token_index)
