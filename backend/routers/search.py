@@ -148,6 +148,7 @@ async def search(
                 if r.store_name == _EBAY_STORE_NAME
                 else await setdb.match_set(r.set_name, r.card_name)
             )
+        set_match = setdb.apply_promo_override(set_match)
         d["set_code"] = set_match[0] if set_match else None
         d["set_name_canonical"] = set_match[1] if set_match else None
         results.append(d)

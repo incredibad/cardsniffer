@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.85.2] - 2026-09-04
+
+### Changed
+- Year-ambiguous promo campaigns (MagicFest, Judge Gift Cards, World Championship Decks, Wizards Play Network, Friday Night Magic, Arena League) now always bucket into the single "Promotional" Set filter entry, even when a store's own text happens to include the specific year (e.g. GUF/Face to Face's "Judge Gift Cards 2013" — previously shown as its own resolved set, now folded into Promotional like every other year). One consistent bucket for "some kind of promo" rather than fragmenting the filter with a one-off entry per year a store happens to specify.
+
 ## [0.85.1] - 2026-09-04
 
 ### Fixed

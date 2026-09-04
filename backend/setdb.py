@@ -322,7 +322,15 @@ _MANUAL_PROMO_PHRASES: set[tuple[str, ...]] = {
 _PROMO_CODE = ("__promo__", "Promotional")
 
 
-def _build_promo_families(sets: list[dict]) -> set[tuple[str, ...]]:
+def _build_promo_families(sets: list[dict]) -> tuple[set[tuple[str, ...]], set[str]]:
+    """Returns (family bases, every code belonging to one) — the bases power
+    the free-text fallback trigger (_resolve_promo_family), the codes power
+    the override every one of these still goes through even once a specific
+    year *is* resolvable (see apply_promo_override): showing "Judge Gift
+    Cards 2013" as its own Set filter entry distinct from "Judge Gift Cards
+    2014" and every other year is exactly the fragmentation this whole
+    pseudo-set exists to avoid — a resolved year is still just one more
+    "some kind of promo, don't know which" card to a shopper."""
     families: dict[tuple[str, ...], set[str]] = {}
     for s in sets:
         tokens = _tokenize(s.get("name", ""))
@@ -338,7 +346,24 @@ def _build_promo_families(sets: list[dict]) -> set[tuple[str, ...]]:
         if not base or (len(base) == 1 and base[0] in _GENERIC_SINGLE_TOKEN_BASES):
             continue
         families.setdefault(base, set()).add(code)
-    return {base for base, codes in families.items() if len(codes) >= 2}
+    multi = {base: codes for base, codes in families.items() if len(codes) >= 2}
+    bases = set(multi.keys())
+    codes = {c for family_codes in multi.values() for c in family_codes}
+    return bases, codes
+
+
+def apply_promo_override(match: tuple[str, str] | None) -> tuple[str, str] | None:
+    """However a set got resolved — an authoritative scraper hint, an exact
+    text match, the free-text token scan, whatever — still collapse it to
+    the generic Promotional pseudo-set if it landed on a year-ambiguous
+    promo campaign's specific year. Call this on every resolution path's
+    result (see routers/search.py), not just _resolve_promo_family's own
+    fallback path, so a store that happens to include the year (e.g. GUF's
+    "Judge Gift Cards 2013") still doesn't fragment the Set filter with a
+    one-off year-specific entry."""
+    if match and _promo_family_codes and match[0] in _promo_family_codes:
+        return _PROMO_CODE
+    return match
 
 
 def _resolve_promo_family(tokens: tuple[str, ...]) -> tuple[str, str] | None:
@@ -358,6 +383,7 @@ _Index = tuple[
 ]
 _index: _Index | None = None
 _promo_families: set[tuple[str, ...]] | None = None
+_promo_family_codes: set[str] | None = None
 _lock = asyncio.Lock()
 
 
@@ -446,7 +472,7 @@ async def _fetch_and_cache() -> list[dict] | None:
 
 
 async def _ensure_index() -> None:
-    global _index, _promo_families
+    global _index, _promo_families, _promo_family_codes
     if _index is not None:
         return
     async with _lock:
@@ -457,7 +483,7 @@ async def _ensure_index() -> None:
             sets = await _fetch_and_cache()
         if sets is not None:
             _index = _build_index(sets)
-            _promo_families = _build_promo_families(sets)
+            _promo_families, _promo_family_codes = _build_promo_families(sets)
 
 
 async def match_set_code_hint(hint: str | None) -> tuple[str, str] | None:
