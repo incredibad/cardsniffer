@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.89.1] - 2026-09-05
+
+### Fixed
+- eBay set matching forced every result for a card with any known Universes Beyond flavor name onto that flavor name's own set, regardless of what the listing title actually said — e.g. every "Lightning Greaves" eBay result resolved to "Secret Lair Drop" (its two flavor names, "Chancla relámpago"/"Power Sneakers", are both Secret-Lair-only) even for titles plainly naming Mirrodin, Commander Masters, Starter Commander, etc. The flavor-name-implies-set fallback (added in 0.88.0) now only fires when the flavor name is actually present in that specific title, not just because the searched card happens to have one somewhere in Scryfall's data.
+
 ## [0.89.0] - 2026-09-05
 
 ### Added

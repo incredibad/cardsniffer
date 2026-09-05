@@ -793,8 +793,19 @@ async def match_set_from_ebay_title(
         # mask a known flavor name too, so its own words can't coincidentally
         # collide with an unrelated real set code/name (confirmed live:
         # "Big Bridge" resolving to the set "The Big Score" off the bare
-        # word "Big", which is also a real Scryfall code).
+        # word "Big", which is also a real Scryfall code). Only when the
+        # flavor name is actually present in this title, though — a card
+        # with a known flavor name isn't necessarily *this* listing's own
+        # printing, and treating "has a flavor name at all" as "is titled
+        # under it" forced every listing for such a card onto that flavor
+        # name's set regardless of what the title actually said (confirmed
+        # live: every "Lightning Greaves" eBay result resolving to Secret
+        # Lair Drop just because the card *has* Secret-Lair-only flavor
+        # names "Chancla relámpago"/"Power Sneakers", even titles plainly
+        # naming Mirrodin, Commander Masters, etc.).
         for flavor_name in await carddb.flavor_names_for(card_name):
+            if flavor_name.lower() not in masked_title.lower():
+                continue
             masked_title = _mask_first_occurrence(masked_title, flavor_name)
             if not match:
                 flavor_set_code = await carddb.set_code_for_flavor_name(flavor_name)
