@@ -144,9 +144,9 @@ async def search(
         set_match = await setdb.match_set_code_hint(r.set_code_hint)
         if set_match is None:
             set_match = (
-                await setdb.match_set_from_ebay_title(r.card_name, q)
+                await setdb.match_set_from_ebay_title(r.card_name, q, r.collector_number)
                 if r.store_name == _EBAY_STORE_NAME
-                else await setdb.match_set(r.set_name, r.card_name)
+                else await setdb.match_set(r.set_name, r.card_name, r.collector_number)
             )
         set_match = setdb.apply_promo_override(set_match)
         d["set_code"] = set_match[0] if set_match else None

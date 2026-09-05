@@ -135,13 +135,13 @@ def _build_prefix_ambiguities(sets: list[dict]) -> list[tuple[tuple[str, ...], t
     return [(base, tuple(codes)) for base, codes in groups.items() if len(codes) >= 2]
 
 _CARDS_SEARCH_URL = "https://api.scryfall.com/cards/search"
-# card name -> set of codes it's ever been printed in, or None if the
-# lookup failed. Only ever populated on the rare ambiguous-group hit, so a
-# process-lifetime cache (no disk persistence, no TTL) is plenty — nowhere
-# near enough volume to matter, and printings only ever get added to, never
-# removed, so staleness isn't a correctness concern the way it is for the
-# main set-name cache above.
-_printings_cache: dict[str, set[str] | None] = {}
+# card name -> every (set code, collector number) it's ever been printed
+# under, or None if the lookup failed. Only ever populated on the rare
+# ambiguous-group/List-reprint hit, so a process-lifetime cache (no disk
+# persistence, no TTL) is plenty — nowhere near enough volume to matter, and
+# printings only ever get added to, never removed, so staleness isn't a
+# correctness concern the way it is for the main set-name cache above.
+_printings_cache: dict[str, list[tuple[str, str]] | None] = {}
 _printings_lock = asyncio.Lock()
 
 
@@ -157,14 +157,14 @@ def _mask_first_occurrence(text: str, needle: str) -> str:
     return text[:idx] + (" " * len(needle)) + text[idx + len(needle):]
 
 
-async def _printings_for_card(card_name: str) -> set[str] | None:
+async def _printings_for_card(card_name: str) -> list[tuple[str, str]] | None:
     key = _normalize(card_name)
     if key in _printings_cache:
         return _printings_cache[key]
     async with _printings_lock:
         if key in _printings_cache:
             return _printings_cache[key]
-        codes: set[str] = set()
+        printings: list[tuple[str, str]] = []
         url, params = _CARDS_SEARCH_URL, {"q": f'!"{card_name}"', "unique": "prints"}
         try:
             async with httpx.AsyncClient(timeout=30.0, headers=_HEADERS) as client:
@@ -174,15 +174,19 @@ async def _printings_for_card(card_name: str) -> set[str] | None:
                         break
                     resp.raise_for_status()
                     data = resp.json()
-                    codes.update(c["set"] for c in data.get("data", []) if c.get("set"))
+                    printings.extend(
+                        (c["set"], c["collector_number"])
+                        for c in data.get("data", [])
+                        if c.get("set") and c.get("collector_number")
+                    )
                     url = data.get("next_page")  # already a full URL; no more params needed
                     params = None
         except Exception as e:
             logger.warning(f"setdb: failed to fetch printings for {card_name!r}: {e}")
             _printings_cache[key] = None
             return None
-        _printings_cache[key] = codes
-        return codes
+        _printings_cache[key] = printings
+        return printings
 
 
 async def _resolve_ambiguous_group(
@@ -210,13 +214,52 @@ async def _resolve_ambiguous_group(
         printings = await _printings_for_card(card_name)
         if not printings:
             continue
-        printed_in = [c for c in candidates if c in printings]
+        printed_codes = {s for s, _ in printings}
+        printed_in = [c for c in candidates if c in printed_codes]
         if len(printed_in) == 1:
             by_code, _, _ = _index
             return by_code.get(printed_in[0])
         # 0 or 2+ candidates actually printed it — still ambiguous for this
         # group; keep checking the rest rather than giving up immediately.
     return normal_match
+
+
+# "The List"/Mystery Booster-style reprints keep the *origin* printing's own
+# collector number, prefixed with that origin set's code (e.g. "2XM-267" for
+# a Double Masters 2X-sourced reprint) — confirmed live that every one of
+# The List's ~5,600 prints follows this exact "<code>-<number>" shape, unlike
+# every other current set (checked live: Secret Lair Drop's own handful of
+# dash-suffixed collector numbers, e.g. "IFIYW-4", use an invented drop
+# nickname that's never itself a real Scryfall set code — the two shapes
+# don't collide). Needed because a store's own set text can say something
+# else entirely for one of these — confirmed live on Hareruya, which usually
+# gets it right ("The List"/"MB1") but mislabeled one Lightning Greaves copy
+# "[SLD]" (apparently tagging it by the Secret Lair Commander Deck box it
+# shipped in rather than the card's actual Scryfall set). Verified against
+# this specific card's own real printings (not just "is the prefix a real
+# code") before trusting it, since a store's collector-number field can
+# itself be wrong in ways no pattern match alone could catch (seen live: a
+# Hareruya "NCC-382" for the same card that matches no real printing of it
+# at all, in The List or anywhere else — left unresolved rather than forced
+# into a second wrong guess).
+_LIST_COLLECTOR_RE = re.compile(r"^([A-Za-z0-9]+)-\d+[a-z★]*$", re.IGNORECASE)
+
+
+async def _resolve_list_reprint(
+    card_name: str | None, collector_number: str | None, by_code: dict[str, tuple[str, str]]
+) -> tuple[str, str] | None:
+    if not card_name or not collector_number:
+        return None
+    m = _LIST_COLLECTOR_RE.match(collector_number.strip())
+    if not m or m.group(1).lower() not in by_code:
+        return None
+    printings = await _printings_for_card(card_name)
+    if not printings:
+        return None
+    target = collector_number.strip().lower()
+    if not any(s == "plst" and cn.lower() == target for s, cn in printings):
+        return None
+    return by_code.get("plst")
 
 # Colloquial/vendor set names that don't match Scryfall's own canonical name
 # for the same set — confirmed live against Card Kingdom, which uses these
@@ -635,7 +678,9 @@ async def match_set_code_hint(hint: str | None) -> tuple[str, str] | None:
     return by_code.get(hint.lower())
 
 
-async def match_set(raw: str | None, card_name: str | None = None) -> tuple[str, str] | None:
+async def match_set(
+    raw: str | None, card_name: str | None = None, collector_number: str | None = None
+) -> tuple[str, str] | None:
     """raw may be a full set name or a bare set code, either with a
     " — <treatment>" suffix already appended by the scraper (see module
     docstring) — returns (code, canonical_name), or None if nothing in
@@ -681,12 +726,17 @@ async def match_set(raw: str | None, card_name: str | None = None) -> tuple[str,
         match = _find_longest(tokens, token_index)
 
     match = await _resolve_ambiguous_group(tokens, card_name, match)
+    list_match = await _resolve_list_reprint(card_name, collector_number, by_code)
+    if list_match and (not match or match[0] != list_match[0]):
+        match = list_match
     if match:
         return match
     return _resolve_promo_family(tokens)
 
 
-async def match_set_from_ebay_title(title: str | None, card_name: str | None = None) -> tuple[str, str] | None:
+async def match_set_from_ebay_title(
+    title: str | None, card_name: str | None = None, collector_number: str | None = None
+) -> tuple[str, str] | None:
     """Best-effort set match for eBay, which has no structured set field at
     all. Starts from whichever set a known Universes Beyond flavor name
     implies (see below), then a bracketed/parenthesized set signal (see
@@ -755,6 +805,9 @@ async def match_set_from_ebay_title(title: str | None, card_name: str | None = N
         match = _find_longest(tokens, token_index)
 
     match = await _resolve_ambiguous_group(tokens, card_name, match)
+    list_match = await _resolve_list_reprint(card_name, collector_number, by_code)
+    if list_match and (not match or match[0] != list_match[0]):
+        match = list_match
     if match:
         return match
     return _resolve_promo_family(tokens)

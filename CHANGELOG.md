@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.89.0] - 2026-09-05
+
+### Added
+- Set matching now detects "The List" reprints (e.g. Lightning Greaves from Double Masters 2X, collector number "2XM-267") by their origin-set-prefixed collector number, even when a store's own set text says something else entirely — confirmed live that Hareruya mislabels one such copy "[SLD]" (tagging it by the Secret Lair Commander Deck box it shipped in, rather than its actual Scryfall set), causing it to wrongly show up under the "Secret Lair Drop" filter. Verified against the specific card's own real printings (not just "does the collector number look like one") before overriding, so a store's own bad/nonsensical collector number data isn't traded for a different, still-wrong guess.
+
 ## [0.88.1] - 2026-09-05
 
 ### Fixed
