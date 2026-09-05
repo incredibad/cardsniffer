@@ -362,6 +362,14 @@ _NAME_ALIASES = {
     # eBay drops the "House of Horror" middle — still the only "Duskmourn
     # Commander"-shaped set, no ambiguity in restoring it.
     "duskmourn commander": "duskmourn: house of horror commander",
+    # Card Kingdom's own umbrella category for these four premium reprint
+    # products, none of which keep Scryfall's own name at all — confirmed
+    # live against cardkingdom.com/mtg/masterpiece-series, whose four
+    # sub-pages match these four real Scryfall sets one-to-one.
+    "masterpiece series: expeditions": "zendikar expeditions",
+    "masterpiece series: inventions": "kaladesh inventions",
+    "masterpiece series: invocations": "amonkhet invocations",
+    "masterpiece series: mythic edition": "mythic edition",
 }
 
 # Aliases that only make sense as a match on a store's *entire* structured

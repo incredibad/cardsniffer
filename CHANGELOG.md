@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented here.
 
+## [0.88.1] - 2026-09-05
+
+### Fixed
+- Card Kingdom's "Masterpiece Series" category text (e.g. "Masterpiece Series: Inventions") went undetected — none of its four sub-names ("Expeditions", "Inventions", "Invocations", "Mythic Edition") match Scryfall's own set name for the same set (e.g. "Kaladesh Inventions"), so the free-text scan never had a contiguous token run to match. Added the four aliases directly (confirmed live against Card Kingdom's own masterpiece-series sub-pages, each mapping one-to-one to a real Scryfall set).
+
 ## [0.88.0] - 2026-09-04
 
 ### Added
