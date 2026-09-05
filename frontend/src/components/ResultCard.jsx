@@ -2,9 +2,11 @@ import { Sparkles } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import { formatPrice } from "../formatPrice";
+import { formatListedAt } from "../formatDate";
 import TruncatedTooltip from "./TruncatedTooltip";
 import Tooltip from "./Tooltip";
 import SetDebugTooltipContent from "./SetDebugTooltipContent";
+import EbayListingTooltipContent from "./EbayListingTooltipContent";
 import FoilOverlay from "./FoilOverlay";
 import StoreBadge from "./StoreBadge";
 import CartBuyButtons from "./CartBuyButtons";
@@ -26,6 +28,7 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
     product_url,
     store_name,
     shipping_price,
+    listed_at,
   } = result;
   const storeMeta = getStoreMeta(store_name);
   const displayPrice = pricingMode === "original" ? price_original : price;
@@ -96,6 +99,13 @@ export default function ResultCard({ result, pricingMode = "aud" }) {
               {subtitleText}
             </p>
           </Tooltip>
+          {listed_at && (
+            <Tooltip className="block w-full min-w-0" content={<EbayListingTooltipContent result={result} />}>
+              <p className="truncate cursor-help text-[11px] sm:text-xs text-slate-500 dark:text-zinc-500">
+                Listed {formatListedAt(listed_at)}
+              </p>
+            </Tooltip>
+          )}
           {foil && (
             <span className="chip mt-1 bg-violet-100 text-violet-700 inline-flex items-center gap-1 w-fit dark:bg-violet-500/15 dark:text-violet-300">
               <Sparkles size={11} /> {foil_treatment || "Foil"}

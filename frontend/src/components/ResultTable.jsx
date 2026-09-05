@@ -2,9 +2,11 @@ import { Sparkles } from "lucide-react";
 import { getStoreMeta } from "../storeMeta";
 import { formatQty } from "../formatQty";
 import { formatPrice } from "../formatPrice";
+import { formatListedAt } from "../formatDate";
 import TruncatedTooltip from "./TruncatedTooltip";
 import Tooltip from "./Tooltip";
 import SetDebugTooltipContent from "./SetDebugTooltipContent";
+import EbayListingTooltipContent from "./EbayListingTooltipContent";
 import FoilOverlay from "./FoilOverlay";
 import StoreBadge from "./StoreBadge";
 import CartBuyButtons from "./CartBuyButtons";
@@ -40,6 +42,14 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
         const setText = `${r.set_name_canonical || "Undetected"}${
           r.collector_number ? ` · #${r.collector_number}` : ""
         }`;
+
+        const listedAtEl = r.listed_at && (
+          <Tooltip className="block w-full min-w-0" content={<EbayListingTooltipContent result={r} />}>
+            <p className="truncate cursor-help text-xs text-slate-500 dark:text-zinc-500">
+              Listed {formatListedAt(r.listed_at)}
+            </p>
+          </Tooltip>
+        );
 
         const postageEl = r.shipping_price != null && (
           <span className="text-[11px] text-slate-400 dark:text-zinc-500 whitespace-nowrap">
@@ -89,6 +99,7 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
                   <Tooltip className="block w-full min-w-0" content={<SetDebugTooltipContent result={r} />}>
                     <p className="truncate cursor-help text-xs text-slate-500 dark:text-zinc-500">{setText}</p>
                   </Tooltip>
+                  {listedAtEl}
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5 flex-wrap min-w-0">
@@ -128,6 +139,7 @@ export default function ResultTable({ results, pricingMode = "aud" }) {
                 <Tooltip className="block w-full min-w-0" content={<SetDebugTooltipContent result={r} />}>
                   <p className="truncate cursor-help text-xs text-slate-500 dark:text-zinc-500">{setText}</p>
                 </Tooltip>
+                {listedAtEl}
               </div>
               <div className="w-32 shrink-0">{conditionChips}</div>
               <div className="w-24 shrink-0 text-right">

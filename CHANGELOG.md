@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.90.0] - 2026-09-05
+
+### Added
+- eBay results show a "Listed <date> (<ago>)" line under the set line again — dropped when the subtitle became a fixed "always show the resolved set" line, since eBay had nothing else to put it. Hovering it shows the same seller/postage/delivery info as hovering the eBay logo (same tooltip content, reused).
+- The "ago" suffix (also used for cart "added" times) now widens its unit as the gap grows instead of just counting up days forever: minutes under an hour, hours up to a day, days up to two weeks, weeks up to about a month, then months indefinitely.
+
 ## [0.89.1] - 2026-09-05
 
 ### Fixed
